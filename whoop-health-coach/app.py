@@ -23,9 +23,8 @@ from coach import (
 app = Flask(__name__)
 
 
-
 # =========================
-# INIT DATABASE
+# DATABASE INIT
 # =========================
 
 init_db()
@@ -50,9 +49,6 @@ WHOOP_CLIENT_SECRET = os.environ.get(
 
 
 
-# 第一次初始化使用
-# 后续使用数据库最新token
-
 WHOOP_REFRESH_TOKEN = os.environ.get(
     "WHOOP_REFRESH_TOKEN",
     ""
@@ -64,7 +60,6 @@ API_SECRET = os.environ.get(
     "API_SECRET",
     ""
 ).strip()
-
 
 
 
@@ -81,11 +76,9 @@ WHOOP_API_BASE = (
 
 
 
-
 # =========================
 # TOKEN CACHE
 # =========================
-
 
 ACCESS_TOKEN = None
 
@@ -97,12 +90,12 @@ TOKEN_LOCK = threading.Lock()
 
 
 
-
 # =========================
 # API KEY
 # =========================
 
 def check_api_key():
+
 
     key = request.headers.get(
         "X-API-Key"
@@ -114,12 +107,9 @@ def check_api_key():
 
 
 
-
-
 # =========================
 # CALLBACK
 # =========================
-
 
 @app.route("/callback")
 def callback():
@@ -133,17 +123,15 @@ def callback():
     if not code:
 
         return jsonify(
-
             {
                 "error":
                 "missing code"
             }
-
         )
 
 
-    return jsonify(
 
+    return jsonify(
         {
             "message":
             "code received",
@@ -151,18 +139,14 @@ def callback():
             "code":
             code
         }
-
     )
 
 
 
 
-
-
 # =========================
-# GET TOKEN BY CODE
+# AUTH CODE TOKEN
 # =========================
-
 
 @app.route("/whoop/token")
 def whoop_token():
@@ -176,15 +160,11 @@ def whoop_token():
     if not code:
 
         return jsonify(
-
             {
                 "error":
                 "missing code"
             }
-
         ),400
-
-
 
 
 
@@ -245,45 +225,29 @@ def whoop_token():
     )
 
 
+
     return jsonify(
         r.json()
     )
-
-
-
-
-
 
 
 # =========================
 # REFRESH ACCESS TOKEN
 # =========================
 
-
 def refresh_access_token(force=False):
 
-
     global ACCESS_TOKEN
-
     global ACCESS_TOKEN_EXPIRE
-
     global WHOOP_REFRESH_TOKEN
 
 
 
-
-
     print(
-
         "REFRESH CHECK:",
-
         force,
-
         ACCESS_TOKEN is not None
-
     )
-
-
 
 
 
@@ -294,9 +258,7 @@ def refresh_access_token(force=False):
         and ACCESS_TOKEN
 
         and time.time()
-
         <
-
         ACCESS_TOKEN_EXPIRE - 300
 
     ):
@@ -306,16 +268,22 @@ def refresh_access_token(force=False):
 
 
 
-
     with TOKEN_LOCK:
 
 
 
+        # =====================
+        # Token来源
+        #
+        # 1. PostgreSQL 最新token
+        # 2. Environment备用
+        #
+        # =====================
+
+
         refresh_token = ""
 
-
         db_token = None
-
 
 
 
@@ -323,24 +291,24 @@ def refresh_access_token(force=False):
 
             db_token = load_refresh_token()
 
-
         except Exception as e:
 
             print(
-                "DB TOKEN ERROR:",
+                "LOAD TOKEN ERROR:",
                 e
             )
-
-
 
 
 
         if db_token:
 
 
-            refresh_token = db_token.strip()
+            refresh_token = (
+                db_token.strip()
+            )
 
-            token_source = "DATABASE"
+
+            source = "DATABASE"
 
 
 
@@ -351,7 +319,8 @@ def refresh_access_token(force=False):
                 WHOOP_REFRESH_TOKEN.strip()
             )
 
-            token_source = "ENVIRONMENT"
+
+            source = "ENVIRONMENT"
 
 
 
@@ -359,18 +328,16 @@ def refresh_access_token(force=False):
 
         if not refresh_token:
 
-
             raise Exception(
-                "Missing refresh token"
+                "Missing WHOOP refresh token"
             )
-
 
 
 
 
         print(
             "TOKEN SOURCE:",
-            token_source
+            source
         )
 
 
@@ -384,7 +351,6 @@ def refresh_access_token(force=False):
         print(
             "START WHOOP REFRESH"
         )
-
 
 
 
@@ -438,12 +404,10 @@ def refresh_access_token(force=False):
 
 
 
-
         print(
             "REFRESH STATUS:",
             r.status_code
         )
-
 
 
         print(
@@ -453,20 +417,17 @@ def refresh_access_token(force=False):
 
 
 
-
-
         r.raise_for_status()
 
 
 
 
-        data = r.json()
+        result = r.json()
 
 
 
 
-        ACCESS_TOKEN = data["access_token"]
-
+        ACCESS_TOKEN = result["access_token"]
 
 
 
@@ -477,7 +438,7 @@ def refresh_access_token(force=False):
             +
 
             int(
-                data.get(
+                result.get(
                     "expires_in",
                     3600
                 )
@@ -488,11 +449,11 @@ def refresh_access_token(force=False):
 
 
 
+        # WHOOP refresh token rotation
 
-        new_refresh_token = data.get(
+        new_refresh_token = result.get(
             "refresh_token"
         )
-
 
 
 
@@ -515,8 +476,6 @@ def refresh_access_token(force=False):
 
 
 
-
-
         print(
             "WHOOP TOKEN REFRESH SUCCESS"
         )
@@ -532,9 +491,8 @@ def refresh_access_token(force=False):
 
 
 # =========================
-# WHOOP API
+# WHOOP API GET
 # =========================
-
 
 def whoop_get(endpoint):
 
@@ -568,15 +526,12 @@ def whoop_get(endpoint):
 
 
 
-
-
     if r.status_code == 401:
 
 
         token = refresh_access_token(
             True
         )
-
 
 
         r = requests.get(
@@ -592,11 +547,12 @@ def whoop_get(endpoint):
                 f"Bearer {token}"
 
 
-            }
+            },
 
+
+            timeout=30
 
         )
-
 
 
 
@@ -621,107 +577,228 @@ def whoop_get(endpoint):
 
 
 # =========================
-# EXTRACT DAILY DATA
+# EXTRACT DAILY METRICS
 # =========================
-
 
 def extract_daily_metrics(data):
 
 
+    result = {}
 
-    recovery_record = (
 
-        data
 
-        .get(
-            "recovery",
+    # Recovery
+
+    try:
+
+        recovery = (
+
+            data
+
+            .get(
+                "recovery",
+                {}
+            )
+
+            .get(
+                "records",
+                [{}]
+            )[0]
+
+        )
+
+
+        score = recovery.get(
+            "score",
             {}
         )
 
-        .get(
-            "records",
-            [{}]
-        )[0]
 
-    )
-
-
-
-    score = recovery_record.get(
-        "score",
-        {}
-    )
+        result["recovery_score"] = (
+            score.get(
+                "recovery_score"
+            )
+        )
 
 
-
-    return {
-
-
-        "recovery_score":
-
-        score.get(
-            "recovery_score"
-        ),
+        result["hrv"] = (
+            score.get(
+                "hrv_rmssd_milli"
+            )
+        )
 
 
+        result["resting_heart_rate"] = (
+            score.get(
+                "resting_heart_rate"
+            )
+        )
 
-        "hrv":
 
-        score.get(
-            "hrv_rmssd_milli"
-        ),
+    except Exception:
+
+
+        result["recovery_score"] = None
+
+        result["hrv"] = None
+
+        result["resting_heart_rate"] = None
 
 
 
-        "resting_heart_rate":
-
-        score.get(
-            "resting_heart_rate"
-        ),
 
 
 
-        "sleep_score":
+    # Sleep
 
-        None,
+    try:
+
+        sleep = (
+
+            data
+
+            .get(
+                "sleep",
+                {}
+            )
+
+            .get(
+                "records",
+                [{}]
+            )[0]
+
+        )
+
+
+        sleep_score = (
+
+            sleep
+
+            .get(
+                "score",
+                {}
+            )
+
+            .get(
+                "sleep_performance_percentage"
+            )
+
+        )
+
+
+        duration = (
+
+            sleep
+
+            .get(
+                "score",
+                {}
+            )
+
+            .get(
+                "sleep_duration_ms"
+            )
+
+        )
 
 
 
-        "sleep_duration":
-
-        None,
+        result["sleep_score"] = sleep_score
 
 
 
-        "cycle_strain":
+        if duration:
 
-        None,
+            result["sleep_duration"] = (
+                duration / 3600000
+            )
+
+        else:
+
+            result["sleep_duration"] = None
 
 
 
-        "workout_data":
+    except Exception:
+
+
+        result["sleep_score"] = None
+
+        result["sleep_duration"] = None
+
+
+
+
+
+    # Cycle Strain
+
+    try:
+
+
+        cycle = (
+
+            data
+
+            .get(
+                "cycle",
+                {}
+            )
+
+            .get(
+                "records",
+                [{}]
+            )[0]
+
+        )
+
+
+        result["cycle_strain"] = (
+
+            cycle
+
+            .get(
+                "score",
+                {}
+            )
+
+            .get(
+                "strain"
+            )
+
+        )
+
+
+    except Exception:
+
+
+        result["cycle_strain"] = None
+
+
+
+
+
+    # Workout
+
+    result["workout_data"] = (
 
         data.get(
             "workout",
             {}
         )
 
-    }
+    )
 
 
 
-
-
+    return result
 
 
 # =========================
 # TODAY REPORT
 # =========================
 
-
 @app.route("/whoop/today")
 def today():
-
 
 
     if not check_api_key():
@@ -738,6 +815,11 @@ def today():
 
 
 
+
+
+    # =====================
+    # 获取 WHOOP 数据
+    # =====================
 
 
     data = {
@@ -773,6 +855,7 @@ def today():
             "/activity/workout"
         )
 
+
     }
 
 
@@ -780,27 +863,54 @@ def today():
 
 
 
+    # =====================
     # 保存每日数据
-
-    metrics = extract_daily_metrics(
-        data
-    )
+    # =====================
 
 
-    save_daily_data(
-        metrics
-    )
+    try:
+
+
+        metrics = extract_daily_metrics(
+            data
+        )
+
+
+        save_daily_data(
+            metrics
+        )
+
+
+        print(
+            "DAILY DATA SAVED"
+        )
+
+
+    except Exception as e:
+
+
+        print(
+            "SAVE DAILY DATA ERROR:",
+            e
+        )
 
 
 
 
 
 
-    # AI分析
+
+    # =====================
+    # AI 健康报告
+    # =====================
+
 
     report = generate_health_report(
+
         data
+
     )
+
 
 
 
@@ -811,15 +921,40 @@ def today():
 
         {
 
+
             "whoop_data":
+
             data,
 
 
+
             "coach_report":
+
             report
+
 
         }
 
+    )
+
+
+
+
+
+
+
+# =========================
+# HEALTH CHECK
+# =========================
+
+
+@app.route("/")
+def home():
+
+
+    return (
+
+        "WHOOP Health Coach Running"
 
     )
 
@@ -829,19 +964,8 @@ def today():
 
 
 # =========================
-# HOME
+# START SERVER
 # =========================
-
-
-@app.route("/")
-def home():
-
-    return "WHOOP Health Coach Running"
-
-
-
-
-
 
 
 if __name__ == "__main__":
