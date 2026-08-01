@@ -50,7 +50,7 @@ WHOOP_API_BASE = (
 
 
 # =========================
-# Token cache
+# Token Cache
 # =========================
 
 ACCESS_TOKEN = None
@@ -62,7 +62,7 @@ TOKEN_LOCK = threading.Lock()
 
 
 # =========================
-# API KEY
+# API Key Check
 # =========================
 
 def check_api_key():
@@ -76,7 +76,7 @@ def check_api_key():
 
 
 # =========================
-# OAuth callback
+# OAuth Callback
 # =========================
 
 @app.route("/callback")
@@ -109,7 +109,7 @@ def callback():
 
 
 # =========================
-# First token exchange
+# Authorization Code -> Token
 # =========================
 
 @app.route("/whoop/token")
@@ -118,6 +118,7 @@ def whoop_token():
     code = request.args.get(
         "code"
     )
+
 
     if not code:
 
@@ -158,7 +159,9 @@ def whoop_token():
             "Content-Type":
             "application/x-www-form-urlencoded"
 
-        }
+        },
+
+        timeout=30
 
     )
 
@@ -179,17 +182,201 @@ def whoop_token():
 
 
 # =========================
-# Refresh access token
+# Refresh Token
 # =========================
 
- File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
-  File "/opt/render/project/src/whoop-health-coach/app.py", line 245
-    if not WHOOP_REFRESH_TOKEN:
-                               ^
-IndentationError: unindent does not match any outer indentation level
-==> Exited with status 1
-==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
-==> Running 'gunicorn app:app'
+def refresh_access_token(force=False):
+
+    global ACCESS_TOKEN
+    global ACCESS_TOKEN_EXPIRE
+    global WHOOP_REFRESH_TOKEN
+
+
+    print(
+        "REFRESH CHECK:",
+        "force=",
+        force,
+        "cached=",
+        ACCESS_TOKEN is not None
+    )
+
+
+    if (
+
+        not force
+
+        and ACCESS_TOKEN
+
+        and time.time()
+        <
+        ACCESS_TOKEN_EXPIRE - 300
+
+    ):
+
+        print(
+            "USING CACHE TOKEN"
+        )
+
+        return ACCESS_TOKEN
+
+
+
+    with TOKEN_LOCK:
+
+
+        if (
+
+            not force
+
+            and ACCESS_TOKEN
+
+            and time.time()
+            <
+            ACCESS_TOKEN_EXPIRE - 300
+
+        ):
+
+            return ACCESS_TOKEN
+
+
+
+        if not WHOOP_REFRESH_TOKEN:
+
+            raise RuntimeError(
+                "Missing WHOOP_REFRESH_TOKEN"
+            )
+
+
+
+        refresh_token = (
+            WHOOP_REFRESH_TOKEN.strip()
+        )
+
+
+        print(
+            "CLIENT ID:",
+            WHOOP_CLIENT_ID[:8]
+        )
+
+
+        print(
+            "SECRET LENGTH:",
+            len(WHOOP_CLIENT_SECRET)
+        )
+
+
+        print(
+            "REFRESH TOKEN LENGTH:",
+            len(refresh_token)
+        )
+
+
+        print(
+            "START WHOOP REFRESH"
+        )
+
+
+
+        r = requests.post(
+
+            WHOOP_TOKEN_URL,
+
+            data={
+
+                "grant_type":
+                "refresh_token",
+
+                "refresh_token":
+                refresh_token,
+
+                "client_id":
+                WHOOP_CLIENT_ID,
+
+                "client_secret":
+                WHOOP_CLIENT_SECRET
+
+            },
+
+            headers={
+
+                "Content-Type":
+                "application/x-www-form-urlencoded",
+
+                "Accept":
+                "application/json"
+
+            },
+
+            timeout=30
+
+        )
+
+
+        print(
+            "REFRESH STATUS:",
+            r.status_code
+        )
+
+
+        print(
+            "REFRESH RESPONSE:",
+            r.text[:500]
+        )
+
+
+
+        r.raise_for_status()
+
+
+
+        data = r.json()
+
+
+
+        ACCESS_TOKEN = (
+            data["access_token"]
+        )
+
+
+        ACCESS_TOKEN_EXPIRE = (
+
+            time.time()
+
+            +
+
+            int(
+                data.get(
+                    "expires_in",
+                    3600
+                )
+            )
+
+        )
+
+
+
+        if data.get(
+            "refresh_token"
+        ):
+
+            WHOOP_REFRESH_TOKEN = (
+                data["refresh_token"]
+            )
+
+
+            print(
+                "REFRESH TOKEN ROTATED"
+            )
+
+
+
+        print(
+            "WHOOP TOKEN REFRESH SUCCESS"
+        )
+
+
+
+        return ACCESS_TOKEN
 
 
 
@@ -206,31 +393,32 @@ def whoop_get(endpoint):
 
     r = requests.get(
 
-
         WHOOP_API_BASE
         +
         endpoint,
 
-
         headers={
-
 
             "Authorization":
             f"Bearer {token}",
 
-
             "Accept":
             "application/json"
 
+        },
 
-        }
-
+        timeout=30
 
     )
 
 
 
     if r.status_code == 401:
+
+
+        print(
+            "TOKEN EXPIRED, FORCE REFRESH"
+        )
 
 
         token = refresh_access_token(
@@ -240,24 +428,21 @@ def whoop_get(endpoint):
 
         r = requests.get(
 
-
             WHOOP_API_BASE
             +
             endpoint,
 
-
             headers={
-
 
                 "Authorization":
                 f"Bearer {token}",
 
-
                 "Accept":
                 "application/json"
 
+            },
 
-            }
+            timeout=30
 
         )
 
@@ -270,12 +455,8 @@ def whoop_get(endpoint):
 
 
     print(
-        "WHOOP RESPONSE:"
-    )
-
-
-    print(
-        r.text[:500]
+        "WHOOP RESPONSE:",
+        r.text[:300]
     )
 
 
@@ -297,7 +478,6 @@ def today():
 
 
     if not check_api_key():
-
 
         return jsonify(
             {
@@ -330,7 +510,7 @@ def today():
         "sleep":
 
         whoop_get(
-            "/activity/sleep"
+            "/sleep"
         ),
 
 
@@ -338,7 +518,7 @@ def today():
         "workout":
 
         whoop_get(
-            "/activity/workout"
+            "/workout"
         )
 
 
@@ -353,17 +533,28 @@ def today():
 
 
 # =========================
+# Health Check
+# =========================
 
 @app.route("/")
 def home():
 
-    return "WHOOP Health Coach Running"
+    return (
+        "WHOOP Health Coach Running"
+    )
 
 
+
+# =========================
+# Run
+# =========================
 
 if __name__ == "__main__":
 
     app.run(
+
         host="0.0.0.0",
+
         port=10000
+
     )
