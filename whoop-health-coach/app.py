@@ -25,6 +25,8 @@ def refresh_token():
         }
     )
 
+    print(r.text)
+
     r.raise_for_status()
 
     return r.json()["access_token"]
