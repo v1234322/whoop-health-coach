@@ -140,7 +140,26 @@ def whoop_token():
 
         return jsonify({
             "error": "missing code"
-        }),400
+        }), 400
+
+
+
+    client_id = os.environ.get(
+        "WHOOP_CLIENT_ID"
+    )
+
+    client_secret = os.environ.get(
+        "WHOOP_CLIENT_SECRET"
+    )
+
+
+    if not client_id or not client_secret:
+
+        return jsonify({
+
+            "error": "missing WHOOP client credentials"
+
+        }), 500
 
 
 
@@ -150,17 +169,17 @@ def whoop_token():
 
         data={
 
-            "grant_type": "authorization_code",
+            "grant_type":
+            "authorization_code",
 
-            "code": code,
+            "code":
+            code,
 
-            "client_id": os.environ.get(
-                "WHOOP_CLIENT_ID"
-            ),
+            "client_id":
+            client_id,
 
-            "client_secret": os.environ.get(
-                "WHOOP_CLIENT_SECRET"
-            ),
+            "client_secret":
+            client_secret,
 
             "redirect_uri":
             "https://whoop-health-coach.onrender.com/callback"
@@ -177,12 +196,11 @@ def whoop_token():
     )
 
 
-    print("TOKEN RESPONSE:")
+    print("WHOOP TOKEN RESPONSE:")
     print(r.text)
 
 
     return jsonify(r.json())
-
 
 # =========================
 # WHOOP 今日数据
