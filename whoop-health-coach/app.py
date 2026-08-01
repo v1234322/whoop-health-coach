@@ -147,9 +147,7 @@ def refresh_token():
 # WHOOP API
 # =====================
 
-def whoop_get(endpoint):
-
-    token = refresh_token()
+def whoop_get(endpoint, token):
 
     r = requests.get(
         "https://api.prod.whoop.com/developer/v2" + endpoint,
@@ -157,6 +155,8 @@ def whoop_get(endpoint):
             "Authorization": f"Bearer {token}"
         }
     )
+
+    r.raise_for_status()
 
     return r.json()
 
@@ -175,19 +175,23 @@ def today():
         }),401
 
 
+    # 只刷新一次
+    token = refresh_token()
+
+
     data = {
 
         "recovery":
-        whoop_get("/recovery"),
+        whoop_get("/recovery", token),
 
         "cycle":
-        whoop_get("/cycle"),
+        whoop_get("/cycle", token),
 
         "sleep":
-        whoop_get("/sleep"),
+        whoop_get("/sleep", token),
 
         "workout":
-        whoop_get("/workout")
+        whoop_get("/workout", token)
 
     }
 
