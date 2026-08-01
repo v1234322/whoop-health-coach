@@ -3,6 +3,9 @@ import json
 
 from openai import OpenAI
 
+from database import load_last_7_days
+
+
 
 # =========================
 # DeepSeek Client
@@ -21,168 +24,135 @@ client = OpenAI(
 
 
 # =========================
-# WHOOP Health Coach
+# WHOOP HEALTH COACH
 # =========================
 
 def generate_health_report(whoop_data):
 
 
+    # =====================
+    # 获取真实7天数据
+    # =====================
+
+    history = load_last_7_days()
+
+
+
+    history_data = []
+
+
+
+    for row in history:
+
+        history_data.append(
+
+            {
+
+                "date":
+                str(row[0]),
+
+
+                "recovery_score":
+                row[1],
+
+
+                "hrv":
+                row[2],
+
+
+                "resting_heart_rate":
+                row[3],
+
+
+                "sleep_score":
+                row[4],
+
+
+                "sleep_duration":
+                row[5],
+
+
+                "cycle_strain":
+                row[6]
+
+            }
+
+        )
+
+
+
+
     prompt = f"""
+
 
 你是一名专业 WHOOP 健康教练。
 
+
 你的任务：
-根据 WHOOP 数据生成每日健康报告。
+
+根据：
+
+1. 今日 WHOOP 数据
+
+2. 最近7天真实历史数据
+
+
+生成健康日报。
 
 
 
 ========================
-数据规则（必须严格遵守）
+
+严格规则
+
 ========================
 
 
 1.
-只能使用 WHOOP JSON 中存在的数据。
+
+所有数字必须来自输入数据。
+
 
 
 2.
-禁止创造任何数字。
 
-
-3.
-禁止编造：
+禁止创造：
 
 - 昨日数据
 - 7天平均
-- 周趋势
-- 月趋势
-- 历史训练记录
+- 趋势变化
+
+如果历史数据不足，必须说明：
+
+"历史数据不足，无法判断趋势。"
+
+
+
+3.
+
+只能分析提供的数据。
+
 
 
 4.
-如果没有历史数据：
 
-必须写：
-
-"暂无历史数据，无法进行趋势分析。"
+Workout Strain 与 Cycle Strain 必须区分。
 
 
 
-5.
-所有指标必须来自 WHOOP：
-
-包括：
-
-- Recovery Score
-- HRV
-- Resting Heart Rate
-- Sleep
-- Workout
-- Strain
+Workout Strain:
+单次训练压力。
 
 
-
-6.
-注意区分：
-
-Workout Strain：
-
-代表单次训练压力。
-
-
-Cycle Strain：
-
-代表全天累计压力。
-
-
-两者不能混合。
+Cycle Strain:
+全天累计压力。
 
 
 
 ========================
-分析内容
-========================
 
+今日 WHOOP 数据
 
-请输出：
-
-
-🧠 WHOOP 健康教练日报
-
-
-
-📅 日期：
-
-
-
-
-【今日恢复】
-
-
-Recovery Score：
-
-HRV：
-
-静息心率：
-
-
-分析：
-
-
-
-
-【睡眠分析】
-
-
-睡眠时间：
-
-睡眠效率：
-
-睡眠结构：
-
-
-分析：
-
-
-
-
-【训练状态】
-
-
-训练项目：
-
-Workout Strain：
-
-Cycle Strain：
-
-
-分析：
-
-
-
-
-【今日建议】
-
-
-训练建议：
-
-
-恢复建议：
-
-
-
-
-【注意事项】
-
-
-只根据 WHOOP 数据分析。
-
-没有数据不要推测。
-
-
-
-========================
-WHOOP 数据
 ========================
 
 
@@ -198,15 +168,128 @@ WHOOP 数据
 
 
 
-"""
+========================
 
+最近7天历史数据
+
+========================
+
+
+{json.dumps(
+
+    history_data,
+
+    ensure_ascii=False,
+
+    indent=2
+
+)}
+
+
+
+========================
+
+输出格式
+
+========================
+
+
+
+🧠 WHOOP 健康教练日报
+
+
+
+📅 日期：
+
+
+
+━━━━━━━━━━━━━━
+
+
+
+【今日恢复】
+
+
+Recovery Score:
+
+
+HRV:
+
+
+静息心率:
+
+
+分析:
+
+
+
+
+【7天恢复趋势】
+
+
+Recovery趋势:
+
+
+HRV趋势:
+
+
+睡眠趋势:
+
+
+训练负荷趋势:
+
+
+
+
+【睡眠分析】
+
+
+睡眠时间:
+
+
+睡眠质量:
+
+
+分析:
+
+
+
+
+【训练状态】
+
+
+训练情况:
+
+
+Strain分析:
+
+
+
+
+【今日建议】
+
+
+训练建议:
+
+
+恢复建议:
+
+
+
+
+【注意事项】
+
+
+只根据 WHOOP 数据分析。
+
+
+"""
 
 
     response = client.chat.completions.create(
 
 
         model="deepseek-chat",
-
 
 
         messages=[
@@ -220,7 +303,9 @@ WHOOP 数据
 
 
                 "content":
+
                 "你是一名严格的数据驱动型WHOOP健康教练。"
+
 
             },
 
@@ -229,17 +314,18 @@ WHOOP 数据
 
 
                 "role":
+
                 "user",
 
 
                 "content":
+
                 prompt
 
             }
 
 
         ],
-
 
 
         temperature=0.2
@@ -252,8 +338,11 @@ WHOOP 数据
     return (
 
         response
+
         .choices[0]
+
         .message
+
         .content
 
     )
