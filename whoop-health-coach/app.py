@@ -43,6 +43,9 @@ WHOOP_CLIENT_SECRET = os.environ.get(
 ).strip()
 
 
+# 这里只作为第一次初始化使用
+# 后续使用 PostgreSQL 最新token
+
 WHOOP_REFRESH_TOKEN = os.environ.get(
     "WHOOP_REFRESH_TOKEN",
     ""
@@ -128,7 +131,210 @@ def callback():
 
 
 # =========================
-# AUTH CODE -> TOKEN
+# CODE EXCHANGE TOKEN
+# =========================
+
+@app.route("/whoop/token")
+def whoop_token():
+
+    code = request.args.get(
+        "code"
+    )
+
+
+    if not code:
+
+        return jsonify(
+            {
+                "error":
+                "missing code"
+            }
+        ),400
+
+
+
+    r = requests.post(
+
+        WHOOP_TOKEN_URL,
+
+        data={
+
+            "grant_type":
+            "authorization_code",
+
+            "code":
+            code,
+
+            "client_id":
+            WHOOP_CLIENT_ID,
+
+            "client_secret":
+            WHOOP_CLIENT_SECRET,
+
+            "redirect_uri":
+            "https://whoop-health-coach.onrender.com/callback"
+
+        },
+
+        headers={
+
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+
+        },
+
+        timeout=30
+
+    )
+
+
+    print(
+        "TOKEN RESPONSE:"
+    )
+
+    print(
+        r.text
+    )
+
+
+    return jsonify(
+        r.json()
+    )
+
+import os
+import time
+import threading
+import requests
+
+from flask import Flask, request, jsonify
+
+from database import (
+    init_db,
+    save_refresh_token,
+    load_refresh_token
+)
+
+from coach import (
+    generate_health_report
+)
+
+
+app = Flask(__name__)
+
+
+# =========================
+# DATABASE INIT
+# =========================
+
+init_db()
+
+
+
+# =========================
+# ENVIRONMENT
+# =========================
+
+WHOOP_CLIENT_ID = os.environ.get(
+    "WHOOP_CLIENT_ID",
+    ""
+).strip()
+
+
+WHOOP_CLIENT_SECRET = os.environ.get(
+    "WHOOP_CLIENT_SECRET",
+    ""
+).strip()
+
+
+# 这里只作为第一次初始化使用
+# 后续使用 PostgreSQL 最新token
+
+WHOOP_REFRESH_TOKEN = os.environ.get(
+    "WHOOP_REFRESH_TOKEN",
+    ""
+).strip()
+
+
+API_SECRET = os.environ.get(
+    "API_SECRET",
+    ""
+).strip()
+
+
+
+WHOOP_TOKEN_URL = (
+    "https://api.prod.whoop.com/oauth/oauth2/token"
+)
+
+
+WHOOP_API_BASE = (
+    "https://api.prod.whoop.com/developer/v2"
+)
+
+
+
+# =========================
+# TOKEN CACHE
+# =========================
+
+ACCESS_TOKEN = None
+
+ACCESS_TOKEN_EXPIRE = 0
+
+TOKEN_LOCK = threading.Lock()
+
+
+
+# =========================
+# API KEY
+# =========================
+
+def check_api_key():
+
+    key = request.headers.get(
+        "X-API-Key"
+    )
+
+    return key == API_SECRET
+
+
+
+# =========================
+# CALLBACK
+# =========================
+
+@app.route("/callback")
+def callback():
+
+    code = request.args.get(
+        "code"
+    )
+
+
+    if not code:
+
+        return jsonify(
+            {
+                "error":
+                "missing code"
+            }
+        )
+
+
+    return jsonify(
+        {
+            "message":
+            "code received",
+
+            "code":
+            code
+        }
+    )
+
+
+
+# =========================
+# CODE EXCHANGE TOKEN
 # =========================
 
 @app.route("/whoop/token")
@@ -199,9 +405,10 @@ def whoop_token():
     )
 
 
-
 # =========================
-# REFRESH TOKEN
+# REFRESH ACCESS TOKEN
+# 防止 refresh_token 失效
+# 数据库优先
 # =========================
 
 def refresh_access_token(force=False):
@@ -219,6 +426,8 @@ def refresh_access_token(force=False):
     )
 
 
+
+    # 使用缓存中的 access token
 
     if (
 
@@ -239,31 +448,58 @@ def refresh_access_token(force=False):
     with TOKEN_LOCK:
 
 
-        # =====================
-        # TOKEN PRIORITY
+
+        # =================================
+        # Refresh Token 获取优先级
         #
-        # 1. Render Environment
-        # 2. PostgreSQL
+        # 1. PostgreSQL 最新token
+        # 2. Render Environment初始token
         #
-        # =====================
+        # =================================
 
 
-        refresh_token = (
-            WHOOP_REFRESH_TOKEN.strip()
-        )
+        refresh_token = ""
+
+        db_token = None
 
 
 
-        if not refresh_token:
+        # 先读取数据库
+
+        try:
 
             db_token = load_refresh_token()
 
+        except Exception as e:
 
-            if db_token:
+            print(
+                "DATABASE TOKEN READ ERROR:",
+                e
+            )
 
-                refresh_token = (
-                    db_token.strip()
-                )
+
+
+        if db_token:
+
+
+            refresh_token = (
+                db_token.strip()
+            )
+
+
+            token_source = "DATABASE"
+
+
+
+        else:
+
+
+            refresh_token = (
+                WHOOP_REFRESH_TOKEN.strip()
+            )
+
+
+            token_source = "ENVIRONMENT"
 
 
 
@@ -276,9 +512,16 @@ def refresh_access_token(force=False):
 
 
         print(
+            "TOKEN SOURCE:",
+            token_source
+        )
+
+
+        print(
             "REFRESH TOKEN LENGTH:",
             len(refresh_token)
         )
+
 
 
         print(
@@ -293,29 +536,37 @@ def refresh_access_token(force=False):
 
             data={
 
+
                 "grant_type":
                 "refresh_token",
+
 
                 "refresh_token":
                 refresh_token,
 
+
                 "client_id":
                 WHOOP_CLIENT_ID,
+
 
                 "client_secret":
                 WHOOP_CLIENT_SECRET
 
             },
 
+
             headers={
+
 
                 "Content-Type":
                 "application/x-www-form-urlencoded",
+
 
                 "Accept":
                 "application/json"
 
             },
+
 
             timeout=30
 
@@ -344,6 +595,8 @@ def refresh_access_token(force=False):
 
 
 
+        # 保存 access token
+
         ACCESS_TOKEN = (
             data["access_token"]
         )
@@ -355,6 +608,7 @@ def refresh_access_token(force=False):
             time.time()
 
             +
+
             int(
                 data.get(
                     "expires_in",
@@ -366,21 +620,26 @@ def refresh_access_token(force=False):
 
 
 
-        # =====================
-        # SAVE NEW TOKEN
-        # =====================
+        # =================================
+        # WHOOP Token Rotation
+        # 保存最新refresh_token
+        # =================================
+
 
         new_refresh_token = data.get(
             "refresh_token"
         )
 
 
+
         if new_refresh_token:
+
 
 
             WHOOP_REFRESH_TOKEN = (
                 new_refresh_token
             )
+
 
 
             save_refresh_token(
@@ -389,7 +648,13 @@ def refresh_access_token(force=False):
 
 
             print(
-                "REFRESH TOKEN SAVED"
+                "NEW REFRESH TOKEN SAVED"
+            )
+
+
+            print(
+                "NEW TOKEN LENGTH:",
+                len(new_refresh_token)
             )
 
 
@@ -399,12 +664,12 @@ def refresh_access_token(force=False):
         )
 
 
+
         return ACCESS_TOKEN
 
 
-
 # =========================
-# WHOOP GET
+# WHOOP API GET
 # =========================
 
 def whoop_get(endpoint):
@@ -420,15 +685,18 @@ def whoop_get(endpoint):
         +
         endpoint,
 
+
         headers={
 
             "Authorization":
             f"Bearer {token}",
 
+
             "Accept":
             "application/json"
 
         },
+
 
         timeout=30
 
@@ -436,7 +704,14 @@ def whoop_get(endpoint):
 
 
 
+    # Access Token 失效，强制刷新
+
     if r.status_code == 401:
+
+
+        print(
+            "ACCESS TOKEN EXPIRED"
+        )
 
 
         token = refresh_access_token(
@@ -450,12 +725,20 @@ def whoop_get(endpoint):
             +
             endpoint,
 
+
             headers={
 
                 "Authorization":
-                f"Bearer {token}"
+                f"Bearer {token}",
 
-            }
+
+                "Accept":
+                "application/json"
+
+            },
+
+
+            timeout=30
 
         )
 
@@ -467,6 +750,18 @@ def whoop_get(endpoint):
     )
 
 
+
+    print(
+        "WHOOP RESPONSE:"
+    )
+
+
+    print(
+        r.text[:500]
+    )
+
+
+
     r.raise_for_status()
 
 
@@ -475,24 +770,31 @@ def whoop_get(endpoint):
 
 
 
+
+
 # =========================
-# TODAY REPORT
+# TODAY HEALTH REPORT
 # =========================
 
 @app.route("/whoop/today")
 def today():
 
 
-
     if not check_api_key():
 
+
         return jsonify(
+
             {
                 "error":
                 "unauthorized"
             }
+
         ),401
 
+
+
+    # 获取 WHOOP 数据
 
 
     data = {
@@ -533,8 +835,12 @@ def today():
 
 
 
+    # DeepSeek 健康分析
+
     report = generate_health_report(
+
         data
+
     )
 
 
@@ -543,12 +849,17 @@ def today():
 
         {
 
+
             "whoop_data":
+
             data,
 
 
+
             "coach_report":
+
             report
+
 
         }
 
@@ -556,24 +867,31 @@ def today():
 
 
 
+
+
 # =========================
-# HOME
+# HEALTH CHECK
 # =========================
 
 @app.route("/")
 def home():
 
     return (
+
         "WHOOP Health Coach Running"
+
     )
 
 
 
+
+
 # =========================
-# RUN
+# START SERVER
 # =========================
 
 if __name__ == "__main__":
+
 
     app.run(
 
