@@ -170,16 +170,86 @@ def report():
 
 def get_access_token():
 
-    token = os.environ.get(
-        "WHOOP_ACCESS_TOKEN"
-    )
+    global ACCESS_TOKEN_CACHE
+    global WHOOP_REFRESH_TOKEN
 
-    if not token:
+
+    # 已经获取过，直接使用
+    if ACCESS_TOKEN_CACHE:
+
+        return ACCESS_TOKEN_CACHE
+
+
+
+    if not WHOOP_REFRESH_TOKEN:
+
         raise Exception(
-            "Missing WHOOP_ACCESS_TOKEN"
+            "Missing WHOOP_REFRESH_TOKEN"
         )
 
-    return token
+
+
+    r = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data={
+
+            "grant_type":
+            "refresh_token",
+
+            "refresh_token":
+            WHOOP_REFRESH_TOKEN,
+
+            "client_id":
+            WHOOP_CLIENT_ID,
+
+            "client_secret":
+            WHOOP_CLIENT_SECRET
+
+        },
+
+        headers={
+
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+
+        }
+
+    )
+
+
+    print("REFRESH RESPONSE:")
+    print(r.text)
+
+
+
+    r.raise_for_status()
+
+
+
+    data = r.json()
+
+
+
+    # 保存新的 access_token
+    ACCESS_TOKEN_CACHE = data["access_token"]
+
+
+
+    # WHOOP 会轮换 refresh_token
+    if "refresh_token" in data:
+
+        WHOOP_REFRESH_TOKEN = data["refresh_token"]
+
+
+        print(
+            "NEW REFRESH TOKEN RECEIVED"
+        )
+
+
+
+    return ACCESS_TOKEN_CACHE
 
 
 
