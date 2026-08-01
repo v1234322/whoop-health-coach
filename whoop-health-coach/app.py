@@ -19,7 +19,8 @@ def refresh_token():
             "grant_type": "refresh_token",
             "refresh_token": WHOOP_REFRESH_TOKEN,
             "client_id": WHOOP_CLIENT_ID,
-            "client_secret": WHOOP_CLIENT_SECRET
+            "client_secret": WHOOP_CLIENT_SECRET,
+            "redirect_uri": "https://oauth.pstmn.io/v1/callback"
         },
         headers={
             "Content-Type": "application/x-www-form-urlencoded"
@@ -31,6 +32,7 @@ def refresh_token():
     r.raise_for_status()
 
     return r.json()["access_token"]
+    
 def whoop_get(endpoint, params=None):
     token = refresh_token()
     r = requests.get(
