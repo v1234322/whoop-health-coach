@@ -4,59 +4,111 @@ import json
 from openai import OpenAI
 
 
+# =========================
+# DeepSeek Client
+# =========================
+
 client = OpenAI(
 
     api_key=os.environ.get(
         "DEEPSEEK_API_KEY"
     ),
 
-    base_url=
-    "https://api.deepseek.com"
+    base_url="https://api.deepseek.com"
 
 )
 
 
 
+# =========================
+# WHOOP Health Coach
+# =========================
+
 def generate_health_report(whoop_data):
 
 
     prompt = f"""
+
 你是一名专业 WHOOP 健康教练。
 
-你的任务是根据 WHOOP 提供的数据生成健康日报。
+你的任务：
+根据 WHOOP 数据生成每日健康报告。
 
-重要规则：
 
-1. 只能使用输入数据中存在的内容。
-2. 禁止编造昨日数据。
-3. 禁止编造7天平均数据。
-4. 禁止虚构训练记录。
-5. 如果没有历史数据，请明确写：
-   "暂无历史数据，无法进行趋势比较。"
 
-分析内容：
+========================
+数据规则（必须严格遵守）
+========================
 
-- Recovery 恢复状态
+
+1.
+只能使用 WHOOP JSON 中存在的数据。
+
+
+2.
+禁止创造任何数字。
+
+
+3.
+禁止编造：
+
+- 昨日数据
+- 7天平均
+- 周趋势
+- 月趋势
+- 历史训练记录
+
+
+4.
+如果没有历史数据：
+
+必须写：
+
+"暂无历史数据，无法进行趋势分析。"
+
+
+
+5.
+所有指标必须来自 WHOOP：
+
+包括：
+
+- Recovery Score
 - HRV
-- 静息心率
-- 睡眠质量
-- Workout训练情况
-- 今日训练建议
-- 恢复建议
+- Resting Heart Rate
+- Sleep
+- Workout
+- Strain
 
 
-WHOOP 当前数据：
 
-{json.dumps(
-    whoop_data,
-    ensure_ascii=False,
-    indent=2
-)}
+6.
+注意区分：
+
+Workout Strain：
+
+代表单次训练压力。
 
 
-输出格式：
+Cycle Strain：
+
+代表全天累计压力。
+
+
+两者不能混合。
+
+
+
+========================
+分析内容
+========================
+
+
+请输出：
+
 
 🧠 WHOOP 健康教练日报
+
 
 
 📅 日期：
@@ -66,11 +118,13 @@ WHOOP 当前数据：
 
 【今日恢复】
 
+
 Recovery Score：
 
 HRV：
 
 静息心率：
+
 
 分析：
 
@@ -79,9 +133,13 @@ HRV：
 
 【睡眠分析】
 
+
 睡眠时间：
 
-睡眠质量：
+睡眠效率：
+
+睡眠结构：
+
 
 分析：
 
@@ -90,9 +148,13 @@ HRV：
 
 【训练状态】
 
-今日训练：
 
-Strain：
+训练项目：
+
+Workout Strain：
+
+Cycle Strain：
+
 
 分析：
 
@@ -101,7 +163,9 @@ Strain：
 
 【今日建议】
 
+
 训练建议：
+
 
 恢复建议：
 
@@ -110,44 +174,86 @@ Strain：
 
 【注意事项】
 
-只根据数据判断。
-不要猜测。
+
+只根据 WHOOP 数据分析。
+
+没有数据不要推测。
+
+
+
+========================
+WHOOP 数据
+========================
+
+
+{json.dumps(
+
+    whoop_data,
+
+    ensure_ascii=False,
+
+    indent=2
+
+)}
+
+
+
 """
 
 
 
     response = client.chat.completions.create(
 
+
         model="deepseek-chat",
+
+
 
         messages=[
 
+
             {
+
+
                 "role":
                 "system",
 
+
                 "content":
-                "你是一名专业运动恢复教练。"
+                "你是一名严格的数据驱动型WHOOP健康教练。"
+
             },
 
+
             {
+
+
                 "role":
                 "user",
 
+
                 "content":
                 prompt
+
             }
+
 
         ],
 
+
+
         temperature=0.2
+
 
     )
 
 
+
     return (
+
         response
         .choices[0]
         .message
         .content
+
     )
