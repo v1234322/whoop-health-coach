@@ -184,12 +184,13 @@ def whoop_token():
 
 def refresh_access_token(force=False):
 
+    print("REFRESH CHECK:", force, ACCESS_TOKEN is not None)
+
     global ACCESS_TOKEN
     global ACCESS_TOKEN_EXPIRE
-
-
     global WHOOP_REFRESH_TOKEN
 
+    ...
 
 
     if (
