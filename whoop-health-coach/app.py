@@ -112,27 +112,23 @@ def refresh_token():
     r = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
         data={
-            "grant_type":"refresh_token",
-            "refresh_token":WHOOP_REFRESH_TOKEN,
-            "client_id":WHOOP_CLIENT_ID,
-            "client_secret":WHOOP_CLIENT_SECRET
+            "grant_type": "refresh_token",
+            "refresh_token": WHOOP_REFRESH_TOKEN,
+            "client_id": WHOOP_CLIENT_ID,
+            "client_secret": WHOOP_CLIENT_SECRET,
+            "redirect_uri": REDIRECT_URI
         },
         headers={
-            "Content-Type":
-            "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded"
         }
     )
-
 
     print("WHOOP TOKEN RESPONSE:")
     print(r.text)
 
-
     r.raise_for_status()
 
-
     return r.json()["access_token"]
-
 
 
 # =====================
