@@ -7,7 +7,12 @@ DATABASE_URL = os.environ.get(
 )
 
 
-def get_conn():
+def get_connection():
+
+    if not DATABASE_URL:
+        raise Exception(
+            "Missing DATABASE_URL"
+        )
 
     return psycopg2.connect(
         DATABASE_URL
@@ -17,7 +22,7 @@ def get_conn():
 
 def init_db():
 
-    conn = get_conn()
+    conn = get_connection()
 
     cur = conn.cursor()
 
@@ -44,7 +49,7 @@ def init_db():
 
 def save_refresh_token(token):
 
-    conn = get_conn()
+    conn = get_connection()
 
     cur = conn.cursor()
 
@@ -56,7 +61,6 @@ def save_refresh_token(token):
             id,
             refresh_token
         )
-
         VALUES
         (
             1,
@@ -67,9 +71,11 @@ def save_refresh_token(token):
 
         DO UPDATE SET
 
-        refresh_token = EXCLUDED.refresh_token,
+        refresh_token =
+        EXCLUDED.refresh_token,
 
-        updated_at = NOW()
+        updated_at =
+        NOW()
 
         """,
         (
@@ -88,7 +94,7 @@ def save_refresh_token(token):
 
 def load_refresh_token():
 
-    conn = get_conn()
+    conn = get_connection()
 
     cur = conn.cursor()
 
@@ -96,8 +102,11 @@ def load_refresh_token():
     cur.execute(
         """
         SELECT refresh_token
+
         FROM whoop_tokens
-        WHERE id=1
+
+        WHERE id = 1
+
         """
     )
 
