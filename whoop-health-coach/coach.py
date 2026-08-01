@@ -1,13 +1,20 @@
 import os
 import json
+
 from openai import OpenAI
 
 
 client = OpenAI(
+
     api_key=os.environ.get(
-        "OPENAI_API_KEY"
-    )
+        "DEEPSEEK_API_KEY"
+    ),
+
+    base_url=
+    "https://api.deepseek.com"
+
 )
+
 
 
 def generate_health_report(whoop_data):
@@ -16,17 +23,20 @@ def generate_health_report(whoop_data):
     prompt = f"""
 你是一名专业 WHOOP 健康教练。
 
-请根据以下 WHOOP 数据生成中文健康报告。
+请根据 WHOOP 数据生成中文健康日报。
 
-要求：
+分析：
 
-1. 分析恢复状态
-2. 分析睡眠质量
-3. 分析训练负荷
-4. 给出今天训练建议
-5. 给出恢复建议
+1. Recovery 恢复状态
+2. HRV变化
+3. 静息心率
+4. 睡眠质量
+5. Strain训练压力
+6. 今日训练建议
+7. 恢复建议
 
-数据：
+
+WHOOP 数据：
 
 {json.dumps(
     whoop_data,
@@ -39,22 +49,24 @@ def generate_health_report(whoop_data):
 
 🧠 WHOOP 健康教练日报
 
-【恢复】
 
-【睡眠】
+【今日恢复】
 
-【训练】
+【睡眠分析】
+
+【训练状态】
 
 【今日建议】
 
-【注意事项】
+【恢复建议】
 
 """
 
 
+
     response = client.chat.completions.create(
 
-        model="gpt-5-mini",
+        model="deepseek-chat",
 
         messages=[
 
@@ -65,7 +77,6 @@ def generate_health_report(whoop_data):
                 "content":
                 "你是一名专业运动恢复教练。"
             },
-
 
             {
                 "role":
