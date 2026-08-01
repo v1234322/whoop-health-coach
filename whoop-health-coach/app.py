@@ -379,9 +379,10 @@ def today():
 
 
         "sleep":
-
+        
         whoop_get(
-            "/sleep"
+           
+            "/activity/sleep"
         ),
 
 
@@ -389,7 +390,7 @@ def today():
         "workout":
 
         whoop_get(
-            "/workout"
+            "/activity/workout"
         )
 
 
