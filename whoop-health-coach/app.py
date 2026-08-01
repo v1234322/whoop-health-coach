@@ -183,74 +183,183 @@ def whoop_token():
 # =========================
 
 def refresh_access_token(force=False):
+
     global ACCESS_TOKEN
     global ACCESS_TOKEN_EXPIRE
     global WHOOP_REFRESH_TOKEN
 
+
     print(
         "REFRESH CHECK:",
-        "force=", force,
-        "has_cached_token=", ACCESS_TOKEN is not None,
+        "force=",
+        force,
+        "cached=",
+        ACCESS_TOKEN is not None
     )
 
+
+    # token 未过期，直接使用
     if (
         not force
         and ACCESS_TOKEN
         and time.time() < ACCESS_TOKEN_EXPIRE - 300
     ):
-        print("USING CACHED ACCESS TOKEN")
+
+        print(
+            "USING CACHED ACCESS TOKEN"
+        )
+
         return ACCESS_TOKEN
 
+
+
     with TOKEN_LOCK:
+
+
         if (
             not force
             and ACCESS_TOKEN
             and time.time() < ACCESS_TOKEN_EXPIRE - 300
         ):
-            print("USING CACHED ACCESS TOKEN AFTER LOCK")
+
             return ACCESS_TOKEN
 
-        if not WHOOP_REFRESH_TOKEN:
-            raise RuntimeError("Missing WHOOP_REFRESH_TOKEN")
 
-        response = requests.post(
-            WHOOP_TOKEN_URL,
-            data={
-                "grant_type": "refresh_token",
-                "refresh_token": WHOOP_REFRESH_TOKEN,
-                "client_id": WHOOP_CLIENT_ID,
-                "client_secret": WHOOP_CLIENT_SECRET,
-                "scope": "offline",
-            },
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "application/json",
-            },
-            timeout=30,
+
+        refresh_token = (
+            WHOOP_REFRESH_TOKEN
+            .strip()
         )
 
-        if not response.ok:
+
+        if not refresh_token:
+
             raise RuntimeError(
-                f"WHOOP refresh failed: "
-                f"{response.status_code} {response.text}"
+                "Missing WHOOP_REFRESH_TOKEN"
             )
 
-        data = response.json()
 
-        ACCESS_TOKEN = data["access_token"]
-        ACCESS_TOKEN_EXPIRE = (
-            time.time() + int(data.get("expires_in", 3600))
-        )
 
-        new_refresh_token = data.get("refresh_token")
-        if new_refresh_token:
-            WHOOP_REFRESH_TOKEN = new_refresh_token
+        payload = {
+
+
+            "grant_type":
+            "refresh_token",
+
+
+            "refresh_token":
+            refresh_token,
+
+
+            "client_id":
+            WHOOP_CLIENT_ID.strip(),
+
+
+            "client_secret":
+            WHOOP_CLIENT_SECRET.strip(),
+
+
+            "scope":
+            "offline"
+
+
+        }
+
+
 
         print(
-            "WHOOP TOKEN REFRESH SUCCESS:",
-            f"expires_in={data.get('expires_in', 3600)}",
-            f"refresh_rotated={bool(new_refresh_token)}",
+            "START WHOOP REFRESH"
         )
+
+
+        r = requests.post(
+
+            WHOOP_TOKEN_URL,
+
+
+            data=payload,
+
+
+            headers={
+
+                "Content-Type":
+                "application/x-www-form-urlencoded",
+
+                "Accept":
+                "application/json"
+
+            },
+
+
+            timeout=30
+
+        )
+
+
+
+        print(
+            "REFRESH STATUS:",
+            r.status_code
+        )
+
+
+        if r.status_code != 200:
+
+            print(
+                "REFRESH ERROR:",
+                r.text
+            )
+
+            raise RuntimeError(
+                "WHOOP refresh failed: "
+                + r.text
+            )
+
+
+
+        data = r.json()
+
+
+
+        ACCESS_TOKEN = (
+            data["access_token"]
+        )
+
+
+        ACCESS_TOKEN_EXPIRE = (
+            time.time()
+            +
+            int(
+                data.get(
+                    "expires_in",
+                    3600
+                )
+            )
+        )
+
+
+
+        # WHOOP 会返回新的 refresh_token
+        if data.get(
+            "refresh_token"
+        ):
+
+
+            WHOOP_REFRESH_TOKEN = (
+                data["refresh_token"]
+            )
+
+
+            print(
+                "REFRESH TOKEN ROTATED"
+            )
+
+
+
+        print(
+            "WHOOP TOKEN REFRESH SUCCESS"
+        )
+
 
         return ACCESS_TOKEN
 
