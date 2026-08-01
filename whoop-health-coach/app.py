@@ -120,87 +120,47 @@ def callback():
 # Exchange Code Token
 # =========================
 
-@app.route("/whoop/token")
-def whoop_token():
+@app.route("/whoop/report")
+def report():
 
-    code = request.args.get(
-        "code"
-    )
-
-
-    if not code:
+    if not check_api_key():
 
         return jsonify({
-
-            "error":
-            "missing code"
-
-        }),400
+            "error":"unauthorized"
+        }),401
 
 
+    data = {
 
-    if not WHOOP_CLIENT_ID or not WHOOP_CLIENT_SECRET:
-
-        return jsonify({
-
-            "error":
-            "missing WHOOP client credentials"
-
-        }),500
+        "recovery":
+        whoop_get("/recovery"),
 
 
-
-    r = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data={
+        "cycle":
+        whoop_get("/cycle"),
 
 
-            "grant_type":
-            "authorization_code",
+        "sleep":
+        whoop_get("/activity/sleep"),
 
 
-            "code":
-            code,
+        "workout":
+        whoop_get("/activity/workout")
+
+    }
 
 
-            "client_id":
-            WHOOP_CLIENT_ID,
+    from coach import generate_report
 
 
-            "client_secret":
-            WHOOP_CLIENT_SECRET,
+    report = generate_report(data)
 
 
-            "redirect_uri":
-            CALLBACK_URL
+    return jsonify({
 
-        },
+        "report": report
 
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        }
-
-    )
-
-
-    print(
-        "TOKEN RESPONSE:"
-    )
-
-    print(
-        r.text
-    )
-
-
-    return jsonify(
-        r.json()
-    )
+    })
 
 
 
