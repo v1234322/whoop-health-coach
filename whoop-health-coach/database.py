@@ -277,28 +277,34 @@ def save_daily_data(data):
 
     values = (
 
-        data.get("recovery_score"),
+    data.get("recovery_score"),
 
-        data.get("hrv"),
+    data.get("hrv"),
 
-        data.get("resting_heart_rate"),
+    data.get("resting_heart_rate"),
 
-        data.get("sleep_score"),
+    data.get("sleep_score"),
 
-        data.get("sleep_duration"),
+    data.get("sleep_duration"),
 
-        data.get("cycle_strain"),
+    data.get("sleep_efficiency"),
 
-        json.dumps(
-            data.get(
-                "workout_data",
-                {}
-            )
-        ),
+    data.get("deep_sleep_duration"),
 
-        json.dumps(data)
+    data.get("rem_sleep_duration"),
 
-    )
+    data.get("cycle_strain"),
+
+    json.dumps(
+        data.get(
+            "workout_data",
+            {}
+        )
+    ),
+
+    json.dumps(data)
+
+)
 
 
 
