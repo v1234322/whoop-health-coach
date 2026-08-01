@@ -214,13 +214,10 @@ def get_access_token():
         "WHOOP_ACCESS_TOKEN"
     )
 
-
     if not token:
-
         raise Exception(
             "Missing WHOOP_ACCESS_TOKEN"
         )
-
 
     return token
 
