@@ -19,15 +19,14 @@ WHOOP_CLIENT_SECRET = os.environ.get(
     "WHOOP_CLIENT_SECRET"
 )
 
-WHOOP_REFRESH_TOKEN = os.environ.get(
-    "WHOOP_REFRESH_TOKEN"
+
+print("DEBUG CLIENT ID:", WHOOP_CLIENT_ID)
+
+print(
+    "DEBUG SECRET LENGTH:",
+    len(WHOOP_CLIENT_SECRET)
+    if WHOOP_CLIENT_SECRET else 0
 )
-
-API_SECRET = os.environ.get(
-    "API_SECRET"
-)
-
-
 WHOOP_API = (
     "https://api.prod.whoop.com/developer/v2"
 )
