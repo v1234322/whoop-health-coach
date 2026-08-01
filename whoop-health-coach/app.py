@@ -1,12 +1,18 @@
 import os
 import time
 import threading
-import requests
+from database import (
+    init_db,
+    save_refresh_token,
+    load_refresh_token
+)
 
 from flask import Flask, request, jsonify
 
 
 app = Flask(__name__)
+
+init_db()
 
 
 # =========================
@@ -223,9 +229,14 @@ def refresh_access_token(force=False):
 
 
 
-        refresh_token = (
-            WHOOP_REFRESH_TOKEN.strip()
-        )
+        refresh_token = load_refresh_token()
+
+
+        if not refresh_token:
+
+            refresh_token = (
+                 WHOOP_REFRESH_TOKEN.strip()
+            )
 
 
         print(
@@ -331,6 +342,20 @@ def refresh_access_token(force=False):
         if data.get(
             "refresh_token"
         ):
+
+           WHOOP_REFRESH_TOKEN = (
+               data["refresh_token"]
+           )
+
+
+           save_refresh_token(
+               WHOOP_REFRESH_TOKEN
+           )
+
+
+           print(
+               "REFRESH TOKEN SAVED TO DATABASE"
+           )
 
 
             WHOOP_REFRESH_TOKEN = (
