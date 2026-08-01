@@ -1,23 +1,32 @@
 import os
 import time
 import threading
+import requests
+
+from flask import Flask, request, jsonify
+
 from database import (
     init_db,
     save_refresh_token,
     load_refresh_token
 )
 
-from flask import Flask, request, jsonify
 
 
 app = Flask(__name__)
 
+
+
+# 初始化数据库
+
 init_db()
 
 
-# =========================
+
+# ======================
 # ENV
-# =========================
+# ======================
+
 
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
@@ -35,6 +44,7 @@ WHOOP_REFRESH_TOKEN = os.environ.get(
     "WHOOP_REFRESH_TOKEN",
     ""
 ).strip()
+
 
 
 API_SECRET = os.environ.get(
@@ -55,9 +65,10 @@ WHOOP_API_BASE = (
 
 
 
-# =========================
+# ======================
 # TOKEN CACHE
-# =========================
+# ======================
+
 
 ACCESS_TOKEN = None
 
@@ -67,9 +78,10 @@ TOKEN_LOCK = threading.Lock()
 
 
 
-# =========================
-# CHECK API KEY
-# =========================
+# ======================
+# API KEY
+# ======================
+
 
 def check_api_key():
 
@@ -81,111 +93,10 @@ def check_api_key():
 
 
 
-# =========================
-# CALLBACK
-# =========================
-
-@app.route("/callback")
-def callback():
-
-    code = request.args.get(
-        "code"
-    )
-
-
-    if not code:
-
-        return jsonify(
-            {
-                "error":
-                "missing code"
-            }
-        )
-
-
-    return jsonify(
-        {
-            "code":
-            code
-        }
-    )
-
-
-
-# =========================
-# CODE -> TOKEN
-# =========================
-
-@app.route("/whoop/token")
-def whoop_token():
-
-    code = request.args.get(
-        "code"
-    )
-
-
-    if not code:
-
-        return jsonify(
-            {
-                "error":
-                "missing code"
-            }
-        ),400
-
-
-
-    r = requests.post(
-
-        WHOOP_TOKEN_URL,
-
-        data={
-
-            "grant_type":
-            "authorization_code",
-
-            "code":
-            code,
-
-            "client_id":
-            WHOOP_CLIENT_ID,
-
-            "client_secret":
-            WHOOP_CLIENT_SECRET,
-
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback"
-
-        },
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        }
-
-    )
-
-
-    print(
-        "TOKEN RESPONSE:"
-    )
-
-    print(
-        r.text
-    )
-
-
-    return jsonify(
-        r.json()
-    )
-
-
-
-# =========================
+# ======================
 # REFRESH TOKEN
-# =========================
+# ======================
+
 
 def refresh_access_token(force=False):
 
@@ -200,6 +111,7 @@ def refresh_access_token(force=False):
         force,
         ACCESS_TOKEN is not None
     )
+
 
 
     if (
@@ -221,44 +133,30 @@ def refresh_access_token(force=False):
     with TOKEN_LOCK:
 
 
-        if not WHOOP_REFRESH_TOKEN:
-
-            raise Exception(
-                "Missing WHOOP_REFRESH_TOKEN"
-            )
-
-
 
         refresh_token = load_refresh_token()
+
 
 
         if not refresh_token:
 
             refresh_token = (
-                 WHOOP_REFRESH_TOKEN.strip()
+                WHOOP_REFRESH_TOKEN
             )
 
 
-        print(
-            "CLIENT ID:",
-            WHOOP_CLIENT_ID[:8]
-        )
 
+        if not refresh_token:
 
-        print(
-            "SECRET LENGTH:",
-            len(WHOOP_CLIENT_SECRET)
-        )
+            raise Exception(
+                "Missing refresh token"
+            )
+
 
 
         print(
             "REFRESH TOKEN LENGTH:",
             len(refresh_token)
-        )
-
-
-        print(
-            "START WHOOP REFRESH"
         )
 
 
@@ -303,7 +201,6 @@ def refresh_access_token(force=False):
 
 
         print(
-            "REFRESH RESPONSE:",
             r.text[:500]
         )
 
@@ -320,6 +217,7 @@ def refresh_access_token(force=False):
         ACCESS_TOKEN = (
             data["access_token"]
         )
+
 
 
         ACCESS_TOKEN_EXPIRE = (
@@ -343,35 +241,27 @@ def refresh_access_token(force=False):
             "refresh_token"
         ):
 
-           WHOOP_REFRESH_TOKEN = (
-               data["refresh_token"]
-           )
-
-
-           save_refresh_token(
-               WHOOP_REFRESH_TOKEN
-           )
-
-
-           print(
-               "REFRESH TOKEN SAVED TO DATABASE"
-           )
-
 
             WHOOP_REFRESH_TOKEN = (
                 data["refresh_token"]
             )
 
 
+            save_refresh_token(
+                WHOOP_REFRESH_TOKEN
+            )
+
+
             print(
-                "REFRESH TOKEN ROTATED"
+                "REFRESH TOKEN SAVED"
             )
 
 
 
         print(
-            "WHOOP TOKEN REFRESH SUCCESS"
+            "TOKEN REFRESH SUCCESS"
         )
+
 
 
         return ACCESS_TOKEN
@@ -379,9 +269,10 @@ def refresh_access_token(force=False):
 
 
 
-# =========================
-# WHOOP GET
-# =========================
+# ======================
+# WHOOP API
+# ======================
+
 
 def whoop_get(endpoint):
 
@@ -399,10 +290,7 @@ def whoop_get(endpoint):
         headers={
 
             "Authorization":
-            f"Bearer {token}",
-
-            "Accept":
-            "application/json"
+            f"Bearer {token}"
 
         },
 
@@ -446,17 +334,22 @@ def whoop_get(endpoint):
     r.raise_for_status()
 
 
+
     return r.json()
 
 
 
-
-# =========================
+# ======================
 # TODAY
-# =========================
+# ======================
 
-@app.route("/whoop/today")
+
+@app.route(
+    "/whoop/today"
+)
+
 def today():
+
 
 
     if not check_api_key():
@@ -503,11 +396,13 @@ def today():
 
 
 
-# =========================
+# ======================
 # HOME
-# =========================
+# ======================
+
 
 @app.route("/")
+
 def home():
 
     return (
