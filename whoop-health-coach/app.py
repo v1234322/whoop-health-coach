@@ -151,6 +151,12 @@ def whoop_get(endpoint):
 
     token = os.environ.get("WHOOP_ACCESS_TOKEN")
 
+    if not token:
+        return {
+            "error": "missing WHOOP_ACCESS_TOKEN"
+        }
+
+
     r = requests.get(
         "https://api.prod.whoop.com/developer/v2" + endpoint,
         headers={
@@ -158,8 +164,12 @@ def whoop_get(endpoint):
         }
     )
 
+
     print("WHOOP API RESPONSE:")
     print(r.text)
+
+
+    r.raise_for_status()
 
     return r.json()
 
@@ -173,28 +183,28 @@ def whoop_get(endpoint):
 def today():
 
     if not check_api_key():
+
         return jsonify({
-            "error":"unauthorized"
+            "error": "unauthorized"
         }),401
-
-
-    # 只刷新一次
-    token = refresh_token()
 
 
     data = {
 
         "recovery":
-        whoop_get("/recovery", token),
+        whoop_get("/recovery"),
+
 
         "cycle":
-        whoop_get("/cycle", token),
+        whoop_get("/cycle"),
+
 
         "sleep":
-        whoop_get("/sleep", token),
+        whoop_get("/sleep"),
+
 
         "workout":
-        whoop_get("/workout", token)
+        whoop_get("/workout")
 
     }
 
