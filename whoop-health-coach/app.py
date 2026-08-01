@@ -125,6 +125,65 @@ def callback():
         "code": code
     })
 
+
+# =========================
+# WHOOP Token Exchange
+# =========================
+
+@app.route("/whoop/token")
+def whoop_token():
+
+    code = request.args.get("code")
+
+
+    if not code:
+
+        return jsonify({
+            "error": "missing code"
+        }),400
+
+
+
+    r = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data={
+
+            "grant_type": "authorization_code",
+
+            "code": code,
+
+            "client_id": os.environ.get(
+                "WHOOP_CLIENT_ID"
+            ),
+
+            "client_secret": os.environ.get(
+                "WHOOP_CLIENT_SECRET"
+            ),
+
+            "redirect_uri":
+            "https://whoop-health-coach.onrender.com/callback"
+
+        },
+
+        headers={
+
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+
+        }
+
+    )
+
+
+    print("TOKEN RESPONSE:")
+    print(r.text)
+
+
+    return jsonify(r.json())
+
+
 # =========================
 # WHOOP 今日数据
 # =========================
