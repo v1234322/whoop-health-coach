@@ -570,6 +570,9 @@ def save_daily_data(data):
 
 
     conn.close()
+
+
+    
 # =========================
 # LOAD 7 DAYS DATA
 # =========================
