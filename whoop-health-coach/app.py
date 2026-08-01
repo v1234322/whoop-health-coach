@@ -229,17 +229,17 @@ def refresh_access_token(force=False):
         print(
             "CLIENT ID:",
             WHOOP_CLIENT_ID[:8]
-)
+        )
 
         print(
             "SECRET LENGTH:",
             len(WHOOP_CLIENT_SECRET)
-)
+        )
 
         print(
             "REFRESH TOKEN LENGTH:",
             len(refresh_token)
-)
+        )
 
 
         if not refresh_token:
