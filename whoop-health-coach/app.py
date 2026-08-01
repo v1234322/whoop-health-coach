@@ -117,7 +117,7 @@ def callback():
     if not code:
         return jsonify({
             "error": "missing code"
-        }), 400
+        }),400
 
 
     return jsonify({
