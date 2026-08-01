@@ -326,13 +326,7 @@ def refresh_access_token(force=False):
         )
 
 
-        ACCESS_TOKEN_EXPIRE = (
-            time.time()
-            +
-            int(
-                data.get(
-                    "expires_in",
-                    3600
+        ACCESS_TOKEN_EXPIRE = (0
                 )
             )
         )
