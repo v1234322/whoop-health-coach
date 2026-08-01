@@ -647,9 +647,8 @@ def extract_daily_metrics(data):
 
 
 
-
-
     # Sleep
+
 
     try:
 
@@ -670,7 +669,7 @@ def extract_daily_metrics(data):
         )
 
 
-        sleep_score = (
+        sleep_score_data = (
 
             sleep
 
@@ -678,6 +677,15 @@ def extract_daily_metrics(data):
                 "score",
                 {}
             )
+
+        )
+
+
+        # 睡眠评分
+
+        result["sleep_score"] = (
+
+            sleep_score_data
 
             .get(
                 "sleep_performance_percentage"
@@ -686,47 +694,182 @@ def extract_daily_metrics(data):
         )
 
 
+
+        # 睡眠时长
+
+
+
         duration = (
 
-            sleep
+            sleep_score_data
 
             .get(
-                "score",
+                "stage_summary",
                 {}
             )
 
             .get(
-                "sleep_duration_ms"
+                "total_in_bed_time_milli"
             )
 
         )
 
 
 
-        result["sleep_score"] = sleep_score
+        # 备用字段
+
+        if not duration:
+
+
+            duration = (
+
+                sleep_score_data
+
+                .get(
+                    "total_sleep_time_milli"
+                )
+
+            )
 
 
 
         if duration:
 
+
             result["sleep_duration"] = (
-                duration / 3600000
+
+                duration
+
+                /
+
+                3600000
+
             )
 
+
         else:
+
 
             result["sleep_duration"] = None
 
 
 
-    except Exception:
+        # 睡眠效率
+
+
+
+        result["sleep_efficiency"] = (
+
+            sleep_score_data
+
+            .get(
+                "sleep_efficiency_percentage"
+            )
+
+        )
+
+
+        # 深睡时间
+
+
+        deep_sleep = (
+
+            sleep_score_data
+
+            .get(
+                "stage_summary",
+                {}
+            )
+
+            .get(
+                "deep_sleep_time_milli"
+            )
+
+        )
+
+
+
+        if deep_sleep:
+
+
+            result["deep_sleep_duration"] = (
+
+                deep_sleep
+
+                /
+
+                3600000
+
+            )
+
+
+        else:
+
+
+            result["deep_sleep_duration"] = None
+
+
+
+        # REM时间
+
+
+        rem_sleep = (
+
+            sleep_score_data
+
+            .get(
+                "stage_summary",
+                {}
+            )
+
+            .get(
+                "rem_sleep_time_milli"
+            )
+
+        )
+
+
+
+        if rem_sleep:
+
+
+            result["rem_sleep_duration"] = (
+
+                rem_sleep
+
+                /
+
+                3600000
+
+            )
+
+
+        else:
+
+
+            result["rem_sleep_duration"] = None
+
+
+
+
+    except Exception as e:
+
+
+        print(
+            "SLEEP PARSE ERROR:",
+            e
+        )
 
 
         result["sleep_score"] = None
 
         result["sleep_duration"] = None
 
+        result["sleep_efficiency"] = None
 
+        result["deep_sleep_duration"] = None
+
+        result["rem_sleep_duration"] = None
 
 
 
@@ -857,9 +1000,6 @@ def today():
 
 
     }
-
-
-
 
 
 
