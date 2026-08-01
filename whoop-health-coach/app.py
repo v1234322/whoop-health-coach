@@ -326,10 +326,7 @@ def refresh_access_token(force=False):
         )
 
 
-        ACCESS_TOKEN_EXPIRE = (0
-                )
-            )
-        )
+        ACCESS_TOKEN_EXPIRE = 0
 
 
 
