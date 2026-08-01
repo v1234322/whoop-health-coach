@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 
 # =========================
-# INIT DATABASE
+# DATABASE INIT
 # =========================
 
 init_db()
@@ -80,7 +80,7 @@ TOKEN_LOCK = threading.Lock()
 
 
 # =========================
-# API KEY CHECK
+# API KEY
 # =========================
 
 def check_api_key():
@@ -128,7 +128,7 @@ def callback():
 
 
 # =========================
-# CODE EXCHANGE TOKEN
+# AUTH CODE -> TOKEN
 # =========================
 
 @app.route("/whoop/token")
@@ -185,7 +185,6 @@ def whoop_token():
     )
 
 
-
     print(
         "TOKEN RESPONSE:"
     )
@@ -202,7 +201,7 @@ def whoop_token():
 
 
 # =========================
-# REFRESH ACCESS TOKEN
+# REFRESH TOKEN
 # =========================
 
 def refresh_access_token(force=False):
@@ -240,15 +239,20 @@ def refresh_access_token(force=False):
     with TOKEN_LOCK:
 
 
-        # Environment 优先
+        # =====================
+        # TOKEN PRIORITY
+        #
+        # 1. Render Environment
+        # 2. PostgreSQL
+        #
+        # =====================
+
 
         refresh_token = (
             WHOOP_REFRESH_TOKEN.strip()
         )
 
 
-
-        # 数据库备用
 
         if not refresh_token:
 
@@ -326,6 +330,7 @@ def refresh_access_token(force=False):
 
 
         print(
+            "REFRESH RESPONSE:",
             r.text[:500]
         )
 
@@ -350,7 +355,6 @@ def refresh_access_token(force=False):
             time.time()
 
             +
-
             int(
                 data.get(
                     "expires_in",
@@ -362,12 +366,13 @@ def refresh_access_token(force=False):
 
 
 
-        # 保存新的 refresh token
+        # =====================
+        # SAVE NEW TOKEN
+        # =====================
 
         new_refresh_token = data.get(
             "refresh_token"
         )
-
 
 
         if new_refresh_token:
@@ -394,13 +399,12 @@ def refresh_access_token(force=False):
         )
 
 
-
         return ACCESS_TOKEN
 
 
 
 # =========================
-# WHOOP API
+# WHOOP GET
 # =========================
 
 def whoop_get(endpoint):
@@ -463,7 +467,6 @@ def whoop_get(endpoint):
     )
 
 
-
     r.raise_for_status()
 
 
@@ -473,11 +476,12 @@ def whoop_get(endpoint):
 
 
 # =========================
-# TODAY + AI COACH
+# TODAY REPORT
 # =========================
 
 @app.route("/whoop/today")
 def today():
+
 
 
     if not check_api_key():
@@ -524,6 +528,7 @@ def today():
             "/activity/workout"
         )
 
+
     }
 
 
@@ -552,7 +557,7 @@ def today():
 
 
 # =========================
-# HEALTH CHECK
+# HOME
 # =========================
 
 @app.route("/")
@@ -565,7 +570,7 @@ def home():
 
 
 # =========================
-# START
+# RUN
 # =========================
 
 if __name__ == "__main__":
