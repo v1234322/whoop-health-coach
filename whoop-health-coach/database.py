@@ -330,6 +330,12 @@ def save_daily_data(data):
 
             sleep_duration = %s,
 
+            sleep_efficiency = %s,
+
+            deep_sleep_duration = %s,
+
+            rem_sleep_duration = %s,
+
             cycle_strain = %s,
 
             workout_data = %s,
@@ -379,6 +385,12 @@ def save_daily_data(data):
             sleep_score,
 
             sleep_duration,
+
+            sleep_efficiency,
+
+            deep_sleep_duration,
+
+            rem_sleep_duration,
 
             cycle_strain,
 
