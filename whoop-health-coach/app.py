@@ -110,13 +110,7 @@ def exchange_token():
 WHOOP_ACCESS_TOKEN = None
 
 
-def refresh_token():
-
-    global WHOOP_ACCESS_TOKEN
-
-    if WHOOP_ACCESS_TOKEN:
-        return WHOOP_ACCESS_TOKEN
-
+def get_access_token():
 
     r = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
@@ -131,17 +125,12 @@ def refresh_token():
         }
     )
 
-
-    print("WHOOP TOKEN RESPONSE:")
+    print("TOKEN:")
     print(r.text)
-
 
     r.raise_for_status()
 
-
-    WHOOP_ACCESS_TOKEN = r.json()["access_token"]
-
-    return WHOOP_ACCESS_TOKEN
+    return r.json()["access_token"]
 
 # =====================
 # WHOOP API
@@ -149,32 +138,14 @@ def refresh_token():
 
 def whoop_get(endpoint):
 
-    token = os.environ.get("WHOOP_ACCESS_TOKEN")
-
-    print("TOKEN CHECK:")
-    print(token[:20] if token else "NO TOKEN")
-
-
-    if not token:
-        return {
-            "error": "missing WHOOP_ACCESS_TOKEN"
-        }
-
+    token = get_access_token()
 
     r = requests.get(
         "https://api.prod.whoop.com/developer/v2" + endpoint,
         headers={
-            "Authorization": "Bearer " + token
+            "Authorization": f"Bearer {token}"
         }
     )
-
-
-    print("WHOOP STATUS:")
-    print(r.status_code)
-
-    print("WHOOP RESPONSE:")
-    print(r.text)
-
 
     r.raise_for_status()
 
