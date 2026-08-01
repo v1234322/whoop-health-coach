@@ -15,22 +15,22 @@ BASE_URL = "https://api.prod.whoop.com/developer/v2"
 def refresh_token():
     r = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
-        auth=(
-            WHOOP_CLIENT_ID,
-            WHOOP_CLIENT_SECRET
-        ),
         data={
             "grant_type": "refresh_token",
-            "refresh_token": WHOOP_REFRESH_TOKEN
+            "refresh_token": WHOOP_REFRESH_TOKEN,
+            "client_id": WHOOP_CLIENT_ID,
+            "client_secret": WHOOP_CLIENT_SECRET
+        },
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded"
         }
     )
 
-    print(r.text)
+    print("WHOOP TOKEN RESPONSE:", r.text)
 
     r.raise_for_status()
 
     return r.json()["access_token"]
-
 def whoop_get(endpoint, params=None):
     token = refresh_token()
     r = requests.get(
