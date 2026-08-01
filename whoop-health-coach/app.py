@@ -144,13 +144,9 @@ def whoop_token():
 
 
 
-    client_id = os.environ.get(
-        "WHOOP_CLIENT_ID"
-    )
-
-    client_secret = os.environ.get(
-        "WHOOP_CLIENT_SECRET"
-    )
+    print("CLIENT_ID:", client_id)
+    
+    print("SECRET LENGTH:", len(client_secret) if client_secret else 0)
 
 
     if not client_id or not client_secret:
