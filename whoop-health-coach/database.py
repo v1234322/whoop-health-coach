@@ -229,20 +229,113 @@ def load_refresh_token():
 
 def save_daily_data(data):
 
-
     conn = get_connection()
 
     cur = conn.cursor()
 
 
+    # 检查今天是否已经存在
 
     cur.execute(
-
         """
+        SELECT id
+        FROM whoop_daily
+        WHERE date = CURRENT_DATE
+        LIMIT 1
+        """
+    )
 
-        INSERT INTO whoop_daily
 
-        (
+    existing = cur.fetchone()
+
+
+
+    values = (
+
+        data.get("recovery_score"),
+
+        data.get("hrv"),
+
+        data.get("resting_heart_rate"),
+
+        data.get("sleep_score"),
+
+        data.get("sleep_duration"),
+
+        data.get("cycle_strain"),
+
+        json.dumps(
+            data.get(
+                "workout_data",
+                {}
+            )
+        ),
+
+        json.dumps(data)
+
+    )
+
+
+
+    if existing:
+
+
+        # 今天已有数据，更新
+
+        cur.execute(
+
+            """
+            UPDATE whoop_daily
+
+            SET
+
+            recovery_score = %s,
+
+            hrv = %s,
+
+            resting_heart_rate = %s,
+
+            sleep_score = %s,
+
+            sleep_duration = %s,
+
+            cycle_strain = %s,
+
+            workout_data = %s,
+
+            raw_data = %s,
+
+            created_at = NOW()
+
+
+            WHERE id = %s
+
+            """,
+
+            values + (
+                existing[0],
+            )
+
+        )
+
+
+        print(
+            "WHOOP DAILY UPDATED"
+        )
+
+
+
+    else:
+
+
+        # 今天没有数据，新建
+
+        cur.execute(
+
+            """
+            INSERT INTO whoop_daily
+
+            (
 
             date,
 
@@ -262,84 +355,29 @@ def save_daily_data(data):
 
             raw_data
 
-        )
+            )
 
 
-        VALUES
+            VALUES
 
-        (
+            (
 
             CURRENT_DATE,
 
-            %s,
+            %s,%s,%s,%s,%s,%s,%s,%s
 
-            %s,
-
-            %s,
-
-            %s,
-
-            %s,
-
-            %s,
-
-            %s,
-
-            %s
-
-        )
-
-
-        """,
-
-
-        (
-
-            data.get(
-                "recovery_score"
-            ),
-
-
-            data.get(
-                "hrv"
-            ),
-
-
-            data.get(
-                "resting_heart_rate"
-            ),
-
-
-            data.get(
-                "sleep_score"
-            ),
-
-
-            data.get(
-                "sleep_duration"
-            ),
-
-
-            data.get(
-                "cycle_strain"
-            ),
-
-
-            json.dumps(
-                data.get(
-                    "workout_data",
-                    {}
-                )
-            ),
-
-
-            json.dumps(
-                data
             )
 
+            """,
+
+            values
+
         )
 
-    )
+
+        print(
+            "WHOOP DAILY INSERTED"
+        )
 
 
 
@@ -349,9 +387,6 @@ def save_daily_data(data):
     cur.close()
 
     conn.close()
-
-
-
 
 # =========================
 # LOAD 7 DAYS DATA
