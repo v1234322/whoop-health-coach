@@ -171,20 +171,21 @@ def report():
 def get_access_token():
 
     global ACCESS_TOKEN_CACHE
-    global WHOOP_REFRESH_TOKEN
 
 
-    # 已经获取过，直接使用
     if ACCESS_TOKEN_CACHE:
 
         return ACCESS_TOKEN_CACHE
 
 
 
-    if not WHOOP_REFRESH_TOKEN:
+    refresh_token = load_refresh_token()
+
+
+    if not refresh_token:
 
         raise Exception(
-            "Missing WHOOP_REFRESH_TOKEN"
+            "No refresh token"
         )
 
 
@@ -199,7 +200,7 @@ def get_access_token():
             "refresh_token",
 
             "refresh_token":
-            WHOOP_REFRESH_TOKEN,
+            refresh_token,
 
             "client_id":
             WHOOP_CLIENT_ID,
@@ -219,8 +220,14 @@ def get_access_token():
     )
 
 
-    print("REFRESH RESPONSE:")
-    print(r.text)
+
+    print(
+        "REFRESH RESPONSE:"
+    )
+
+    print(
+        r.text
+    )
 
 
 
@@ -232,25 +239,21 @@ def get_access_token():
 
 
 
-    # 保存新的 access_token
-    ACCESS_TOKEN_CACHE = data["access_token"]
+    ACCESS_TOKEN_CACHE = (
+        data["access_token"]
+    )
 
 
+    # 保存WHOOP新的refresh_token
 
-    # WHOOP 会轮换 refresh_token
     if "refresh_token" in data:
 
-        WHOOP_REFRESH_TOKEN = data["refresh_token"]
-
-
-        print(
-            "NEW REFRESH TOKEN RECEIVED"
+        save_refresh_token(
+            data["refresh_token"]
         )
 
 
-
     return ACCESS_TOKEN_CACHE
-
 
 
 # =========================
