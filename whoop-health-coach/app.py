@@ -190,8 +190,6 @@ def refresh_access_token(force=False):
     global ACCESS_TOKEN_EXPIRE
     global WHOOP_REFRESH_TOKEN
 
-    ...
-
 
     if (
         not force
