@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 
 # =========================
-# Environment
+# ENV
 # =========================
 
 WHOOP_CLIENT_ID = os.environ.get(
@@ -50,7 +50,7 @@ WHOOP_API_BASE = (
 
 
 # =========================
-# Token Cache
+# TOKEN CACHE
 # =========================
 
 ACCESS_TOKEN = None
@@ -62,7 +62,7 @@ TOKEN_LOCK = threading.Lock()
 
 
 # =========================
-# API Key Check
+# CHECK API KEY
 # =========================
 
 def check_api_key():
@@ -76,7 +76,7 @@ def check_api_key():
 
 
 # =========================
-# OAuth Callback
+# CALLBACK
 # =========================
 
 @app.route("/callback")
@@ -85,6 +85,7 @@ def callback():
     code = request.args.get(
         "code"
     )
+
 
     if not code:
 
@@ -98,9 +99,6 @@ def callback():
 
     return jsonify(
         {
-            "message":
-            "code received",
-
             "code":
             code
         }
@@ -109,7 +107,7 @@ def callback():
 
 
 # =========================
-# Authorization Code -> Token
+# CODE -> TOKEN
 # =========================
 
 @app.route("/whoop/token")
@@ -159,9 +157,7 @@ def whoop_token():
             "Content-Type":
             "application/x-www-form-urlencoded"
 
-        },
-
-        timeout=30
+        }
 
     )
 
@@ -182,7 +178,7 @@ def whoop_token():
 
 
 # =========================
-# Refresh Token
+# REFRESH TOKEN
 # =========================
 
 def refresh_access_token(force=False):
@@ -192,11 +188,10 @@ def refresh_access_token(force=False):
     global WHOOP_REFRESH_TOKEN
 
 
+
     print(
         "REFRESH CHECK:",
-        "force=",
         force,
-        "cached=",
         ACCESS_TOKEN is not None
     )
 
@@ -213,10 +208,6 @@ def refresh_access_token(force=False):
 
     ):
 
-        print(
-            "USING CACHE TOKEN"
-        )
-
         return ACCESS_TOKEN
 
 
@@ -224,25 +215,9 @@ def refresh_access_token(force=False):
     with TOKEN_LOCK:
 
 
-        if (
-
-            not force
-
-            and ACCESS_TOKEN
-
-            and time.time()
-            <
-            ACCESS_TOKEN_EXPIRE - 300
-
-        ):
-
-            return ACCESS_TOKEN
-
-
-
         if not WHOOP_REFRESH_TOKEN:
 
-            raise RuntimeError(
+            raise Exception(
                 "Missing WHOOP_REFRESH_TOKEN"
             )
 
@@ -300,16 +275,14 @@ def refresh_access_token(force=False):
             headers={
 
                 "Content-Type":
-                "application/x-www-form-urlencoded",
-
-                "Accept":
-                "application/json"
+                "application/x-www-form-urlencoded"
 
             },
 
             timeout=30
 
         )
+
 
 
         print(
@@ -359,6 +332,7 @@ def refresh_access_token(force=False):
             "refresh_token"
         ):
 
+
             WHOOP_REFRESH_TOKEN = (
                 data["refresh_token"]
             )
@@ -375,8 +349,8 @@ def refresh_access_token(force=False):
         )
 
 
-
         return ACCESS_TOKEN
+
 
 
 
@@ -416,13 +390,8 @@ def whoop_get(endpoint):
     if r.status_code == 401:
 
 
-        print(
-            "TOKEN EXPIRED, FORCE REFRESH"
-        )
-
-
         token = refresh_access_token(
-            force=True
+            True
         )
 
 
@@ -435,14 +404,9 @@ def whoop_get(endpoint):
             headers={
 
                 "Authorization":
-                f"Bearer {token}",
+                f"Bearer {token}"
 
-                "Accept":
-                "application/json"
-
-            },
-
-            timeout=30
+            }
 
         )
 
@@ -454,23 +418,16 @@ def whoop_get(endpoint):
     )
 
 
-    print(
-        "WHOOP RESPONSE:",
-        r.text[:300]
-    )
-
-
-
     r.raise_for_status()
-
 
 
     return r.json()
 
 
 
+
 # =========================
-# Today Data
+# TODAY
 # =========================
 
 @app.route("/whoop/today")
@@ -488,52 +445,41 @@ def today():
 
 
 
-    data = {
-
-
-        "recovery":
-
-        whoop_get(
-            "/recovery"
-        ),
-
-
-
-        "cycle":
-
-        whoop_get(
-            "/cycle"
-        ),
-
-
-
-        "sleep":
-
-        whoop_get(
-            "/activity/sleep"
-        ),
-
-
-
-        "workout":
-
-        whoop_get(
-            "/activity/workout"
-        )
-
-
-    }
-
-
-
     return jsonify(
-        data
+
+        {
+
+            "recovery":
+            whoop_get(
+                "/recovery"
+            ),
+
+
+            "cycle":
+            whoop_get(
+                "/cycle"
+            ),
+
+
+            "sleep":
+            whoop_get(
+                "/activity/sleep"
+            ),
+
+
+            "workout":
+            whoop_get(
+                "/activity/workout"
+            )
+
+        }
+
     )
 
 
 
 # =========================
-# Health Check
+# HOME
 # =========================
 
 @app.route("/")
@@ -544,10 +490,6 @@ def home():
     )
 
 
-
-# =========================
-# Run
-# =========================
 
 if __name__ == "__main__":
 
