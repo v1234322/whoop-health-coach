@@ -7,124 +7,79 @@ app = Flask(__name__)
 
 
 # =========================
-# Environment
+# Environment Variables
 # =========================
 
-WHOOP_CLIENT_ID = os.environ.get("WHOOP_CLIENT_ID")
-WHOOP_CLIENT_SECRET = os.environ.get("WHOOP_CLIENT_SECRET")
-WHOOP_REFRESH_TOKEN = os.environ.get("WHOOP_REFRESH_TOKEN")
+WHOOP_ACCESS_TOKEN = os.environ.get(
+    "WHOOP_ACCESS_TOKEN"
+)
 
-API_SECRET = os.environ.get("API_SECRET")
+API_SECRET = os.environ.get(
+    "API_SECRET"
+)
 
 
-# 缓存 access token
-ACCESS_TOKEN_CACHE = None
+WHOOP_API_BASE = (
+    "https://api.prod.whoop.com/developer/v2"
+)
 
 
 
 # =========================
-# Home
+# 首页检测
 # =========================
 
 @app.route("/")
 def home():
 
     return jsonify({
+
         "status": "ok",
+
         "service": "WHOOP Health Coach"
+
     })
 
 
 
 # =========================
-# API KEY
+# API Key 验证
 # =========================
 
 def check_api_key():
 
-    key = request.headers.get("X-API-Key")
+    key = request.headers.get(
+        "X-API-Key"
+    )
 
     return key == API_SECRET
 
 
 
 # =========================
-# WHOOP OAuth Refresh
-# =========================
-
-def get_access_token():
-
-    global ACCESS_TOKEN_CACHE
-
-
-    # 已经有token，不重复刷新
-    if ACCESS_TOKEN_CACHE:
-
-        return ACCESS_TOKEN_CACHE
-
-
-
-    r = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data={
-
-            "grant_type": "refresh_token",
-
-            "refresh_token": WHOOP_REFRESH_TOKEN,
-
-            "client_id": WHOOP_CLIENT_ID,
-
-            "client_secret": WHOOP_CLIENT_SECRET
-
-        },
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        }
-
-    )
-
-
-    print("TOKEN RESPONSE:")
-    print(r.text)
-
-
-
-    r.raise_for_status()
-
-
-    data = r.json()
-
-
-    ACCESS_TOKEN_CACHE = data["access_token"]
-
-
-    return ACCESS_TOKEN_CACHE
-
-
-
-
-# =========================
-# WHOOP API
+# 获取 WHOOP 数据
 # =========================
 
 def whoop_get(endpoint):
 
 
-    token = get_access_token()
+    token = WHOOP_ACCESS_TOKEN
+
+
+    if not token:
+
+        return {
+
+            "error":
+            "WHOOP_ACCESS_TOKEN missing"
+
+        }
 
 
 
     r = requests.get(
 
-        "https://api.prod.whoop.com/developer/v2"
-        + endpoint,
-
+        WHOOP_API_BASE + endpoint,
 
         headers={
 
@@ -136,8 +91,11 @@ def whoop_get(endpoint):
     )
 
 
+    print("WHOOP STATUS:")
+    print(r.status_code)
 
-    print("WHOOP API:")
+
+    print("WHOOP RESPONSE:")
     print(r.text)
 
 
@@ -149,106 +107,8 @@ def whoop_get(endpoint):
 
 
 
-
 # =========================
-# OAuth Callback
-# =========================
-
-@app.route("/callback")
-def callback():
-
-
-    code = request.args.get("code")
-
-
-    if not code:
-
-        return jsonify({
-
-            "error":
-            "missing code"
-
-        }),400
-
-
-
-    return jsonify({
-
-        "message":
-        "WHOOP authorization success",
-
-        "code":
-        code
-
-    })
-
-
-
-
-# =========================
-# Exchange Code
-# =========================
-
-@app.route("/whoop/token")
-def exchange_token():
-
-
-    code = request.args.get("code")
-
-
-    if not code:
-
-        return jsonify({
-
-            "error":
-            "missing code"
-
-        }),400
-
-
-
-
-    r = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data={
-
-            "grant_type":
-            "authorization_code",
-
-            "code":
-            code,
-
-            "client_id":
-            WHOOP_CLIENT_ID,
-
-            "client_secret":
-            WHOOP_CLIENT_SECRET,
-
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback"
-
-        },
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        }
-
-    )
-
-
-    return jsonify(r.json())
-
-
-
-
-
-# =========================
-# Today Data
+# WHOOP 今日数据
 # =========================
 
 @app.route("/whoop/today")
@@ -266,35 +126,41 @@ def today():
 
 
 
-
     data = {
 
 
         "recovery":
 
-        whoop_get("/recovery"),
+        whoop_get(
+            "/recovery"
+        ),
 
 
 
         "cycle":
 
-        whoop_get("/cycle"),
+        whoop_get(
+            "/cycle"
+        ),
 
 
 
         "sleep":
 
-        whoop_get("/sleep"),
+        whoop_get(
+            "/sleep"
+        ),
 
 
 
         "workout":
 
-        whoop_get("/workout")
+        whoop_get(
+            "/workout"
+        )
 
 
     }
-
 
 
     return jsonify(data)
@@ -302,9 +168,8 @@ def today():
 
 
 
-
 # =========================
-# Run
+# 启动
 # =========================
 
 if __name__ == "__main__":
@@ -317,11 +182,8 @@ if __name__ == "__main__":
         port=int(
 
             os.environ.get(
-
                 "PORT",
-
                 10000
-
             )
 
         )
