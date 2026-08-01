@@ -19,6 +19,14 @@ WHOOP_CLIENT_SECRET = os.environ.get(
     "WHOOP_CLIENT_SECRET"
 )
 
+WHOOP_REFRESH_TOKEN = os.environ.get(
+    "WHOOP_REFRESH_TOKEN"
+)
+
+API_SECRET = os.environ.get(
+    "API_SECRET"
+)
+
 
 print("DEBUG CLIENT ID:", WHOOP_CLIENT_ID)
 
