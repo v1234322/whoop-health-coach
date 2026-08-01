@@ -42,18 +42,43 @@ def init_db():
 
     cur.execute(
         """
-        CREATE TABLE IF NOT EXISTS whoop_tokens
+                CREATE TABLE IF NOT EXISTS whoop_daily
         (
-            id INTEGER PRIMARY KEY,
 
-            refresh_token TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
 
-            updated_at TIMESTAMP DEFAULT NOW()
+            date DATE NOT NULL,
+
+            recovery_score FLOAT,
+
+            hrv FLOAT,
+
+            resting_heart_rate FLOAT,
+
+
+            sleep_score FLOAT,
+
+            sleep_duration FLOAT,
+
+            sleep_efficiency FLOAT,
+
+            deep_sleep_duration FLOAT,
+
+            rem_sleep_duration FLOAT,
+
+
+            cycle_strain FLOAT,
+
+
+            workout_data JSONB,
+
+
+            raw_data JSONB,
+
+
+            created_at TIMESTAMP DEFAULT NOW()
+
         )
-        """
-    )
-
-
 
     # =====================
     # WHOOP DAILY DATA TABLE
