@@ -238,38 +238,34 @@ def refresh_access_token(force=False):
 
         print(
             "REFRESH TOKEN LENGTH:",
+            len(WHOOP_REFRESH_TOKEN.strip())
+        )
+
+
+       if not WHOOP_REFRESH_TOKEN:
+           raise RuntimeError(
+               "Missing WHOOP_REFRESH_TOKEN"
+           )
+
+
+       refresh_token = WHOOP_REFRESH_TOKEN.strip()
+
+
+        print(
+            "REFRESH TOKEN LENGTH:",
             len(refresh_token)
         )
 
 
-        if not refresh_token:
-
-            raise RuntimeError(
-                "Missing WHOOP_REFRESH_TOKEN"
-            )
-
-
-
         payload = {
 
+            "grant_type": "refresh_token",
 
-            "grant_type":
-            "refresh_token",
+            "refresh_token": refresh_token,
 
-
-            "refresh_token":
-            refresh_token,
-
-
-            "client_id":
-            WHOOP_CLIENT_ID.strip(),
-
-
-            "client_secret":
-            WHOOP_CLIENT_SECRET.strip(),
-
-
-
+            "client_id": WHOOP_CLIENT_ID,
+     
+            "client_secret": WHOOP_CLIENT_SECRET
         }
 
 
