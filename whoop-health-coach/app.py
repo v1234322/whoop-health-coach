@@ -15,14 +15,16 @@ from database import (
 app = Flask(__name__)
 
 
-# 初始化数据库
+# =========================
+# Init Database
+# =========================
 
 init_db()
 
 
 
 # =========================
-# ENV
+# Environment
 # =========================
 
 WHOOP_CLIENT_ID = os.environ.get(
@@ -62,7 +64,7 @@ WHOOP_API_BASE = (
 
 
 # =========================
-# TOKEN CACHE
+# Token Cache
 # =========================
 
 ACCESS_TOKEN = None
@@ -74,7 +76,7 @@ TOKEN_LOCK = threading.Lock()
 
 
 # =========================
-# API KEY
+# API Key
 # =========================
 
 def check_api_key():
@@ -88,7 +90,7 @@ def check_api_key():
 
 
 # =========================
-# CALLBACK
+# OAuth Callback
 # =========================
 
 @app.route("/callback")
@@ -97,6 +99,7 @@ def callback():
     code = request.args.get(
         "code"
     )
+
 
     if not code:
 
@@ -121,7 +124,7 @@ def callback():
 
 
 # =========================
-# CODE TO TOKEN
+# Exchange Code
 # =========================
 
 @app.route("/whoop/token")
@@ -194,7 +197,7 @@ def whoop_token():
 
 
 # =========================
-# REFRESH TOKEN
+# Refresh Access Token
 # =========================
 
 def refresh_access_token(force=False):
@@ -225,10 +228,6 @@ def refresh_access_token(force=False):
 
     ):
 
-        print(
-            "USING CACHE TOKEN"
-        )
-
         return ACCESS_TOKEN
 
 
@@ -238,15 +237,17 @@ def refresh_access_token(force=False):
 
 
         # =========================
-        # TOKEN读取保护
-        # 优先 Render 环境变量
-        # 再读取数据库
+        # Token Priority
+        #
+        # 1. Render Environment
+        # 2. PostgreSQL backup
         # =========================
 
 
         refresh_token = (
             WHOOP_REFRESH_TOKEN.strip()
         )
+
 
 
         if not refresh_token:
@@ -266,7 +267,7 @@ def refresh_access_token(force=False):
         if not refresh_token:
 
             raise Exception(
-                "Missing refresh token"
+                "Missing WHOOP refresh token"
             )
 
 
@@ -275,7 +276,6 @@ def refresh_access_token(force=False):
             "REFRESH TOKEN LENGTH:",
             len(refresh_token)
         )
-
 
 
         print(
@@ -304,6 +304,7 @@ def refresh_access_token(force=False):
 
             },
 
+
             headers={
 
                 "Content-Type":
@@ -313,6 +314,7 @@ def refresh_access_token(force=False):
                 "application/json"
 
             },
+
 
             timeout=30
 
@@ -365,12 +367,13 @@ def refresh_access_token(force=False):
 
 
         # =========================
-        # 保存新的refresh_token
+        # Save rotated refresh token
         # =========================
 
         new_refresh_token = data.get(
             "refresh_token"
         )
+
 
 
         if new_refresh_token:
@@ -402,8 +405,9 @@ def refresh_access_token(force=False):
 
 
 
+
 # =========================
-# WHOOP GET
+# WHOOP API GET
 # =========================
 
 def whoop_get(endpoint):
@@ -419,6 +423,7 @@ def whoop_get(endpoint):
         +
         endpoint,
 
+
         headers={
 
             "Authorization":
@@ -428,6 +433,7 @@ def whoop_get(endpoint):
             "application/json"
 
         },
+
 
         timeout=30
 
@@ -439,7 +445,7 @@ def whoop_get(endpoint):
 
 
         print(
-            "TOKEN EXPIRED FORCE REFRESH"
+            "TOKEN EXPIRED"
         )
 
 
@@ -453,6 +459,7 @@ def whoop_get(endpoint):
             WHOOP_API_BASE
             +
             endpoint,
+
 
             headers={
 
@@ -481,7 +488,7 @@ def whoop_get(endpoint):
 
 
 # =========================
-# TODAY
+# Today Data
 # =========================
 
 @app.route("/whoop/today")
@@ -545,7 +552,7 @@ def today():
 
 
 # =========================
-# HOME
+# Health Check
 # =========================
 
 @app.route("/")
@@ -558,7 +565,7 @@ def home():
 
 
 # =========================
-# RUN
+# Run
 # =========================
 
 if __name__ == "__main__":
