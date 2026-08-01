@@ -107,7 +107,16 @@ def exchange_token():
 # Refresh Token
 # =====================
 
+WHOOP_ACCESS_TOKEN = None
+
+
 def refresh_token():
+
+    global WHOOP_ACCESS_TOKEN
+
+    if WHOOP_ACCESS_TOKEN:
+        return WHOOP_ACCESS_TOKEN
+
 
     r = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
@@ -122,13 +131,17 @@ def refresh_token():
         }
     )
 
+
     print("WHOOP TOKEN RESPONSE:")
     print(r.text)
 
+
     r.raise_for_status()
 
-    return r.json()["access_token"]
 
+    WHOOP_ACCESS_TOKEN = r.json()["access_token"]
+
+    return WHOOP_ACCESS_TOKEN
 
 # =====================
 # WHOOP API
@@ -138,17 +151,12 @@ def whoop_get(endpoint):
 
     token = refresh_token()
 
-
     r = requests.get(
-        "https://api.prod.whoop.com/developer/v2"
-        + endpoint,
-
+        "https://api.prod.whoop.com/developer/v2" + endpoint,
         headers={
-            "Authorization":
-            f"Bearer {token}"
+            "Authorization": f"Bearer {token}"
         }
     )
-
 
     return r.json()
 
@@ -162,14 +170,12 @@ def whoop_get(endpoint):
 def today():
 
     if not check_api_key():
-
         return jsonify({
             "error":"unauthorized"
         }),401
 
 
-
-    data={
+    data = {
 
         "recovery":
         whoop_get("/recovery"),
@@ -178,10 +184,10 @@ def today():
         whoop_get("/cycle"),
 
         "sleep":
-        whoop_get("/activity/sleep"),
+        whoop_get("/sleep"),
 
         "workout":
-        whoop_get("/activity/workout")
+        whoop_get("/workout")
 
     }
 
