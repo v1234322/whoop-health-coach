@@ -147,7 +147,9 @@ def refresh_token():
 # WHOOP API
 # =====================
 
-def whoop_get(endpoint, token):
+def whoop_get(endpoint):
+
+    token = os.environ.get("WHOOP_ACCESS_TOKEN")
 
     r = requests.get(
         "https://api.prod.whoop.com/developer/v2" + endpoint,
@@ -156,7 +158,8 @@ def whoop_get(endpoint, token):
         }
     )
 
-    r.raise_for_status()
+    print("WHOOP API RESPONSE:")
+    print(r.text)
 
     return r.json()
 
