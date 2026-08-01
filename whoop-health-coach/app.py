@@ -11,12 +11,16 @@ from database import (
     load_refresh_token
 )
 
+from coach import (
+    generate_health_report
+)
+
 
 app = Flask(__name__)
 
 
 # =========================
-# Init Database
+# INIT DATABASE
 # =========================
 
 init_db()
@@ -24,7 +28,7 @@ init_db()
 
 
 # =========================
-# Environment
+# ENVIRONMENT
 # =========================
 
 WHOOP_CLIENT_ID = os.environ.get(
@@ -64,7 +68,7 @@ WHOOP_API_BASE = (
 
 
 # =========================
-# Token Cache
+# TOKEN CACHE
 # =========================
 
 ACCESS_TOKEN = None
@@ -76,7 +80,7 @@ TOKEN_LOCK = threading.Lock()
 
 
 # =========================
-# API Key
+# API KEY CHECK
 # =========================
 
 def check_api_key():
@@ -90,7 +94,7 @@ def check_api_key():
 
 
 # =========================
-# OAuth Callback
+# CALLBACK
 # =========================
 
 @app.route("/callback")
@@ -124,7 +128,7 @@ def callback():
 
 
 # =========================
-# Exchange Code
+# CODE EXCHANGE TOKEN
 # =========================
 
 @app.route("/whoop/token")
@@ -181,6 +185,7 @@ def whoop_token():
     )
 
 
+
     print(
         "TOKEN RESPONSE:"
     )
@@ -197,7 +202,7 @@ def whoop_token():
 
 
 # =========================
-# Refresh Access Token
+# REFRESH ACCESS TOKEN
 # =========================
 
 def refresh_access_token(force=False):
@@ -235,14 +240,7 @@ def refresh_access_token(force=False):
     with TOKEN_LOCK:
 
 
-
-        # =========================
-        # Token Priority
-        #
-        # 1. Render Environment
-        # 2. PostgreSQL backup
-        # =========================
-
+        # Environment 优先
 
         refresh_token = (
             WHOOP_REFRESH_TOKEN.strip()
@@ -250,8 +248,9 @@ def refresh_access_token(force=False):
 
 
 
-        if not refresh_token:
+        # 数据库备用
 
+        if not refresh_token:
 
             db_token = load_refresh_token()
 
@@ -304,7 +303,6 @@ def refresh_access_token(force=False):
 
             },
 
-
             headers={
 
                 "Content-Type":
@@ -314,7 +312,6 @@ def refresh_access_token(force=False):
                 "application/json"
 
             },
-
 
             timeout=30
 
@@ -329,7 +326,6 @@ def refresh_access_token(force=False):
 
 
         print(
-            "REFRESH RESPONSE:",
             r.text[:500]
         )
 
@@ -366,9 +362,7 @@ def refresh_access_token(force=False):
 
 
 
-        # =========================
-        # Save rotated refresh token
-        # =========================
+        # 保存新的 refresh token
 
         new_refresh_token = data.get(
             "refresh_token"
@@ -390,13 +384,13 @@ def refresh_access_token(force=False):
 
 
             print(
-                "REFRESH TOKEN SAVED TO DATABASE"
+                "REFRESH TOKEN SAVED"
             )
 
 
 
         print(
-            "TOKEN REFRESH SUCCESS"
+            "WHOOP TOKEN REFRESH SUCCESS"
         )
 
 
@@ -405,9 +399,8 @@ def refresh_access_token(force=False):
 
 
 
-
 # =========================
-# WHOOP API GET
+# WHOOP API
 # =========================
 
 def whoop_get(endpoint):
@@ -423,7 +416,6 @@ def whoop_get(endpoint):
         +
         endpoint,
 
-
         headers={
 
             "Authorization":
@@ -434,7 +426,6 @@ def whoop_get(endpoint):
 
         },
 
-
         timeout=30
 
     )
@@ -442,11 +433,6 @@ def whoop_get(endpoint):
 
 
     if r.status_code == 401:
-
-
-        print(
-            "TOKEN EXPIRED"
-        )
 
 
         token = refresh_access_token(
@@ -459,7 +445,6 @@ def whoop_get(endpoint):
             WHOOP_API_BASE
             +
             endpoint,
-
 
             headers={
 
@@ -488,12 +473,11 @@ def whoop_get(endpoint):
 
 
 # =========================
-# Today Data
+# TODAY + AI COACH
 # =========================
 
 @app.route("/whoop/today")
 def today():
-
 
 
     if not check_api_key():
@@ -540,19 +524,35 @@ def today():
             "/activity/workout"
         )
 
-
     }
 
 
 
-    return jsonify(
+    report = generate_health_report(
         data
     )
 
 
 
+    return jsonify(
+
+        {
+
+            "whoop_data":
+            data,
+
+
+            "coach_report":
+            report
+
+        }
+
+    )
+
+
+
 # =========================
-# Health Check
+# HEALTH CHECK
 # =========================
 
 @app.route("/")
@@ -565,7 +565,7 @@ def home():
 
 
 # =========================
-# Run
+# START
 # =========================
 
 if __name__ == "__main__":
