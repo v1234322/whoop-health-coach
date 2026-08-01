@@ -105,7 +105,25 @@ def whoop_get(endpoint):
 
     return r.json()
 
+# =========================
+# WHOOP OAuth Callback
+# =========================
 
+@app.route("/callback")
+def callback():
+
+    code = request.args.get("code")
+
+    if not code:
+        return jsonify({
+            "error": "missing code"
+        }), 400
+
+
+    return jsonify({
+        "message": "WHOOP authorization success",
+        "code": code
+    })
 
 # =========================
 # WHOOP 今日数据
