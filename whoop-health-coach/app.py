@@ -151,6 +151,10 @@ def whoop_get(endpoint):
 
     token = os.environ.get("WHOOP_ACCESS_TOKEN")
 
+    print("TOKEN CHECK:")
+    print(token[:20] if token else "NO TOKEN")
+
+
     if not token:
         return {
             "error": "missing WHOOP_ACCESS_TOKEN"
@@ -160,12 +164,15 @@ def whoop_get(endpoint):
     r = requests.get(
         "https://api.prod.whoop.com/developer/v2" + endpoint,
         headers={
-            "Authorization": f"Bearer {token}"
+            "Authorization": "Bearer " + token
         }
     )
 
 
-    print("WHOOP API RESPONSE:")
+    print("WHOOP STATUS:")
+    print(r.status_code)
+
+    print("WHOOP RESPONSE:")
     print(r.text)
 
 
