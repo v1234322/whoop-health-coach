@@ -19,8 +19,7 @@ def refresh_token():
             "grant_type": "refresh_token",
             "refresh_token": WHOOP_REFRESH_TOKEN,
             "client_id": WHOOP_CLIENT_ID,
-            "client_secret": WHOOP_CLIENT_SECRET,
-            "redirect_uri": "https://oauth.pstmn.io/v1/browser-callback"
+            "client_secret": WHOOP_CLIENT_SECRET
         },
         headers={
             "Content-Type": "application/x-www-form-urlencoded"
