@@ -259,9 +259,6 @@ def refresh_access_token(force=False):
             WHOOP_CLIENT_SECRET.strip(),
 
 
-            "scope":
-            "offline"
-
 
         }
 
