@@ -140,7 +140,7 @@ Strain：
 
         ],
 
-        temperature=0.4
+        temperature=0.2
 
     )
 
