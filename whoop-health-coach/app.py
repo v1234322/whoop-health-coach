@@ -42,33 +42,46 @@ def init_db():
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS daily_metrics (
+            
+            id SERIAL PRIMARY KEY,
+            
+            report_date TEXT,
+            
+            recovery_score FLOAT,
+            
+            hrv FLOAT,
+            
+            resting_heart_rate FLOAT,
+            
+            sleep_score FLOAT,
+            
+            sleep_duration FLOAT,
+            
+            sleep_efficiency FLOAT,
+            
+            deep_sleep_duration FLOAT,
+            
+            rem_sleep_duration FLOAT,
+            
+            cycle_strain FLOAT,
+            
+            workout_data JSONB
+
+        )
+        """)
+
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS tokens (
 
             id SERIAL PRIMARY KEY,
 
-            report_date TEXT,
+            refresh_token TEXT,
 
-            recovery_score FLOAT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
-            hrv FLOAT,
-
-            resting_heart_rate FLOAT,
-
-            sleep_score FLOAT,
-
-            sleep_duration FLOAT,
-
-            sleep_efficiency FLOAT,
-
-            deep_sleep_duration FLOAT,
-
-            rem_sleep_duration FLOAT,
-
-            cycle_strain FLOAT,
-
-            workout_data JSONB
-
-            )
-            """)
+        )
+        """)
 
 
         conn.commit()
@@ -89,8 +102,6 @@ def init_db():
             "DATABASE INIT ERROR:",
             e
         )
-
-
 
 @app.route("/privacy")
 def privacy():
