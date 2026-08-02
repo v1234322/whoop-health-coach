@@ -1233,10 +1233,9 @@ def auto_report():
 
 
 # =========================
-# HISTORY REPORT
-# 最近7天
+# WHOOP TREND REPORT V3
+# 最近7天趋势分析
 # =========================
-
 @app.route("/whoop/trend")
 def trend_report():
 
@@ -1267,98 +1266,6 @@ def trend_report():
     cur.close()
 
     conn.close()
-
-
-    if not rows:
-
-        return jsonify({
-
-            "status":"empty",
-
-            "message":"暂无历史数据"
-
-        })
-
-
-    history = []
-
-
-    for row in rows:
-
-        history.append({
-
-            "date": row[0],
-
-            "recovery_score": row[1],
-
-            "hrv": row[2],
-
-            "sleep_duration": row[3],
-
-            "cycle_strain": row[4]
-
-        })
-
-
-    history.reverse()
-
-
-last7 = history
-
-
-
-    with open(
-        file,
-        "r",
-        encoding="utf-8"
-    ) as f:
-
-        history = json.load(f)
-
-
-
-    last7 = history[-7:]
-
-
-
-    return jsonify({
-
-        "status":
-        "success",
-
-
-        "days":
-        len(last7),
-
-
-        "history":
-        last7
-
-    })
-
-# =========================
-# WHOOP TREND REPORT V3
-# 最近7天趋势分析
-# =========================
-
-@app.route("/whoop/trend")
-def trend_report():
-
-
-    file = "history.json"
-
-
-    if not os.path.exists(file):
-
-        return jsonify({
-
-            "status":
-            "empty",
-
-            "message":
-            "暂无历史数据"
-
-        })
 
 
     with open(
