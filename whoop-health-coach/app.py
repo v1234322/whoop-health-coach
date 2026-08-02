@@ -221,13 +221,18 @@ def check_api_key():
 def callback():
 
     print(
-        "CALLBACK PARAMS:",
+        "CALLBACK:",
         request.args
     )
 
 
     code = request.args.get(
         "code"
+    )
+
+
+    state = request.args.get(
+        "state"
     )
 
 
@@ -238,23 +243,42 @@ def callback():
 
     if error:
 
-        return {
+        return jsonify({
+
             "error": error,
-            "description": request.args.get(
+
+            "description":
+            request.args.get(
                 "error_description"
             )
-        }
+
+        })
 
 
     if not code:
 
-        return {
-            "error": "NO CODE",
-            "params": dict(request.args)
-        }
+        return jsonify({
+
+            "error":
+            "NO CODE",
+
+            "params":
+            dict(request.args)
+
+        })
 
 
-    return "CODE OK"
+    # 后面继续换token
+
+    return jsonify({
+
+        "status":
+        "CODE RECEIVED",
+
+        "code":
+        code[:10]
+
+    })
 
 
 
