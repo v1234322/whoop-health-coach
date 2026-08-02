@@ -944,22 +944,6 @@ def extract_daily_metrics(data):
 def today():
 
 
-    if not check_api_key():
-
-
-        return jsonify(
-
-            {
-                "error":
-                "unauthorized"
-            }
-
-        ),401
-
-
-
-
-
     # =====================
     # 获取 WHOOP 数据
     # =====================
