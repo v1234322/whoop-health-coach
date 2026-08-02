@@ -376,7 +376,45 @@ def save_refresh_token(token):
     print(
         "NEW REFRESH TOKEN SAVED"
     )
-    
+
+
+
+# =====================
+# LOAD REFRESH TOKEN
+# =====================
+
+def load_refresh_token():
+
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+
+    cur.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    )
+
+
+    result = cur.fetchone()
+
+
+    cur.close()
+
+    conn.close()
+
+
+    if result:
+
+        return result[0]
+
+
+    return None
 
 
 # =====================
