@@ -1042,6 +1042,7 @@ def convert_utc_to_beijing(obj):
 
 convert_utc_to_beijing(data)
 
+
 # =====================
 # 保存每日数据
 # =====================
