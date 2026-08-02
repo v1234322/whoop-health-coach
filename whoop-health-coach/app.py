@@ -974,7 +974,7 @@ def today():
 
 
     # =====================
-    # UTC 转北京时间
+    # 只转换一次北京时间
     # =====================
 
     convert_utc_to_beijing(data)
@@ -991,13 +991,13 @@ def today():
 
         save_daily_data(metrics)
 
+
     except Exception as e:
 
         print(
             "SAVE DAILY DATA ERROR:",
             e
         )
-
 
 
     report = generate_health_report(data)
@@ -1010,43 +1010,6 @@ def today():
         "coach_report": report
 
     })
-# =====================
-# UTC 转北京时间
-# =====================
-
-def convert_utc_to_beijing(obj):
-
-    if isinstance(obj, dict):
-
-        for key, value in obj.items():
-
-            if isinstance(value, (dict, list)):
-                convert_utc_to_beijing(value)
-
-            elif isinstance(value, str):
-
-                if value.endswith("Z"):
-
-                    try:
-                        dt = datetime.fromisoformat(
-                            value.replace("Z", "+00:00")
-                        )
-
-                        bj_time = dt + timedelta(hours=8)
-
-                        obj[key] = bj_time.strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        )
-
-                    except:
-                        pass
-
-
-    elif isinstance(obj, list):
-
-        for item in obj:
-            convert_utc_to_beijing(item)
-
 
 
 # =====================
@@ -1070,7 +1033,7 @@ except Exception as e:
 
 
 # =====================
-# AI 健康报告
+# AI 健康报告 V2
 # =====================
 
 def generate_health_report(data):
@@ -1082,7 +1045,7 @@ def generate_health_report(data):
 
 
     # =====================
-    # 恢复数据
+    # Recovery 数据
     # =====================
 
     recovery_record = recovery.get(
@@ -1090,30 +1053,33 @@ def generate_health_report(data):
         [{}]
     )[0]
 
-    recovery_score = recovery_record.get(
+
+    recovery_score_data = recovery_record.get(
         "score",
         {}
-    ).get(
-        "recovery_score"
     )
 
-    hrv = recovery_record.get(
-        "score",
-        {}
-    ).get(
-        "hrv_rmssd_milli"
+
+    recovery_score = recovery_score_data.get(
+        "recovery_score",
+        0
     )
 
-    resting_hr = recovery_record.get(
-        "score",
-        {}
-    ).get(
-        "resting_heart_rate"
+
+    hrv = recovery_score_data.get(
+        "hrv_rmssd_milli",
+        0
+    )
+
+
+    resting_hr = recovery_score_data.get(
+        "resting_heart_rate",
+        0
     )
 
 
     # =====================
-    # 睡眠数据
+    # Sleep 数据
     # =====================
 
     sleep_record = sleep.get(
@@ -1121,10 +1087,12 @@ def generate_health_report(data):
         [{}]
     )[0]
 
+
     sleep_score = sleep_record.get(
         "score",
         {}
     )
+
 
     stage = sleep_score.get(
         "stage_summary",
@@ -1132,7 +1100,7 @@ def generate_health_report(data):
     )
 
 
-    total_sleep = (
+    total_sleep_ms = (
 
         stage.get(
             "total_light_sleep_time_milli",
@@ -1157,22 +1125,135 @@ def generate_health_report(data):
 
 
     sleep_hours = round(
-        total_sleep / 1000 / 3600,
+        total_sleep_ms / 1000 / 3600,
         2
     )
 
 
     sleep_performance = sleep_score.get(
-        "sleep_performance_percentage"
+        "sleep_performance_percentage",
+        0
     )
 
+
     sleep_efficiency = sleep_score.get(
-        "sleep_efficiency_percentage"
+        "sleep_efficiency_percentage",
+        0
+    )
+
+
+    sleep_consistency = sleep_score.get(
+        "sleep_consistency_percentage",
+        0
     )
 
 
     # =====================
-    # 报告
+    # Workout 数据
+    # =====================
+
+    workout_records = workout.get(
+        "records",
+        []
+    )
+
+
+    latest_workout = (
+
+        workout_records[0]
+
+        if workout_records
+
+        else {}
+
+    )
+
+
+    workout_score = latest_workout.get(
+        "score",
+        {}
+    )
+
+
+    strain = workout_score.get(
+        "strain",
+        0
+    )
+
+
+    avg_hr = workout_score.get(
+        "average_heart_rate",
+        0
+    )
+
+
+    max_hr = workout_score.get(
+        "max_heart_rate",
+        0
+    )
+
+
+    sport_name = latest_workout.get(
+        "sport_name",
+        "无训练"
+    )
+
+
+    workout_start = latest_workout.get(
+        "start",
+        ""
+    )
+
+
+    workout_end = latest_workout.get(
+        "end",
+        ""
+    )
+
+
+    # =====================
+    # 状态判断
+    # =====================
+
+    if recovery_score >= 80:
+
+        status = "🟢 良好"
+
+    elif recovery_score >= 50:
+
+        status = "🟡 需小心"
+
+    else:
+
+        status = "🔴 危险"
+
+
+
+    if recovery_score >= 80 and sleep_hours >= 7:
+
+        training_advice = (
+            "恢复和睡眠均良好，"
+            "可以进行正常或高质量训练"
+        )
+
+    elif sleep_hours < 6:
+
+        training_advice = (
+            "恢复不错，但睡眠不足，"
+            "建议控制训练容量"
+        )
+
+    else:
+
+        training_advice = (
+            "可以训练，"
+            "避免连续高负荷"
+        )
+
+
+
+    # =====================
+    # 最终报告
     # =====================
 
     report = f"""
@@ -1182,25 +1263,20 @@ WHOOP 今日健康报告
 
 【总览】
 
-恢复评分：
-{recovery_score}%
-
-今日状态：
-根据恢复、睡眠、训练综合判断。
-
-
-
-【恢复】
+状态：
+{status}
 
 Recovery：
 {recovery_score}%
 
+
+【恢复】
+
 HRV：
-{hrv} ms
+{hrv:.1f} ms
 
 静息心率：
-{resting_hr} bpm
-
+{resting_hr:.0f} bpm
 
 
 【睡眠】
@@ -1214,31 +1290,44 @@ HRV：
 睡眠效率：
 {sleep_efficiency}%
 
+睡眠规律：
+{sleep_consistency}%
 
 
 【训练】
 
-训练数据：
-{workout}
+运动类型：
+{sport_name}
+
+训练 Strain：
+{strain}
+
+平均心率：
+{avg_hr} bpm
+
+最大心率：
+{max_hr} bpm
+
+开始：
+{workout_start}
+
+结束：
+{workout_end}
 
 
+【训练建议】
 
-【Cycle】
-
-日常循环：
-{cycle}
+{training_advice}
 
 
+【未来1-3天建议】
 
-请给出：
+1. 优先保证睡眠恢复
 
-1. 今日状态等级（良好 / 需小心 / 危险）
+2. 根据 Recovery 调整训练强度
 
-2. 是否适合训练
+3. 避免连续多天高 Strain
 
-3. 恢复建议
-
-4. 未来1-3天行动建议
 
 """
 
