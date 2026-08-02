@@ -1288,7 +1288,265 @@ def history_report():
 
     })
 
+# =========================
+# WHOOP TREND REPORT V3
+# 最近7天趋势分析
+# =========================
 
+@app.route("/whoop/trend")
+def trend_report():
+
+
+    file = "history.json"
+
+
+    if not os.path.exists(file):
+
+        return jsonify({
+
+            "status":
+            "empty",
+
+            "message":
+            "暂无历史数据"
+
+        })
+
+
+    with open(
+        file,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        history = json.load(f)
+
+
+    last7 = history[-7:]
+
+
+    if not last7:
+
+        return jsonify({
+
+            "status":
+            "empty"
+
+        })
+
+
+    recovery_list = []
+
+    hrv_list = []
+
+    sleep_list = []
+
+    strain_list = []
+
+
+
+    for day in last7:
+
+
+        if day.get("recovery_score"):
+
+            recovery_list.append(
+                day["recovery_score"]
+            )
+
+
+        if day.get("hrv"):
+
+            hrv_list.append(
+                day["hrv"]
+            )
+
+
+        if day.get("sleep_duration"):
+
+            sleep_list.append(
+                day["sleep_duration"]
+            )
+
+
+        if day.get("cycle_strain"):
+
+            strain_list.append(
+                day["cycle_strain"]
+            )
+
+
+
+    avg_recovery = round(
+        sum(recovery_list)
+        /
+        len(recovery_list),
+        1
+    ) if recovery_list else 0
+
+
+
+    avg_hrv = round(
+        sum(hrv_list)
+        /
+        len(hrv_list),
+        1
+    ) if hrv_list else 0
+
+
+
+    avg_sleep = round(
+        sum(sleep_list)
+        /
+        len(sleep_list),
+        2
+    ) if sleep_list else 0
+
+
+
+    avg_strain = round(
+        sum(strain_list)
+        /
+        len(strain_list),
+        1
+    ) if strain_list else 0
+
+
+
+    # 趋势判断
+
+    if len(recovery_list) >= 2:
+
+
+        if recovery_list[-1] > recovery_list[0]:
+
+            recovery_trend = "上升"
+
+        elif recovery_list[-1] < recovery_list[0]:
+
+            recovery_trend = "下降"
+
+        else:
+
+            recovery_trend = "稳定"
+
+    else:
+
+        recovery_trend = "数据不足"
+
+
+
+    # 风险判断
+
+
+    risks = []
+
+
+    if avg_sleep < 6:
+
+        risks.append(
+            "平均睡眠不足，存在睡眠债风险"
+        )
+
+
+    if avg_strain > 14:
+
+        risks.append(
+            "平均训练压力偏高"
+        )
+
+
+    if avg_recovery < 50:
+
+        risks.append(
+            "恢复水平偏低，需要降低负荷"
+        )
+
+
+
+    if not risks:
+
+        risks.append(
+            "目前恢复与训练平衡良好"
+        )
+
+
+
+    coach = ""
+
+
+    if avg_recovery >= 80:
+
+        coach = (
+            "恢复状态优秀，可以保持正常训练"
+        )
+
+    elif avg_recovery >= 50:
+
+        coach = (
+            "恢复一般，训练建议控制强度"
+        )
+
+    else:
+
+        coach = (
+            "恢复不足，建议优先恢复"
+        )
+
+
+
+    return jsonify({
+
+
+        "period":
+        "最近7天",
+
+
+        "summary":{
+
+
+            "平均Recovery":
+            avg_recovery,
+
+
+            "平均HRV":
+            avg_hrv,
+
+
+            "平均睡眠小时":
+            avg_sleep,
+
+
+            "平均Strain":
+            avg_strain
+
+        },
+
+
+        "trend":{
+
+
+            "Recovery趋势":
+            recovery_trend
+
+        },
+
+
+        "risk":
+
+        risks,
+
+
+        "coach":
+
+        coach,
+
+
+        "days":
+
+        len(last7)
+
+    })
 
 # =====================
 # AI 健康报告 V2
