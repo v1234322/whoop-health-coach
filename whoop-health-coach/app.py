@@ -3,7 +3,10 @@ import os
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+import requests
+import threading
+import time
 
 
 app = Flask(__name__)
@@ -1198,73 +1201,7 @@ def history_report():
 
     })
 
-    # =====================
-    # 保存数据
-    # =====================
 
-    try:
-
-        metrics = extract_daily_metrics(
-            data
-        )
-
-
-        save_daily_data(
-            metrics
-        )
-
-
-    except Exception as e:
-
-
-        print(
-            "SAVE ERROR:",
-            e
-        )
-
-
-
-    # =====================
-    # AI报告
-    # =====================
-
-    report = generate_health_report(
-        data
-    )
-
-
-
-    return jsonify(
-
-
-        {
-
-
-            "date":
-
-            datetime.now().strftime(
-                "%Y-%m-%d"
-            ),
-
-
-            "timezone":
-
-            "Asia/Shanghai UTC+8",
-
-
-            "whoop_data":
-
-            data,
-
-
-            "coach_report":
-
-            report
-
-
-        }
-
-    )
 
 # =====================
 # AI 健康报告 V2
