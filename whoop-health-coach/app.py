@@ -40,36 +40,47 @@ def init_db():
         cur = conn.cursor()
 
 
+        # ============================
+        # WHOOP 日数据表
+        # ============================
+
         cur.execute("""
         CREATE TABLE IF NOT EXISTS daily_metrics (
-            
+
             id SERIAL PRIMARY KEY,
-            
+
             report_date TEXT,
-            
+
             recovery_score FLOAT,
-            
+
             hrv FLOAT,
-            
+
             resting_heart_rate FLOAT,
-            
+
             sleep_score FLOAT,
-            
+
             sleep_duration FLOAT,
-            
+
             sleep_efficiency FLOAT,
-            
+
             deep_sleep_duration FLOAT,
-            
+
             rem_sleep_duration FLOAT,
-            
+
             cycle_strain FLOAT,
-            
-            workout_data JSONB
+
+            workout_data JSONB,
+
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
         )
         """)
 
+
+
+        # ============================
+        # WHOOP Refresh Token
+        # ============================
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS tokens (
@@ -84,7 +95,9 @@ def init_db():
         """)
 
 
+
         conn.commit()
+
 
         cur.close()
 
@@ -97,6 +110,7 @@ def init_db():
 
 
     except Exception as e:
+
 
         print(
             "DATABASE INIT ERROR:",
@@ -1240,269 +1254,293 @@ def auto_report():
 def trend_report():
 
 
-    conn = get_db_connection()
+    try:
 
-    cur = conn.cursor()
+        conn = get_db_connection()
 
-
-    cur.execute(
-        """
-        SELECT
-            report_date,
-            recovery_score,
-            hrv,
-            sleep_duration,
-            cycle_strain
-        FROM daily_reports
-        ORDER BY created_at DESC
-        LIMIT 7
-        """
-    )
+        cur = conn.cursor()
 
 
-    rows = cur.fetchall()
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY id DESC
+            LIMIT 7
+            """
+        )
 
 
-    cur.close()
-
-    conn.close()
+        rows = cur.fetchall()
 
 
-    with open(
-        file,
-        "r",
-        encoding="utf-8"
-    ) as f:
-
-        history = json.load(f)
+        cur.close()
+        conn.close()
 
 
-    last7 = history[-7:]
+
+        if not rows:
+
+            return jsonify({
+
+                "status": "empty",
+
+                "message": "暂无历史数据"
+
+            })
 
 
-    if not last7:
+
+        history = []
+
+
+        recovery_list = []
+        hrv_list = []
+        sleep_list = []
+        strain_list = []
+
+
+
+        for r in rows:
+
+
+            item = {
+
+                "date": r[0],
+
+                "recovery": r[1],
+
+                "hrv": r[2],
+
+                "sleep_duration": r[3],
+
+                "strain": r[4]
+
+            }
+
+
+            history.append(item)
+
+
+
+            if r[1] is not None:
+
+                recovery_list.append(
+                    float(r[1])
+                )
+
+
+            if r[2] is not None:
+
+                hrv_list.append(
+                    float(r[2])
+                )
+
+
+            if r[3] is not None:
+
+                sleep_list.append(
+                    float(r[3])
+                )
+
+
+            if r[4] is not None:
+
+                strain_list.append(
+                    float(r[4])
+                )
+
+
+
+        def avg(values):
+
+            if not values:
+
+                return None
+
+            return round(
+                sum(values) / len(values),
+                2
+            )
+
+
+
+        def get_trend(values):
+
+            if len(values) < 2:
+
+                return "数据不足"
+
+
+            if values[0] > values[-1]:
+
+                return "下降"
+
+
+            elif values[0] < values[-1]:
+
+                return "上升"
+
+
+            else:
+
+                return "稳定"
+
+
+
+        risks = []
+
+
+        if recovery_list:
+
+            if avg(recovery_list) < 50:
+
+                risks.append(
+                    "最近恢复偏低，注意训练负荷"
+                )
+
+
+
+        coach = []
+
+
+        if strain_list:
+
+            if avg(strain_list) > 14:
+
+                coach.append(
+                    "建议降低训练强度"
+                )
+
+            else:
+
+                coach.append(
+                    "当前训练压力适中"
+                )
+
+
 
         return jsonify({
 
+
             "status":
-            "empty"
+
+            "success",
+
+
+
+            "period":
+
+            "最近7天",
+
+
+
+            "days":
+
+            len(history),
+
+
+
+            "summary":{
+
+
+                "平均Recovery":
+
+                avg(recovery_list),
+
+
+
+                "平均HRV":
+
+                avg(hrv_list),
+
+
+
+                "平均睡眠小时":
+
+                avg(sleep_list),
+
+
+
+                "平均Strain":
+
+                avg(strain_list)
+
+
+            },
+
+
+
+            "trend":{
+
+
+                "Recovery趋势":
+
+                get_trend(recovery_list),
+
+
+
+                "HRV趋势":
+
+                get_trend(hrv_list)
+
+
+            },
+
+
+
+            "risk":
+
+            risks,
+
+
+
+            "coach":
+
+            coach,
+
+
+
+            "history":
+
+            history,
+
+
+
+            "timezone":
+
+            "Asia/Shanghai UTC+8"
+
 
         })
 
 
-    recovery_list = []
 
-    hrv_list = []
-
-    sleep_list = []
-
-    strain_list = []
+    except Exception as e:
 
 
-
-    for day in last7:
-
-
-        if day.get("recovery_score"):
-
-            recovery_list.append(
-                day["recovery_score"]
-            )
-
-
-        if day.get("hrv"):
-
-            hrv_list.append(
-                day["hrv"]
-            )
-
-
-        if day.get("sleep_duration"):
-
-            sleep_list.append(
-                day["sleep_duration"]
-            )
-
-
-        if day.get("cycle_strain"):
-
-            strain_list.append(
-                day["cycle_strain"]
-            )
-
-
-
-    avg_recovery = round(
-        sum(recovery_list)
-        /
-        len(recovery_list),
-        1
-    ) if recovery_list else 0
-
-
-
-    avg_hrv = round(
-        sum(hrv_list)
-        /
-        len(hrv_list),
-        1
-    ) if hrv_list else 0
-
-
-
-    avg_sleep = round(
-        sum(sleep_list)
-        /
-        len(sleep_list),
-        2
-    ) if sleep_list else 0
-
-
-
-    avg_strain = round(
-        sum(strain_list)
-        /
-        len(strain_list),
-        1
-    ) if strain_list else 0
-
-
-
-    # 趋势判断
-
-    if len(recovery_list) >= 2:
-
-
-        if recovery_list[-1] > recovery_list[0]:
-
-            recovery_trend = "上升"
-
-        elif recovery_list[-1] < recovery_list[0]:
-
-            recovery_trend = "下降"
-
-        else:
-
-            recovery_trend = "稳定"
-
-    else:
-
-        recovery_trend = "数据不足"
-
-
-
-    # 风险判断
-
-
-    risks = []
-
-
-    if avg_sleep < 6:
-
-        risks.append(
-            "平均睡眠不足，存在睡眠债风险"
+        print(
+            "TREND ERROR:",
+            e
         )
 
 
-    if avg_strain > 14:
+        return jsonify({
 
-        risks.append(
-            "平均训练压力偏高"
-        )
+            "status":
 
+            "error",
 
-    if avg_recovery < 50:
+            "message":
 
-        risks.append(
-            "恢复水平偏低，需要降低负荷"
-        )
+            str(e)
 
-
-
-    if not risks:
-
-        risks.append(
-            "目前恢复与训练平衡良好"
-        )
-
-
-
-    coach = ""
-
-
-    if avg_recovery >= 80:
-
-        coach = (
-            "恢复状态优秀，可以保持正常训练"
-        )
-
-    elif avg_recovery >= 50:
-
-        coach = (
-            "恢复一般，训练建议控制强度"
-        )
-
-    else:
-
-        coach = (
-            "恢复不足，建议优先恢复"
-        )
-
-
-
-    return jsonify({
-
-
-        "period":
-        "最近7天",
-
-
-        "summary":{
-
-
-            "平均Recovery":
-            avg_recovery,
-
-
-            "平均HRV":
-            avg_hrv,
-
-
-            "平均睡眠小时":
-            avg_sleep,
-
-
-            "平均Strain":
-            avg_strain
-
-        },
-
-
-        "trend":{
-
-
-            "Recovery趋势":
-            recovery_trend
-
-        },
-
-
-        "risk":
-
-        risks,
-
-
-        "coach":
-
-        coach,
-
-
-        "days":
-
-        len(last7)
-
-    })
-
+        }),500
 # =====================
 # AI 健康报告 V2
 # =====================
