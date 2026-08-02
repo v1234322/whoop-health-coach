@@ -1042,7 +1042,6 @@ def convert_utc_to_beijing(obj):
 
 convert_utc_to_beijing(data)
 
-
 # =====================
 # 保存每日数据
 # =====================
@@ -1063,17 +1062,20 @@ except Exception as e:
 
 
 
-    # =====================
-    # AI 健康报告
-    # =====================
+# =====================
+# AI 健康报告
+# =====================
 
-
-    def generate_health_report(data):
+def generate_health_report(data):
 
     recovery = data.get("recovery", {})
+
     sleep = data.get("sleep", {})
+
     cycle = data.get("cycle", {})
+
     workout = data.get("workout", {})
+
 
     report = f"""
 WHOOP 健康报告
@@ -1101,9 +1103,8 @@ Cycle:
 4. 未来1-3天建议
 """
 
+
     return report
-
-
 
 # =========================
 # HEALTH CHECK
