@@ -23,6 +23,37 @@ from coach import (
 app = Flask(__name__)
 
 
+@app.route("/privacy")
+def privacy():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Privacy Policy</title>
+        <meta charset="utf-8">
+    </head>
+
+    <body>
+        <h1>Privacy Policy</h1>
+
+        <p>
+        WHOOP Health Coach accesses WHOOP data only to provide
+        personal health analysis and training recommendations.
+        </p >
+
+        <p>
+        The app does not sell, share, or publicly distribute user data.
+        </p >
+
+        <p>
+        Users can revoke WHOOP authorization at any time.
+        </p >
+
+    </body>
+    </html>
+    """
+
+
 # =========================
 # DATABASE INIT
 # =========================
