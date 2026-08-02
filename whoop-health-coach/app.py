@@ -1,9 +1,9 @@
+import json
 import os
-import time
-import threading
-import requests
 
-from flask import Flask, request, jsonify
+from datetime import datetime, timedelta, timezone
+
+from flask import jsonify
 
 
 from database import (
@@ -1018,6 +1018,59 @@ def save_daily_data(metrics):
         )
 
 
+# =====================
+# UTC 转北京时间
+# =====================
+
+def convert_utc_to_beijing(obj):
+
+    if isinstance(obj, dict):
+
+        for key, value in obj.items():
+
+            if isinstance(value, (dict, list)):
+
+                convert_utc_to_beijing(value)
+
+
+            elif isinstance(value, str):
+
+                if value.endswith("Z"):
+
+                    try:
+
+                        dt = datetime.fromisoformat(
+                            value.replace(
+                                "Z",
+                                "+00:00"
+                            )
+                        )
+
+
+                        bj_time = dt.astimezone(
+                            timezone(
+                                timedelta(hours=8)
+                            )
+                        )
+
+
+                        obj[key] = bj_time.strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
+
+
+                    except Exception:
+
+                        pass
+
+
+    elif isinstance(obj, list):
+
+        for item in obj:
+
+            convert_utc_to_beijing(item)
+
+
 # =========================
 # TODAY REPORT
 # =========================
@@ -1030,45 +1083,135 @@ def today():
 
 
         "recovery":
-
-        whoop_get(
-            "/recovery"
-        ),
+        whoop_get("/recovery"),
 
 
         "cycle":
-
-        whoop_get(
-            "/cycle"
-        ),
+        whoop_get("/cycle"),
 
 
         "sleep":
-
-        whoop_get(
-            "/activity/sleep"
-        ),
+        whoop_get("/activity/sleep"),
 
 
         "workout":
-
-        whoop_get(
-            "/activity/workout"
-        )
+        whoop_get("/activity/workout")
 
     }
 
 
-
-    # =====================
     # 时间转换
-    # =====================
 
     convert_utc_to_beijing(
         data
     )
 
 
+    # 保存历史
+
+    try:
+
+        metrics = extract_daily_metrics(
+            data
+        )
+
+
+        save_daily_data(
+            metrics
+        )
+
+
+    except Exception as e:
+
+        print(
+            "SAVE ERROR:",
+            e
+        )
+
+
+
+    report = generate_health_report(
+        data
+    )
+
+
+    return jsonify({
+
+        "date":
+        datetime.now().strftime(
+            "%Y-%m-%d"
+        ),
+
+
+        "timezone":
+        "Asia/Shanghai UTC+8",
+
+
+        "whoop_data":
+        data,
+
+
+        "coach_report":
+        report
+
+    })
+
+
+# =========================
+# HISTORY REPORT
+# 最近7天
+# =========================
+
+@app.route("/whoop/history")
+def history_report():
+
+
+    file = "history.json"
+
+
+
+    if not os.path.exists(file):
+
+        return jsonify({
+
+            "status":
+            "empty",
+
+            "message":
+            "暂无历史数据"
+
+        })
+
+
+
+    with open(
+        file,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        history = json.load(f)
+
+
+
+    last7 = history[-7:]
+
+
+
+    return jsonify({
+
+        "status":
+        "success",
+
+
+        "days":
+        len(last7),
+
+
+        "history":
+        last7
+
+    })
 
     # =====================
     # 保存数据
@@ -1466,78 +1609,6 @@ HRV：
     return report
 
 
-
-# =========================
-# HISTORY REPORT
-# 最近7天趋势
-# =========================
-
-@app.route("/whoop/history")
-def history_report():
-
-
-    file = "history.json"
-
-
-
-    if not os.path.exists(file):
-
-        return jsonify({
-
-            "status":
-            "empty",
-
-            "message":
-            "暂无历史数据"
-
-        })
-
-
-
-    try:
-
-        with open(
-            file,
-            "r",
-            encoding="utf-8"
-        ) as f:
-
-            history = json.load(f)
-
-
-    except Exception as e:
-
-
-        return jsonify({
-
-            "status":
-            "error",
-
-            "message":
-            str(e)
-
-        })
-
-
-
-    last7 = history[-7:]
-
-
-
-    return jsonify({
-
-        "status":
-        "success",
-
-
-        "days":
-        len(last7),
-
-
-        "history":
-        last7
-
-    })
 # =========================
 # HEALTH CHECK
 # =========================
