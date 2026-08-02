@@ -952,6 +952,71 @@ def extract_daily_metrics(data):
 
     return result
 
+# =====================
+# 保存每日历史数据 V3
+# =====================
+
+def save_daily_data(metrics):
+
+    file = "history.json"
+
+
+    history = []
+
+
+    # 读取旧数据
+
+    if os.path.exists(file):
+
+        try:
+
+            with open(
+                file,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                history = json.load(f)
+
+
+        except Exception:
+
+            history = []
+
+
+
+    # 添加日期
+
+    metrics["date"] = datetime.now().strftime(
+        "%Y-%m-%d"
+    )
+
+
+
+    history.append(metrics)
+
+
+
+    # 保存最近30天
+
+    history = history[-30:]
+
+
+
+    with open(
+        file,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+
+        json.dump(
+            history,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
 
 # =========================
 # TODAY REPORT
@@ -960,75 +1025,118 @@ def extract_daily_metrics(data):
 @app.route("/whoop/today")
 def today():
 
+
     data = {
 
-        "recovery": whoop_get("/recovery"),
 
-        "cycle": whoop_get("/cycle"),
+        "recovery":
 
-        "sleep": whoop_get("/activity/sleep"),
+        whoop_get(
+            "/recovery"
+        ),
 
-        "workout": whoop_get("/activity/workout")
+
+        "cycle":
+
+        whoop_get(
+            "/cycle"
+        ),
+
+
+        "sleep":
+
+        whoop_get(
+            "/activity/sleep"
+        ),
+
+
+        "workout":
+
+        whoop_get(
+            "/activity/workout"
+        )
 
     }
 
 
-    # =====================
-    # 只转换一次北京时间
-    # =====================
-
-    convert_utc_to_beijing(data)
-
-
 
     # =====================
-    # 保存每日数据
+    # 时间转换
+    # =====================
+
+    convert_utc_to_beijing(
+        data
+    )
+
+
+
+    # =====================
+    # 保存数据
     # =====================
 
     try:
 
-        metrics = extract_daily_metrics(data)
+        metrics = extract_daily_metrics(
+            data
+        )
 
-        save_daily_data(metrics)
+
+        save_daily_data(
+            metrics
+        )
 
 
     except Exception as e:
 
+
         print(
-            "SAVE DAILY DATA ERROR:",
+            "SAVE ERROR:",
             e
         )
 
 
-    report = generate_health_report(data)
 
+    # =====================
+    # AI报告
+    # =====================
 
-    return jsonify({
-
-        "whoop_data": data,
-
-        "coach_report": report
-
-    })
-
-
-# =====================
-# 保存每日数据
-# =====================
-
-try:
-
-    metrics = extract_daily_metrics(
+    report = generate_health_report(
         data
     )
 
-    save_daily_data(
-        metrics
+
+
+    return jsonify(
+
+
+        {
+
+
+            "date":
+
+            datetime.now().strftime(
+                "%Y-%m-%d"
+            ),
+
+
+            "timezone":
+
+            "Asia/Shanghai UTC+8",
+
+
+            "whoop_data":
+
+            data,
+
+
+            "coach_report":
+
+            report
+
+
+        }
+
     )
-
-except Exception as e:
-
-    print(e)
 
 
 
