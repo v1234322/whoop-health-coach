@@ -1,5 +1,6 @@
 import json
 import os
+import psycopg2
 
 from datetime import datetime, timedelta, timezone
 
@@ -7,7 +8,6 @@ from flask import Flask, jsonify, request
 import requests
 import threading
 import time
-import psycopg2
 
 
 app = Flask(__name__)
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 def get_db_connection():
 
-    conn = psycopg2.connect(
+    return psycopg2.connect(
         os.environ.get(
             "DATABASE_URL"
         )
@@ -324,6 +324,24 @@ def whoop_token():
     return jsonify(
         r.json()
     )
+
+
+# =====================
+# TOKEN STORAGE
+# =====================
+
+def save_refresh_token(token):
+
+    os.environ["WHOOP_REFRESH_TOKEN"] = token
+
+
+
+def load_refresh_token():
+
+    return os.environ.get(
+        "WHOOP_REFRESH_TOKEN"
+    )
+    
 
 
 # =========================
