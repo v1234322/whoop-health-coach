@@ -1159,6 +1159,29 @@ def convert_utc_to_beijing(obj):
 @app.route("/whoop/today")
 def today():
 
+    ...
+
+
+# =====================
+# AI 健康报告 V2
+# =====================
+
+def generate_health_report(data):
+
+    ...
+
+
+    return report
+
+
+
+# =====================
+# DAILY AUTO REPORT
+# =====================
+
+@app.route("/whoop/auto-report")
+def auto_report():
+
 
     data = {
 
@@ -1181,58 +1204,29 @@ def today():
     }
 
 
-    # 时间转换
+    convert_utc_to_beijing(data)
 
-    convert_utc_to_beijing(
+
+    report = generate_health_report(data)
+
+
+    metrics = extract_daily_metrics(
         data
     )
 
 
-    # 保存历史
-
-    try:
-
-        metrics = extract_daily_metrics(
-            data
-        )
-
-
-        save_daily_data(
-            metrics
-        )
-
-
-    except Exception as e:
-
-        print(
-            "SAVE ERROR:",
-            e
-        )
-
-
-
-    report = generate_health_report(
-        data
+    save_daily_data(
+        metrics
     )
 
 
     return jsonify({
 
-        "date":
-        datetime.now().strftime(
-            "%Y-%m-%d"
-        ),
+        "status":
+        "daily report generated",
 
 
-        "timezone":
-        "Asia/Shanghai UTC+8",
-
-
-        "whoop_data":
-        data,
-
-
-        "coach_report":
+        "report":
         report
 
     })
