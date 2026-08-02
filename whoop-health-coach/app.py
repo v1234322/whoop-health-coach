@@ -39,6 +39,76 @@ def init_db():
 
         cur = conn.cursor()
 
+        # ==========================
+        # DATABASE MIGRATION
+        # 自动补字段
+        # ==========================
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS report_date TEXT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS recovery_score FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS hrv FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS resting_heart_rate FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS sleep_score FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS sleep_duration FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS sleep_efficiency FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS deep_sleep_duration FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS rem_sleep_duration FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS cycle_strain FLOAT
+        """)
+
+
+        cur.execute("""
+        ALTER TABLE daily_metrics
+        ADD COLUMN IF NOT EXISTS workout_data JSONB
+        """)
+
 
         # ============================
         # WHOOP 日数据表
