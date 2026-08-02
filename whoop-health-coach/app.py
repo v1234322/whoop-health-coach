@@ -213,9 +213,9 @@ def check_api_key():
     return key == API_SECRET
 
 
-# =========================
-# CALLBACK
-# =========================
+# =====================
+# WHOOP OAuth CALLBACK
+# =====================
 
 @app.route("/callback")
 def callback():
@@ -228,26 +228,85 @@ def callback():
 
     if not code:
 
-        return jsonify(
-            {
-                "error":
-                "missing code"
-            }
-        )
+        return "NO CODE"
 
 
 
-    return jsonify(
-        {
-            "message":
-            "code received",
+    response = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data={
+
+            "grant_type":
+            "authorization_code",
+
 
             "code":
-            code
+            code,
+
+
+            "client_id":
+            os.environ.get(
+                "WHOOP_CLIENT_ID"
+            ),
+
+
+            "client_secret":
+            os.environ.get(
+                "WHOOP_CLIENT_SECRET"
+            ),
+
+
+            "redirect_uri":
+            os.environ.get(
+                "WHOOP_REDIRECT_URI"
+            )
+
         }
+
     )
 
 
+    print(
+        "TOKEN STATUS:",
+        response.status_code
+    )
+
+
+    print(
+        "TOKEN RESPONSE:",
+        response.text
+    )
+
+
+    response.raise_for_status()
+
+
+    token_data = response.json()
+
+
+
+    # 保存第一次 refresh_token
+
+    refresh_token = token_data.get(
+        "refresh_token"
+    )
+
+
+    if refresh_token:
+
+        save_refresh_token(
+            refresh_token
+        )
+
+
+    return jsonify({
+
+        "status":
+        "WHOOP AUTH SUCCESS"
+
+    })
 
 
 # =========================
