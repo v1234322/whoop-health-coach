@@ -11,6 +11,72 @@ import time
 
 app = Flask(__name__)
 
+
+# =====================
+# DATABASE INIT
+# =====================
+
+def init_db():
+
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS daily_metrics (
+
+            id SERIAL PRIMARY KEY,
+
+            date TEXT,
+
+            recovery_score FLOAT,
+
+            hrv FLOAT,
+
+            resting_heart_rate FLOAT,
+
+            sleep_score FLOAT,
+
+            sleep_duration FLOAT,
+
+            sleep_efficiency FLOAT,
+
+            deep_sleep_duration FLOAT,
+
+            rem_sleep_duration FLOAT,
+
+            cycle_strain FLOAT,
+
+            workout_data JSONB
+
+        )
+        """)
+
+
+        conn.commit()
+
+        cur.close()
+
+        conn.close()
+
+
+        print(
+            "DATABASE INIT OK"
+        )
+
+
+    except Exception as e:
+
+        print(
+            "DATABASE INIT ERROR:",
+            e
+        )
+
+
+
 @app.route("/privacy")
 def privacy():
     return """
