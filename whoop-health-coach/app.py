@@ -1138,106 +1138,39 @@ def today():
 
     )
 
-# =========================
-# TODAY REPORT
-# =========================
-
-@app.route("/whoop/today")
-def today():
-
-    data = {
-
-        "recovery":
-        whoop_get("/recovery"),
-
-        "cycle":
-        whoop_get("/cycle"),
-
-        "sleep":
-        whoop_get("/activity/sleep"),
-
-        "workout":
-        whoop_get("/activity/workout")
-
-    }
-
-
-    convert_utc_to_beijing(data)
-
-
-    report = generate_health_report(data)
-
-
-    return jsonify({
-
-        "whoop_data": data,
-
-        "coach_report": report
-
-    })
-
-
-# =========================
-# HISTORY REPORT
-# 最近7天趋势
-# =========================
-
-@app.route("/whoop/history")
-def history_report():
-
-    file = "history.json"
-
-
-    if not os.path.exists(file):
-
-        return jsonify({
-
-            "status": "empty",
-
-            "message": "暂无历史数据"
-
-        })
-
-
-    with open(
-        file,
-        "r",
-        encoding="utf-8"
-    ) as f:
-
-        history = json.load(f)
-
-
-    last7 = history[-7:]
-
-
-    return jsonify({
-
-        "status": "success",
-
-        "days": len(last7),
-
-        "history": last7
-
-    })
-
-
-
 # =====================
 # AI 健康报告 V2
 # =====================
 
 def generate_health_report(data):
 
-    recovery = data.get("recovery", {})
-    sleep = data.get("sleep", {})
-    cycle = data.get("cycle", {})
-    workout = data.get("workout", {})
+
+    recovery = data.get(
+        "recovery",
+        {}
+    )
+
+    sleep = data.get(
+        "sleep",
+        {}
+    )
+
+    cycle = data.get(
+        "cycle",
+        {}
+    )
+
+    workout = data.get(
+        "workout",
+        {}
+    )
+
 
 
     # =====================
-    # Recovery 数据
+    # Recovery
     # =====================
+
 
     recovery_record = recovery.get(
         "records",
@@ -1269,9 +1202,11 @@ def generate_health_report(data):
     )
 
 
+
     # =====================
-    # Sleep 数据
+    # Sleep
     # =====================
+
 
     sleep_record = sleep.get(
         "records",
@@ -1316,7 +1251,7 @@ def generate_health_report(data):
 
 
     sleep_hours = round(
-        total_sleep_ms / 1000 / 3600,
+        total_sleep_ms / 3600000,
         2
     )
 
@@ -1339,9 +1274,11 @@ def generate_health_report(data):
     )
 
 
+
     # =====================
-    # Workout 数据
+    # Workout
     # =====================
+
 
     workout_records = workout.get(
         "records",
@@ -1390,6 +1327,7 @@ def generate_health_report(data):
     )
 
 
+
     workout_start = latest_workout.get(
         "start",
         ""
@@ -1402,9 +1340,11 @@ def generate_health_report(data):
     )
 
 
+
     # =====================
     # 状态判断
     # =====================
+
 
     if recovery_score >= 80:
 
@@ -1420,32 +1360,27 @@ def generate_health_report(data):
 
 
 
-    if recovery_score >= 80 and sleep_hours >= 7:
-
-        training_advice = (
-            "恢复和睡眠均良好，"
-            "可以进行正常或高质量训练"
-        )
-
-    elif sleep_hours < 6:
+    if sleep_hours < 6:
 
         training_advice = (
             "恢复不错，但睡眠不足，"
-            "建议控制训练容量"
+            "建议降低训练容量"
+        )
+
+    elif recovery_score >= 80:
+
+        training_advice = (
+            "恢复优秀，可以进行正常训练，"
+            "但注意不要连续高负荷"
         )
 
     else:
 
         training_advice = (
-            "可以训练，"
-            "避免连续高负荷"
+            "保持中低强度训练"
         )
 
 
-
-    # =====================
-    # 最终报告
-    # =====================
 
     report = f"""
 
@@ -1461,6 +1396,7 @@ Recovery：
 {recovery_score}%
 
 
+
 【恢复】
 
 HRV：
@@ -1468,6 +1404,7 @@ HRV：
 
 静息心率：
 {resting_hr:.0f} bpm
+
 
 
 【睡眠】
@@ -1483,6 +1420,7 @@ HRV：
 
 睡眠规律：
 {sleep_consistency}%
+
 
 
 【训练】
@@ -1506,14 +1444,16 @@ HRV：
 {workout_end}
 
 
+
 【训练建议】
 
 {training_advice}
 
 
+
 【未来1-3天建议】
 
-1. 优先保证睡眠恢复
+1. 保证充足睡眠恢复
 
 2. 根据 Recovery 调整训练强度
 
@@ -1525,6 +1465,177 @@ HRV：
 
     return report
 
+
+
+
+
+# =========================
+# TODAY REPORT
+# =========================
+
+@app.route("/whoop/today")
+def today():
+
+
+    data = {
+
+
+        "recovery":
+        whoop_get("/recovery"),
+
+
+        "cycle":
+        whoop_get("/cycle"),
+
+
+        "sleep":
+        whoop_get("/activity/sleep"),
+
+
+        "workout":
+        whoop_get("/activity/workout")
+
+    }
+
+
+
+    # 北京时间转换
+
+    convert_utc_to_beijing(
+        data
+    )
+
+
+
+    # 保存历史数据
+
+    try:
+
+
+        metrics = extract_daily_metrics(
+            data
+        )
+
+
+        save_daily_data(
+            metrics
+        )
+
+
+    except Exception as e:
+
+
+        print(
+            "SAVE DAILY DATA ERROR:",
+            e
+        )
+
+
+
+    # 生成报告
+
+    report = generate_health_report(
+        data
+    )
+
+
+
+    return jsonify({
+
+        "date":
+        datetime.now().strftime(
+            "%Y-%m-%d"
+        ),
+
+
+        "timezone":
+        "Asia/Shanghai UTC+8",
+
+
+        "whoop_data":
+        data,
+
+
+        "coach_report":
+        report
+
+    })
+
+
+
+
+
+# =========================
+# HISTORY REPORT
+# 最近7天趋势
+# =========================
+
+@app.route("/whoop/history")
+def history_report():
+
+
+    file = "history.json"
+
+
+
+    if not os.path.exists(file):
+
+        return jsonify({
+
+            "status":
+            "empty",
+
+            "message":
+            "暂无历史数据"
+
+        })
+
+
+
+    try:
+
+        with open(
+            file,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
+            history = json.load(f)
+
+
+    except Exception as e:
+
+
+        return jsonify({
+
+            "status":
+            "error",
+
+            "message":
+            str(e)
+
+        })
+
+
+
+    last7 = history[-7:]
+
+
+
+    return jsonify({
+
+        "status":
+        "success",
+
+
+        "days":
+        len(last7),
+
+
+        "history":
+        last7
+
+    })
 # =========================
 # HEALTH CHECK
 # =========================
