@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 import requests
 import threading
 import time
+import psycopg2
 
 
 app = Flask(__name__)
