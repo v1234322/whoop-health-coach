@@ -214,16 +214,11 @@ def check_api_key():
 
 
 # =====================
-# WHOOP OAuth CALLBACK
+# WHOOP CALLBACK
 # =====================
 
 @app.route("/callback")
 def callback():
-
-    print(
-        "CALLBACK:",
-        request.args
-    )
 
 
     code = request.args.get(
@@ -231,55 +226,21 @@ def callback():
     )
 
 
-    state = request.args.get(
-        "state"
-    )
-
-
-    error = request.args.get(
-        "error"
-    )
-
-
-    if error:
-
-        return jsonify({
-
-            "error": error,
-
-            "description":
-            request.args.get(
-                "error_description"
-            )
-
-        })
-
-
     if not code:
 
         return jsonify({
 
-            "error":
-            "NO CODE",
+            "error": "NO CODE",
 
-            "params":
-            dict(request.args)
+            "params": dict(request.args)
 
         })
 
 
-    # 后面继续换token
-
-    return jsonify({
-
-        "status":
-        "CODE RECEIVED",
-
-        "code":
-        code[:10]
-
-    })
-
+    print(
+        "AUTH CODE:",
+        code[:20]
+    )
 
 
     response = requests.post(
@@ -291,27 +252,21 @@ def callback():
             "grant_type":
             "authorization_code",
 
-
             "code":
             code,
-
 
             "client_id":
             os.environ.get(
                 "WHOOP_CLIENT_ID"
             ),
 
-
             "client_secret":
             os.environ.get(
                 "WHOOP_CLIENT_SECRET"
             ),
 
-
             "redirect_uri":
-            os.environ.get(
-                "WHOOP_REDIRECT_URI"
-            )
+            "https://whoop-health-coach.onrender.com/callback"
 
         }
 
@@ -336,8 +291,10 @@ def callback():
     token_data = response.json()
 
 
+    access_token = token_data.get(
+        "access_token"
+    )
 
-    # 保存第一次 refresh_token
 
     refresh_token = token_data.get(
         "refresh_token"
@@ -354,10 +311,12 @@ def callback():
     return jsonify({
 
         "status":
-        "WHOOP AUTH SUCCESS"
+        "WHOOP AUTH SUCCESS",
+
+        "saved_refresh_token":
+        bool(refresh_token)
 
     })
-
 
 # =========================
 # AUTH CODE TOKEN
