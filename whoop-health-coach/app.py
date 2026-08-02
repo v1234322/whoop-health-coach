@@ -353,8 +353,7 @@ def refresh_access_token():
 
     refresh_token = load_refresh_token()
 
-    new_refresh_token = token_data.get("refresh_token")
-    
+
     if not refresh_token:
 
         raise Exception(
@@ -417,25 +416,24 @@ def refresh_access_token():
     token_data = response.json()
 
 
-    new_access_token = token_data.get(
+    access_token = token_data.get(
         "access_token"
     )
 
 
-    new_refresh_token = token_data.get(
+    refresh_token_new = token_data.get(
         "refresh_token"
     )
 
 
-    if new_refresh_token:
+    if refresh_token_new:
 
         save_refresh_token(
-            new_refresh_token
+            refresh_token_new
         )
 
 
-    return new_access_token
-
+    return access_token
 
 
 # =========================
