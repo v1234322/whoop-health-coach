@@ -220,15 +220,41 @@ def check_api_key():
 @app.route("/callback")
 def callback():
 
+    print(
+        "CALLBACK PARAMS:",
+        request.args
+    )
+
 
     code = request.args.get(
         "code"
     )
 
 
+    error = request.args.get(
+        "error"
+    )
+
+
+    if error:
+
+        return {
+            "error": error,
+            "description": request.args.get(
+                "error_description"
+            )
+        }
+
+
     if not code:
 
-        return "NO CODE"
+        return {
+            "error": "NO CODE",
+            "params": dict(request.args)
+        }
+
+
+    return "CODE OK"
 
 
 
