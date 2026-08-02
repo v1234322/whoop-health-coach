@@ -61,7 +61,6 @@ def privacy():
 init_db()
 
 
-
 # =========================
 # ENVIRONMENT
 # =========================
@@ -119,8 +118,6 @@ ACCESS_TOKEN_EXPIRE = 0
 TOKEN_LOCK = threading.Lock()
 
 
-
-
 # =========================
 # API KEY
 # =========================
@@ -134,8 +131,6 @@ def check_api_key():
 
 
     return key == API_SECRET
-
-
 
 
 # =========================
@@ -517,10 +512,6 @@ def refresh_access_token(force=False):
 
 
 
-
-
-
-
 # =========================
 # WHOOP API GET
 # =========================
@@ -600,11 +591,6 @@ def whoop_get(endpoint):
 
 
     return r.json()
-
-
-
-
-
 
 
 # =========================
@@ -1035,7 +1021,7 @@ def convert_utc_to_beijing(obj):
 
                     try:
                         dt = datetime.fromisoformat(
-                            value.replace("Z", "+01:00")
+                            value.replace("Z", "+00:00")
                         )
 
                         bj_time = dt + timedelta(hours=8)
@@ -1089,10 +1075,6 @@ convert_utc_to_beijing(data)
             "SAVE DAILY DATA ERROR:",
             e
         )
-
-
-
-
 
 
 
@@ -1152,9 +1134,6 @@ def home():
         "WHOOP Health Coach Running"
 
     )
-
-
-
 
 
 
