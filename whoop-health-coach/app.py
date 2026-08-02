@@ -1076,40 +1076,51 @@ except Exception as e:
 def generate_health_report(data):
 
     recovery = data.get("recovery", {})
-
     sleep = data.get("sleep", {})
-
     cycle = data.get("cycle", {})
-
     workout = data.get("workout", {})
 
 
+    # Recovery
+    recovery_record = recovery.get("records", [{}])[0]
+    recovery_score = recovery_record.get("score", {}).get("recovery_score")
+    hrv = recovery_record.get("score", {}).get("hrv_rmssd_milli")
+    rhr = recovery_record.get("score", {}).get("resting_heart_rate")
+
+
     report = f"""
-WHOOP 健康报告
+WHOOP 今日健康报告
+
+【总览】
+恢复评分：{recovery_score}
+状态判断：根据恢复、睡眠和训练综合分析
+
 
 【恢复】
-Recovery:
-{recovery}
+Recovery：
+- 恢复分：{recovery_score}%
+- HRV：{hrv} ms
+- 静息心率：{rhr} bpm
+
 
 【睡眠】
-Sleep:
 {sleep}
 
+
 【训练】
-Workout:
 {workout}
 
-【日常循环】
-Cycle:
+
+【Cycle】
 {cycle}
 
-请根据以上数据分析：
-1. 今日整体状态
-2. 睡眠是否支持训练
-3. 恢复是否适合高强度运动
-4. 未来1-3天建议
-"""
 
+请给出：
+1. 今日状态等级（良好/需小心/危险）
+2. 睡眠是否支持训练
+3. 今日训练建议
+4. 未来1-3天恢复建议
+"""
 
     return report
 
