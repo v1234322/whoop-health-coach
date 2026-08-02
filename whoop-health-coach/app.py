@@ -39,76 +39,153 @@ def init_db():
 
         cur = conn.cursor()
 
-        # ==========================
-        # DATABASE MIGRATION
-        # 自动补字段
-        # ==========================
+
+        # =================================
+        # 创建 daily_metrics 主表
+        # =================================
 
         cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS report_date TEXT
+        CREATE TABLE IF NOT EXISTS daily_metrics (
+
+            id SERIAL PRIMARY KEY,
+
+            report_date TEXT,
+
+            recovery_score FLOAT,
+
+            hrv FLOAT,
+
+            resting_heart_rate FLOAT,
+
+            sleep_score FLOAT,
+
+            sleep_duration FLOAT,
+
+            sleep_efficiency FLOAT,
+
+            deep_sleep_duration FLOAT,
+
+            rem_sleep_duration FLOAT,
+
+            cycle_strain FLOAT,
+
+            workout_data JSONB
+
+        )
         """)
 
 
+
+        # =================================
+        # 数据库自动迁移
+        # 如果旧表没有字段，自动添加
+        # =================================
+
+
+        migrations = [
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS report_date TEXT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS recovery_score FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS hrv FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS resting_heart_rate FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS sleep_score FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS sleep_duration FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS sleep_efficiency FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS deep_sleep_duration FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS rem_sleep_duration FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS cycle_strain FLOAT
+            """,
+
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN IF NOT EXISTS workout_data JSONB
+            """
+        ]
+
+
+        for sql in migrations:
+
+            cur.execute(sql)
+
+
+
+        # =================================
+        # Token 表
+        # =================================
+
         cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS recovery_score FLOAT
+        CREATE TABLE IF NOT EXISTS tokens (
+
+            id SERIAL PRIMARY KEY,
+
+            refresh_token TEXT,
+
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+        )
         """)
 
 
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS hrv FLOAT
-        """)
+
+        conn.commit()
 
 
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS resting_heart_rate FLOAT
-        """)
+        cur.close()
+
+        conn.close()
 
 
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS sleep_score FLOAT
-        """)
+        print(
+            "DATABASE INIT OK"
+        )
 
 
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS sleep_duration FLOAT
-        """)
+
+    except Exception as e:
 
 
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS sleep_efficiency FLOAT
-        """)
-
-
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS deep_sleep_duration FLOAT
-        """)
-
-
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS rem_sleep_duration FLOAT
-        """)
-
-
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS cycle_strain FLOAT
-        """)
-
-
-        cur.execute("""
-        ALTER TABLE daily_metrics
-        ADD COLUMN IF NOT EXISTS workout_data JSONB
-        """)
-
+        print(
+            "DATABASE INIT ERROR:",
+            e
+        )
 
         # ============================
         # WHOOP 日数据表
