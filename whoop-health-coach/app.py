@@ -1043,38 +1043,23 @@ def convert_utc_to_beijing(obj):
 convert_utc_to_beijing(data)
 
 
+# =====================
+# 保存每日数据
+# =====================
 
-    
-    # =====================
-    # 保存每日数据
-    # =====================
+try:
 
+    metrics = extract_daily_metrics(
+        data
+    )
 
-    try:
+    save_daily_data(
+        metrics
+    )
 
+except Exception as e:
 
-        metrics = extract_daily_metrics(
-            data
-        )
-
-
-        save_daily_data(
-            metrics
-        )
-
-
-        print(
-            "DAILY DATA SAVED"
-        )
-
-
-    except Exception as e:
-
-
-        print(
-            "SAVE DAILY DATA ERROR:",
-            e
-        )
+    print(e)
 
 
 
