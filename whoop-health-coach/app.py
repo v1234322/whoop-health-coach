@@ -348,41 +348,79 @@ def load_refresh_token():
 # REFRESH ACCESS TOKEN
 # =========================
 
-def refresh_access_token(force=False):
+def refresh_access_token():
 
-    global ACCESS_TOKEN
-    global ACCESS_TOKEN_EXPIRE
-    global WHOOP_REFRESH_TOKEN
+    refresh_token = load_refresh_token()
 
 
+    if not refresh_token:
 
-    print(
-        "REFRESH CHECK:",
-        force,
-        ACCESS_TOKEN is not None
+        raise Exception(
+            "NO REFRESH TOKEN"
+        )
+
+
+    data = {
+
+        "grant_type":
+        "refresh_token",
+
+        "refresh_token":
+        refresh_token,
+
+        "client_id":
+        os.environ.get(
+            "WHOOP_CLIENT_ID"
+        ),
+
+        "client_secret":
+        os.environ.get(
+            "WHOOP_CLIENT_SECRET"
+        )
+
+    }
+
+
+    r = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data=data,
+
+        headers={
+
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+
+        }
+
     )
 
 
-
-    if (
-
-        not force
-
-        and ACCESS_TOKEN
-
-        and time.time()
-        <
-        ACCESS_TOKEN_EXPIRE - 300
-
-    ):
-
-        return ACCESS_TOKEN
+    print(
+        "REFRESH STATUS:",
+        r.status_code
+    )
 
 
+    print(
+        "REFRESH RESPONSE:",
+        r.text
+    )
 
 
-    with TOKEN_LOCK:
+    r.raise_for_status()
 
+
+    token_data = r.json()
+
+
+    save_refresh_token(
+        token_data["refresh_token"]
+    )
+
+
+    return token_data["access_token"]
 
 
         # =====================
