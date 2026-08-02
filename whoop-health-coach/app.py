@@ -1081,46 +1081,167 @@ def generate_health_report(data):
     workout = data.get("workout", {})
 
 
-    # Recovery
-    recovery_record = recovery.get("records", [{}])[0]
-    recovery_score = recovery_record.get("score", {}).get("recovery_score")
-    hrv = recovery_record.get("score", {}).get("hrv_rmssd_milli")
-    rhr = recovery_record.get("score", {}).get("resting_heart_rate")
+    # =====================
+    # 恢复数据
+    # =====================
 
+    recovery_record = recovery.get(
+        "records",
+        [{}]
+    )[0]
+
+    recovery_score = recovery_record.get(
+        "score",
+        {}
+    ).get(
+        "recovery_score"
+    )
+
+    hrv = recovery_record.get(
+        "score",
+        {}
+    ).get(
+        "hrv_rmssd_milli"
+    )
+
+    resting_hr = recovery_record.get(
+        "score",
+        {}
+    ).get(
+        "resting_heart_rate"
+    )
+
+
+    # =====================
+    # 睡眠数据
+    # =====================
+
+    sleep_record = sleep.get(
+        "records",
+        [{}]
+    )[0]
+
+    sleep_score = sleep_record.get(
+        "score",
+        {}
+    )
+
+    stage = sleep_score.get(
+        "stage_summary",
+        {}
+    )
+
+
+    total_sleep = (
+
+        stage.get(
+            "total_light_sleep_time_milli",
+            0
+        )
+
+        +
+
+        stage.get(
+            "total_slow_wave_sleep_time_milli",
+            0
+        )
+
+        +
+
+        stage.get(
+            "total_rem_sleep_time_milli",
+            0
+        )
+
+    )
+
+
+    sleep_hours = round(
+        total_sleep / 1000 / 3600,
+        2
+    )
+
+
+    sleep_performance = sleep_score.get(
+        "sleep_performance_percentage"
+    )
+
+    sleep_efficiency = sleep_score.get(
+        "sleep_efficiency_percentage"
+    )
+
+
+    # =====================
+    # 报告
+    # =====================
 
     report = f"""
+
 WHOOP 今日健康报告
 
+
 【总览】
-恢复评分：{recovery_score}
-状态判断：根据恢复、睡眠和训练综合分析
+
+恢复评分：
+{recovery_score}%
+
+今日状态：
+根据恢复、睡眠、训练综合判断。
+
 
 
 【恢复】
+
 Recovery：
-- 恢复分：{recovery_score}%
-- HRV：{hrv} ms
-- 静息心率：{rhr} bpm
+{recovery_score}%
+
+HRV：
+{hrv} ms
+
+静息心率：
+{resting_hr} bpm
+
 
 
 【睡眠】
-{sleep}
+
+睡眠时长：
+{sleep_hours} 小时
+
+睡眠表现：
+{sleep_performance}%
+
+睡眠效率：
+{sleep_efficiency}%
+
 
 
 【训练】
+
+训练数据：
 {workout}
 
 
+
 【Cycle】
+
+日常循环：
 {cycle}
 
 
+
 请给出：
-1. 今日状态等级（良好/需小心/危险）
-2. 睡眠是否支持训练
-3. 今日训练建议
-4. 未来1-3天恢复建议
+
+1. 今日状态等级（良好 / 需小心 / 危险）
+
+2. 是否适合训练
+
+3. 恢复建议
+
+4. 未来1-3天行动建议
+
 """
+
 
     return report
 
