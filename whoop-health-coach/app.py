@@ -960,48 +960,56 @@ def extract_daily_metrics(data):
 @app.route("/whoop/today")
 def today():
 
-
-    # =====================
-    # 获取 WHOOP 数据
-    # =====================
-
-
     data = {
 
+        "recovery": whoop_get("/recovery"),
 
-        "recovery":
+        "cycle": whoop_get("/cycle"),
 
-        whoop_get(
-            "/recovery"
-        ),
+        "sleep": whoop_get("/activity/sleep"),
 
-
-
-        "cycle":
-
-        whoop_get(
-            "/cycle"
-        ),
-
-
-
-        "sleep":
-
-        whoop_get(
-            "/activity/sleep"
-        ),
-
-
-
-        "workout":
-
-        whoop_get(
-            "/activity/workout"
-        )
-
+        "workout": whoop_get("/activity/workout")
 
     }
 
+
+    # =====================
+    # UTC 转北京时间
+    # =====================
+
+    convert_utc_to_beijing(data)
+
+
+
+    # =====================
+    # 保存每日数据
+    # =====================
+
+    try:
+
+        metrics = extract_daily_metrics(data)
+
+        save_daily_data(metrics)
+
+    except Exception as e:
+
+        print(
+            "SAVE DAILY DATA ERROR:",
+            e
+        )
+
+
+
+    report = generate_health_report(data)
+
+
+    return jsonify({
+
+        "whoop_data": data,
+
+        "coach_report": report
+
+    })
 # =====================
 # UTC 转北京时间
 # =====================
@@ -1039,8 +1047,6 @@ def convert_utc_to_beijing(obj):
         for item in obj:
             convert_utc_to_beijing(item)
 
-
-convert_utc_to_beijing(data)
 
 
 # =====================
