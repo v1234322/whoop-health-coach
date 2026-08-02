@@ -306,16 +306,16 @@ def callback():
 )
     if refresh_token:
 
-    save_refresh_token(
-        refresh_token
-    )
+       save_refresh_token(
+          refresh_token
+       )
 
 
     else:
 
-    print(
-        "NO REFRESH TOKEN RETURNED"
-    )
+      print(
+         "NO REFRESH TOKEN RETURNED"
+      )
 
 # =========================
 # AUTH CODE TOKEN
