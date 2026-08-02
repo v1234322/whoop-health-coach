@@ -427,6 +427,89 @@ def refresh_access_token():
     response.raise_for_status()
 
 
+   # =====================
+# WHOOP Refresh Token
+# =====================
+
+def refresh_access_token():
+
+
+    refresh_token = load_refresh_token()
+
+
+    client_id = os.environ.get(
+        "WHOOP_CLIENT_ID"
+    )
+
+    client_secret = os.environ.get(
+        "WHOOP_CLIENT_SECRET"
+    )
+
+
+    print(
+        "CLIENT ID:",
+        bool(client_id)
+    )
+
+    print(
+        "CLIENT SECRET:",
+        bool(client_secret)
+    )
+
+    print(
+        "REFRESH TOKEN:",
+        bool(refresh_token)
+    )
+
+
+    if not refresh_token:
+
+        raise Exception(
+            "NO REFRESH TOKEN"
+        )
+
+
+    payload = {
+
+        "grant_type":
+        "refresh_token",
+
+        "refresh_token":
+        refresh_token,
+
+        "client_id":
+        client_id,
+
+        "client_secret":
+        client_secret
+
+    }
+
+
+    response = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data=payload
+
+    )
+
+
+    print(
+        "REFRESH STATUS:",
+        response.status_code
+    )
+
+
+    print(
+        "REFRESH RESPONSE:",
+        response.text
+    )
+
+
+    response.raise_for_status()
+
+
     token_data = response.json()
 
 
@@ -448,7 +531,6 @@ def refresh_access_token():
 
 
     return access_token
-
 
 # =========================
 # WHOOP API GET
