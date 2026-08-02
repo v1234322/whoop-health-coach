@@ -344,11 +344,12 @@ def load_refresh_token():
     
 
 
-# =========================
-# REFRESH ACCESS TOKEN
-# =========================
+# =====================
+# WHOOP Refresh Token
+# =====================
 
 def refresh_access_token():
+
 
     refresh_token = load_refresh_token()
 
@@ -360,7 +361,7 @@ def refresh_access_token():
         )
 
 
-    data = {
+    payload = {
 
         "grant_type":
         "refresh_token",
@@ -381,11 +382,11 @@ def refresh_access_token():
     }
 
 
-    r = requests.post(
+    response = requests.post(
 
         "https://api.prod.whoop.com/oauth/oauth2/token",
 
-        data=data,
+        data=payload,
 
         headers={
 
@@ -399,28 +400,40 @@ def refresh_access_token():
 
     print(
         "REFRESH STATUS:",
-        r.status_code
+        response.status_code
     )
 
 
     print(
         "REFRESH RESPONSE:",
-        r.text
+        response.text
     )
 
 
-    r.raise_for_status()
+    response.raise_for_status()
 
 
-    token_data = r.json()
+    token_data = response.json()
 
 
-    save_refresh_token(
-        token_data["refresh_token"]
+    new_access_token = token_data.get(
+        "access_token"
     )
 
 
-    return token_data["access_token"]
+    new_refresh_token = token_data.get(
+        "refresh_token"
+    )
+
+
+    if new_refresh_token:
+
+        save_refresh_token(
+            new_refresh_token
+        )
+
+
+    return new_access_token
 
 
         # =====================
