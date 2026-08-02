@@ -41,7 +41,7 @@ def init_db():
 
 
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS tokens (
+        CREATE TABLE IF NOT EXISTS daily_metrics (
 
             id SERIAL PRIMARY KEY,
 
@@ -49,7 +49,7 @@ def init_db():
 
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     
-            date TEXT,
+            report_date TEXT,
 
             recovery_score FLOAT,
 
