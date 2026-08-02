@@ -1016,8 +1016,49 @@ def today():
 
     }
 
+# =====================
+# UTC 转北京时间
+# =====================
+
+def convert_utc_to_beijing(obj):
+
+    if isinstance(obj, dict):
+
+        for key, value in obj.items():
+
+            if isinstance(value, (dict, list)):
+                convert_utc_to_beijing(value)
+
+            elif isinstance(value, str):
+
+                if value.endswith("Z"):
+
+                    try:
+                        dt = datetime.fromisoformat(
+                            value.replace("Z", "+01:00")
+                        )
+
+                        bj_time = dt + timedelta(hours=8)
+
+                        obj[key] = bj_time.strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
+
+                    except:
+                        pass
 
 
+    elif isinstance(obj, list):
+
+        for item in obj:
+            convert_utc_to_beijing(item)
+
+
+convert_utc_to_beijing(data)
+
+
+
+    
     # =====================
     # 保存每日数据
     # =====================
@@ -1060,41 +1101,40 @@ def today():
     # =====================
 
 
-    report = generate_health_report(
+    def generate_health_report(data):
 
-        data
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    cycle = data.get("cycle", {})
+    workout = data.get("workout", {})
 
-    )
+    report = f"""
+WHOOP 健康报告
 
+【恢复】
+Recovery:
+{recovery}
 
+【睡眠】
+Sleep:
+{sleep}
 
+【训练】
+Workout:
+{workout}
 
+【日常循环】
+Cycle:
+{cycle}
 
+请根据以上数据分析：
+1. 今日整体状态
+2. 睡眠是否支持训练
+3. 恢复是否适合高强度运动
+4. 未来1-3天建议
+"""
 
-    return jsonify(
-
-
-        {
-
-
-            "whoop_data":
-
-            data,
-
-
-
-            "coach_report":
-
-            report
-
-
-        }
-
-    )
-
-
-
-
+    return report
 
 
 
