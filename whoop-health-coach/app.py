@@ -45,10 +45,6 @@ def init_db():
 
             id SERIAL PRIMARY KEY,
 
-            refresh_token TEXT,
-
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    
             report_date TEXT,
 
             recovery_score FLOAT,
@@ -71,8 +67,8 @@ def init_db():
 
             workout_data JSONB
 
-        )
-        """)
+            )
+            """)
 
 
         conn.commit()
