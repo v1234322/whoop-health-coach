@@ -354,6 +354,31 @@ def refresh_access_token():
     refresh_token = load_refresh_token()
 
 
+    client_id = os.environ.get(
+        "WHOOP_CLIENT_ID"
+    )
+
+    client_secret = os.environ.get(
+        "WHOOP_CLIENT_SECRET"
+    )
+
+
+    print(
+        "CLIENT ID:",
+        bool(client_id)
+    )
+
+    print(
+        "CLIENT SECRET:",
+        bool(client_secret)
+    )
+
+    print(
+        "REFRESH TOKEN:",
+        bool(refresh_token)
+    )
+
+
     if not refresh_token:
 
         raise Exception(
@@ -370,14 +395,10 @@ def refresh_access_token():
         refresh_token,
 
         "client_id":
-        os.environ.get(
-            "WHOOP_CLIENT_ID"
-        ),
+        client_id,
 
         "client_secret":
-        os.environ.get(
-            "WHOOP_CLIENT_SECRET"
-        )
+        client_secret
 
     }
 
@@ -386,14 +407,7 @@ def refresh_access_token():
 
         "https://api.prod.whoop.com/oauth/oauth2/token",
 
-        data=payload,
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        }
+        data=payload
 
     )
 
@@ -421,15 +435,15 @@ def refresh_access_token():
     )
 
 
-    refresh_token_new = token_data.get(
+    new_refresh_token = token_data.get(
         "refresh_token"
     )
 
 
-    if refresh_token_new:
+    if new_refresh_token:
 
         save_refresh_token(
-            refresh_token_new
+            new_refresh_token
         )
 
 
