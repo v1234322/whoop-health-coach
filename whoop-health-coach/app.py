@@ -1237,25 +1237,73 @@ def auto_report():
 # 最近7天
 # =========================
 
-@app.route("/whoop/history")
-def history_report():
+@app.route("/whoop/trend")
+def trend_report():
 
 
-    file = "history.json"
+    conn = get_db_connection()
+
+    cur = conn.cursor()
 
 
+    cur.execute(
+        """
+        SELECT
+            report_date,
+            recovery_score,
+            hrv,
+            sleep_duration,
+            cycle_strain
+        FROM daily_reports
+        ORDER BY created_at DESC
+        LIMIT 7
+        """
+    )
 
-    if not os.path.exists(file):
+
+    rows = cur.fetchall()
+
+
+    cur.close()
+
+    conn.close()
+
+
+    if not rows:
 
         return jsonify({
 
-            "status":
-            "empty",
+            "status":"empty",
 
-            "message":
-            "暂无历史数据"
+            "message":"暂无历史数据"
 
         })
+
+
+    history = []
+
+
+    for row in rows:
+
+        history.append({
+
+            "date": row[0],
+
+            "recovery_score": row[1],
+
+            "hrv": row[2],
+
+            "sleep_duration": row[3],
+
+            "cycle_strain": row[4]
+
+        })
+
+
+    history.reverse()
+
+
+last7 = history
 
 
 
