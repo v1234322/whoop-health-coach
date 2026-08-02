@@ -3,25 +3,10 @@ import os
 
 from datetime import datetime, timedelta, timezone
 
-from flask import jsonify
-
-
-from database import (
-    init_db,
-    save_refresh_token,
-    load_refresh_token,
-    save_daily_data
-)
-
-
-from coach import (
-    generate_health_report
-)
-
+from flask import Flask, jsonify
 
 
 app = Flask(__name__)
-
 
 @app.route("/privacy")
 def privacy():
