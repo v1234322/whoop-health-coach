@@ -300,23 +300,22 @@ def callback():
         "refresh_token"
     )
 
-
+    print(
+    "REFRESH TOKEN:",
+    refresh_token
+)
     if refresh_token:
 
-        save_refresh_token(
-            refresh_token
-        )
+    save_refresh_token(
+        refresh_token
+    )
 
 
-    return jsonify({
+    else:
 
-        "status":
-        "WHOOP AUTH SUCCESS",
-
-        "saved_refresh_token":
-        bool(refresh_token)
-
-    })
+    print(
+        "NO REFRESH TOKEN RETURNED"
+    )
 
 # =========================
 # AUTH CODE TOKEN
