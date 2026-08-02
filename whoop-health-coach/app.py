@@ -1138,6 +1138,89 @@ def today():
 
     )
 
+# =========================
+# TODAY REPORT
+# =========================
+
+@app.route("/whoop/today")
+def today():
+
+    data = {
+
+        "recovery":
+        whoop_get("/recovery"),
+
+        "cycle":
+        whoop_get("/cycle"),
+
+        "sleep":
+        whoop_get("/activity/sleep"),
+
+        "workout":
+        whoop_get("/activity/workout")
+
+    }
+
+
+    convert_utc_to_beijing(data)
+
+
+    report = generate_health_report(data)
+
+
+    return jsonify({
+
+        "whoop_data": data,
+
+        "coach_report": report
+
+    })
+
+
+# =========================
+# HISTORY REPORT
+# 最近7天趋势
+# =========================
+
+@app.route("/whoop/history")
+def history_report():
+
+    file = "history.json"
+
+
+    if not os.path.exists(file):
+
+        return jsonify({
+
+            "status": "empty",
+
+            "message": "暂无历史数据"
+
+        })
+
+
+    with open(
+        file,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        history = json.load(f)
+
+
+    last7 = history[-7:]
+
+
+    return jsonify({
+
+        "status": "success",
+
+        "days": len(last7),
+
+        "history": last7
+
+    })
+
 
 
 # =====================
