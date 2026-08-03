@@ -1,21 +1,17 @@
-import json
-import os
-import psycopg2
+import json import os import psycopg2
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, jsonify, request
-import requests
-import threading
-import time
+from flask import Flask, jsonify, request import requests import
+threading import time
 
+app = Flask(name)
 
-app = Flask(__name__)
+====================
 
+DATABASE CONNECTION
 
-# =====================
-# DATABASE CONNECTION
-# =====================
+=====================
 
 def get_db_connection():
 
@@ -27,9 +23,11 @@ def get_db_connection():
 
     return conn
 
-# =====================
-# DATABASE INIT
-# =====================
+=====================
+
+DATABASE INIT
+
+=====================
 
 def init_db():
 
@@ -187,132 +185,80 @@ def init_db():
             e
         )
 
-@app.route("/privacy")
-def privacy():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Privacy Policy</title>
-        <meta charset="utf-8">
-    </head>
+@app.route(“/privacy”) def privacy(): return ““” <!DOCTYPE html>
+Privacy Policy
+Privacy Policy
+WHOOP Health Coach accesses WHOOP data only to provide personal health
+analysis and training recommendations.
+The app does not sell, share, or publicly distribute user data.
+Users can revoke WHOOP authorization at any time.
+““”
 
-    <body>
-        <h1>Privacy Policy</h1>
+=========================
 
-        <p>
-        WHOOP Health Coach accesses WHOOP data only to provide
-        personal health analysis and training recommendations.
-        </p >
+DATABASE INIT
 
-        <p>
-        The app does not sell, share, or publicly distribute user data.
-        </p >
-
-        <p>
-        Users can revoke WHOOP authorization at any time.
-        </p >
-
-    </body>
-    </html>
-    """
-
-
-# =========================
-# DATABASE INIT
-# =========================
+=========================
 
 init_db()
 
+=========================
 
-# =========================
-# ENVIRONMENT
-# =========================
+ENVIRONMENT
 
-WHOOP_CLIENT_ID = os.environ.get(
-    "WHOOP_CLIENT_ID",
-    ""
+=========================
+
+WHOOP_CLIENT_ID = os.environ.get( “WHOOP_CLIENT_ID”, “” ).strip()
+
+WHOOP_CLIENT_SECRET = os.environ.get( “WHOOP_CLIENT_SECRET”, “”
 ).strip()
 
-
-
-WHOOP_CLIENT_SECRET = os.environ.get(
-    "WHOOP_CLIENT_SECRET",
-    ""
+WHOOP_REFRESH_TOKEN = os.environ.get( “WHOOP_REFRESH_TOKEN”, “”
 ).strip()
 
+API_SECRET = os.environ.get( “API_SECRET”, “” ).strip()
 
+WHOOP_TOKEN_URL = ( “https://api.prod.whoop.com/oauth/oauth2/token” )
 
-WHOOP_REFRESH_TOKEN = os.environ.get(
-    "WHOOP_REFRESH_TOKEN",
-    ""
-).strip()
+WHOOP_API_BASE = ( “https://api.prod.whoop.com/developer/v2” )
 
+=========================
 
+TOKEN CACHE
 
-API_SECRET = os.environ.get(
-    "API_SECRET",
-    ""
-).strip()
-
-
-
-WHOOP_TOKEN_URL = (
-    "https://api.prod.whoop.com/oauth/oauth2/token"
-)
-
-
-
-WHOOP_API_BASE = (
-    "https://api.prod.whoop.com/developer/v2"
-)
-
-
-
-
-# =========================
-# TOKEN CACHE
-# =========================
+=========================
 
 ACCESS_TOKEN = None
 
 ACCESS_TOKEN_EXPIRE = 0
 
-
 TOKEN_LOCK = threading.Lock()
 
+=========================
 
-# =========================
-# API KEY
-# =========================
+API KEY
+
+=========================
 
 def check_api_key():
 
+key = request.headers.get( “X-API-Key” )
 
-    key = request.headers.get(
-        "X-API-Key"
-    )
+return key == API_SECRET
 
+=====================
 
-    return key == API_SECRET
+WHOOP CALLBACK
 
+=====================
 
-# =====================
-# WHOOP CALLBACK
-# =====================
+@app.route(“/callback”) def callback():
 
-@app.route("/callback")
-def callback():
+code = request.args.get( “code” )
 
+if not code:
 
-    code = request.args.get(
-        "code"
-    )
-
-
-    if not code:
-
-        return jsonify({
+    return jsonify({
 
             "error": "NO CODE",
 
@@ -387,40 +333,32 @@ def callback():
     print(
     "REFRESH TOKEN:",
     refresh_token
-)
-    if refresh_token:
 
-       save_refresh_token(
-          refresh_token
-       )
+) if refresh_token:
 
-    return jsonify({
+save_refresh_token( refresh_token )
 
-    "status":
-    "WHOOP AUTH SUCCESS",
+return jsonify({
 
-    "saved_refresh_token":
-    True
+“status”: “WHOOP AUTH SUCCESS”,
+
+“saved_refresh_token”: True
 
 })
 
+=========================
 
-# =========================
-# AUTH CODE TOKEN
-# =========================
+AUTH CODE TOKEN
 
-@app.route("/whoop/token")
-def whoop_token():
+=========================
 
+@app.route(“/whoop/token”) def whoop_token():
 
-    code = request.args.get(
-        "code"
-    )
+code = request.args.get( “code” )
 
+if not code:
 
-    if not code:
-
-        return jsonify(
+    return jsonify(
             {
                 "error":
                 "missing code"
@@ -491,125 +429,82 @@ def whoop_token():
         r.json()
     )
 
+=====================
 
-# =====================
-# TOKEN STORAGE
-# =====================
+TOKEN STORAGE
+
+=====================
 
 def save_refresh_token(token):
 
-    conn = get_db_connection()
+conn = get_db_connection()
 
-    cur = conn.cursor()
+cur = conn.cursor()
 
+cur.execute( ““” DELETE FROM tokens ““” )
 
-    cur.execute(
-        """
-        DELETE FROM tokens
-        """
-    )
+cur.execute( ““” INSERT INTO tokens (refresh_token) VALUES (%s) “““,
+(token,) )
 
+conn.commit()
 
-    cur.execute(
-        """
-        INSERT INTO tokens
-        (refresh_token)
-        VALUES (%s)
-        """,
-        (token,)
-    )
+cur.close()
 
+conn.close()
 
-    conn.commit()
+print( “NEW REFRESH TOKEN SAVED” )
 
+=====================
 
-    cur.close()
+LOAD REFRESH TOKEN
 
-    conn.close()
-
-
-    print(
-        "NEW REFRESH TOKEN SAVED"
-    )
-
-
-
-# =====================
-# LOAD REFRESH TOKEN
-# =====================
+=====================
 
 def load_refresh_token():
 
+conn = get_db_connection()
 
-    conn = get_db_connection()
+cur = conn.cursor()
 
-    cur = conn.cursor()
+cur.execute( ““” SELECT refresh_token FROM tokens ORDER BY id DESC LIMIT
+1 ““” )
 
+result = cur.fetchone()
 
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
+cur.close()
 
+conn.close()
 
-    result = cur.fetchone()
+if result:
 
-
-    cur.close()
-
-    conn.close()
-
-
-    if result:
-
-        return result[0]
+    return result[0]
 
 
     return None
 
+=====================
 
-# =====================
-# WHOOP Refresh Token
-# =====================
+WHOOP Refresh Token
+
+=====================
 
 def refresh_access_token():
 
+refresh_token = load_refresh_token()
 
-    refresh_token = load_refresh_token()
+client_id = os.environ.get( “WHOOP_CLIENT_ID” )
 
+client_secret = os.environ.get( “WHOOP_CLIENT_SECRET” )
 
-    client_id = os.environ.get(
-        "WHOOP_CLIENT_ID"
-    )
+print( “CLIENT ID:”, bool(client_id) )
 
-    client_secret = os.environ.get(
-        "WHOOP_CLIENT_SECRET"
-    )
+print( “CLIENT SECRET:”, bool(client_secret) )
 
+print( “REFRESH TOKEN:”, bool(refresh_token) )
 
-    print(
-        "CLIENT ID:",
-        bool(client_id)
-    )
+if not refresh_token:
 
-    print(
-        "CLIENT SECRET:",
-        bool(client_secret)
-    )
-
-    print(
-        "REFRESH TOKEN:",
-        bool(refresh_token)
-    )
-
-
-    if not refresh_token:
-
-        raise Exception(
+    raise Exception(
             "NO REFRESH TOKEN"
         )
 
@@ -677,21 +572,19 @@ def refresh_access_token():
 
     return access_token
 
-# =========================
-# WHOOP API GET
-# =========================
+=========================
+
+WHOOP API GET
+
+=========================
 
 def whoop_get(endpoint):
 
+token = refresh_access_token()
 
-    token = refresh_access_token()
+r = requests.get(
 
-
-
-    r = requests.get(
-
-
-        WHOOP_API_BASE + endpoint,
+    WHOOP_API_BASE + endpoint,
 
 
         headers={
@@ -757,23 +650,21 @@ def whoop_get(endpoint):
 
     return r.json()
 
+=========================
 
-# =========================
-# EXTRACT DAILY METRICS
-# =========================
+EXTRACT DAILY METRICS
+
+=========================
 
 def extract_daily_metrics(data):
 
+result = {}
 
-    result = {}
+Recovery
 
+try:
 
-
-    # Recovery
-
-    try:
-
-        recovery = (
+    recovery = (
 
             data
 
@@ -1117,16 +1008,19 @@ def extract_daily_metrics(data):
 
     return result
 
-# =====================
-# 保存每日历史数据 V5
-# 保存到 PostgreSQL daily_metrics
-# =====================
+=====================
+
+保存每日历史数据 V5
+
+保存到 PostgreSQL daily_metrics
+
+=====================
 
 def save_daily_data(metrics):
 
-    try:
+try:
 
-        conn = get_db_connection()
+    conn = get_db_connection()
 
         cur = conn.cursor()
 
@@ -1282,15 +1176,17 @@ def save_daily_data(metrics):
             str(e)
         )
 
-# =====================
-# UTC 转北京时间
-# =====================
+=====================
+
+UTC 转北京时间
+
+=====================
 
 def convert_utc_to_beijing(obj):
 
-    if isinstance(obj, dict):
+if isinstance(obj, dict):
 
-        for key, value in obj.items():
+    for key, value in obj.items():
 
             if isinstance(value, (dict, list)):
 
@@ -1334,42 +1230,39 @@ def convert_utc_to_beijing(obj):
 
             convert_utc_to_beijing(item)
 
+=========================
 
-# =========================
-# TODAY REPORT
-# =========================
+TODAY REPORT
 
-@app.route("/whoop/today")
-def today():
+=========================
 
-    ...
+@app.route(“/whoop/today”) def today():
 
+…
 
-# =====================
-# AI 健康报告 V2
-# =====================
+=====================
+
+AI 健康报告 V2
+
+=====================
 
 def generate_health_report(data):
 
-    ...
+…
 
+return report
 
-    return report
+=====================
 
+DAILY AUTO REPORT
 
+=====================
 
-# =====================
-# DAILY AUTO REPORT
-# =====================
+@app.route(“/whoop/auto-report”) def auto_report():
 
-@app.route("/whoop/auto-report")
-def auto_report():
+data = {
 
-
-    data = {
-
-
-        "recovery":
+    "recovery":
         whoop_get("/recovery"),
 
 
@@ -1414,18 +1307,19 @@ def auto_report():
 
     })
 
+=========================
 
-# =========================
-# WHOOP TREND REPORT V3
-# 最近7天趋势分析
-# =========================
-@app.route("/whoop/trend")
-def trend_report():
+WHOOP TREND REPORT V3
 
+最近7天趋势分析
 
-    try:
+=========================
 
-        conn = get_db_connection()
+@app.route(“/whoop/trend”) def trend_report():
+
+try:
+
+    conn = get_db_connection()
 
         cur = conn.cursor()
 
@@ -1710,97 +1604,54 @@ def trend_report():
             str(e)
 
         }),500
-# =====================
-# AI 健康报告 V2
-# =====================
+
+=====================
+
+AI 健康报告 V2
+
+=====================
 
 def generate_health_report(data):
 
+recovery = data.get( “recovery”, {} )
 
-    recovery = data.get(
-        "recovery",
-        {}
-    )
+sleep = data.get( “sleep”, {} )
 
-    sleep = data.get(
-        "sleep",
-        {}
-    )
+cycle = data.get( “cycle”, {} )
 
-    cycle = data.get(
-        "cycle",
-        {}
-    )
+workout = data.get( “workout”, {} )
 
-    workout = data.get(
-        "workout",
-        {}
-    )
+=====================
 
+Recovery
 
+=====================
 
-    # =====================
-    # Recovery
-    # =====================
+recovery_record = recovery.get( “records”, [{}] )[0]
 
+recovery_score_data = recovery_record.get( “score”, {} )
 
-    recovery_record = recovery.get(
-        "records",
-        [{}]
-    )[0]
+recovery_score = recovery_score_data.get( “recovery_score”, 0 )
 
+hrv = recovery_score_data.get( “hrv_rmssd_milli”, 0 )
 
-    recovery_score_data = recovery_record.get(
-        "score",
-        {}
-    )
+resting_hr = recovery_score_data.get( “resting_heart_rate”, 0 )
 
+=====================
 
-    recovery_score = recovery_score_data.get(
-        "recovery_score",
-        0
-    )
+Sleep
 
+=====================
 
-    hrv = recovery_score_data.get(
-        "hrv_rmssd_milli",
-        0
-    )
+sleep_record = sleep.get( “records”, [{}] )[0]
 
+sleep_score = sleep_record.get( “score”, {} )
 
-    resting_hr = recovery_score_data.get(
-        "resting_heart_rate",
-        0
-    )
+stage = sleep_score.get( “stage_summary”, {} )
 
+total_sleep_ms = (
 
-
-    # =====================
-    # Sleep
-    # =====================
-
-
-    sleep_record = sleep.get(
-        "records",
-        [{}]
-    )[0]
-
-
-    sleep_score = sleep_record.get(
-        "score",
-        {}
-    )
-
-
-    stage = sleep_score.get(
-        "stage_summary",
-        {}
-    )
-
-
-    total_sleep_ms = (
-
-        stage.get(
+    stage.get(
             "total_light_sleep_time_milli",
             0
         )
@@ -1958,114 +1809,83 @@ def generate_health_report(data):
 
 WHOOP 今日健康报告
 
-
 【总览】
 
-状态：
-{status}
+状态： {status}
 
-Recovery：
-{recovery_score}%
-
-
+Recovery： {recovery_score}%
 
 【恢复】
 
-HRV：
-{hrv:.1f} ms
+HRV： {hrv:.1f} ms
 
-静息心率：
-{resting_hr:.0f} bpm
-
-
+静息心率： {resting_hr:.0f} bpm
 
 【睡眠】
 
-睡眠时长：
-{sleep_hours} 小时
+睡眠时长： {sleep_hours} 小时
 
-睡眠表现：
-{sleep_performance}%
+睡眠表现： {sleep_performance}%
 
-睡眠效率：
-{sleep_efficiency}%
+睡眠效率： {sleep_efficiency}%
 
-睡眠规律：
-{sleep_consistency}%
-
-
+睡眠规律： {sleep_consistency}%
 
 【训练】
 
-运动类型：
-{sport_name}
+运动类型： {sport_name}
 
-训练 Strain：
-{strain}
+训练 Strain： {strain}
 
-平均心率：
-{avg_hr} bpm
+平均心率： {avg_hr} bpm
 
-最大心率：
-{max_hr} bpm
+最大心率： {max_hr} bpm
 
-开始：
-{workout_start}
+开始： {workout_start}
 
-结束：
-{workout_end}
-
-
+结束： {workout_end}
 
 【训练建议】
 
 {training_advice}
 
-
-
 【未来1-3天建议】
 
-1. 保证充足睡眠恢复
+1.  保证充足睡眠恢复
 
-2. 根据 Recovery 调整训练强度
+2.  根据 Recovery 调整训练强度
 
-3. 避免连续多天高 Strain
+3.  避免连续多天高 Strain
 
+““”
 
-"""
+return report
 
+=========================
 
-    return report
+HEALTH CHECK
 
+=========================
 
-# =========================
-# HEALTH CHECK
-# =========================
+@app.route(“/”) def home():
 
+return (
 
-@app.route("/")
-def home():
-
-
-    return (
-
-        "WHOOP Health Coach Running"
+    "WHOOP Health Coach Running"
 
     )
 
+=========================
 
+START SERVER
 
-# =========================
-# START SERVER
-# =========================
+=========================
 
+if name == “main”:
 
-if __name__ == "__main__":
+app.run(
 
-
-    app.run(
-
-        host="0.0.0.0",
+    host="0.0.0.0",
 
         port=10000
 
