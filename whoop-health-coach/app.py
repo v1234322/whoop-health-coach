@@ -1791,178 +1791,331 @@ def generate_week_report(data):
         return "暂无7天数据"
 
 
-    recoveries = []
-    sleeps = []
-    strains = []
+    recovery_list=[]
+    hrv_list=[]
+    hr_list=[]
+    sleep_list=[]
+    strain_list=[]
 
-    daily_html = ""
+
+    daily_html=""
 
 
     for row in data:
 
-        # 数据库字段
-        date = row[0]
-        recovery = row[1] or 0
-        sleep = row[5] or 0
-        strain = row[7] or 0
+        date=row[0]
+
+        recovery=row[1] or 0
+        hrv=row[2] or 0
+        resting_hr=row[3] or 0
+
+        sleep=row[5] or 0
+        strain=row[7] or 0
 
 
-        recoveries.append(recovery)
-        sleeps.append(sleep)
-        strains.append(strain)
+        recovery_list.append(recovery)
+        hrv_list.append(hrv)
+        hr_list.append(resting_hr)
+        sleep_list.append(sleep)
+        strain_list.append(strain)
 
 
         daily_html += f"""
+
         <hr>
-        <b>{date}</b><br>
-        Recovery: {recovery:.1f}%<br>
-        睡眠: {sleep:.2f} 小时<br>
-        Strain: {strain:.2f}
-        <br>
+
+        <h3>{date}</h3>
+
+        Recovery:
+        {recovery:.1f}%<br>
+
+        HRV:
+        {hrv:.1f} ms<br>
+
+        静息心率:
+        {resting_hr:.1f} bpm<br>
+
+        睡眠:
+        {sleep:.2f} 小时<br>
+
+        Strain:
+        {strain:.2f}
+
         """
 
 
-    avg_recovery = sum(recoveries)/len(recoveries)
-    avg_sleep = sum(sleeps)/len(sleeps)
-    avg_strain = sum(strains)/len(strains)
+
+    days=len(data)
+
+
+    avg_recovery=sum(recovery_list)/days
+    avg_hrv=sum(hrv_list)/days
+    avg_hr=sum(hr_list)/days
+    avg_sleep=sum(sleep_list)/days
+    avg_strain=sum(strain_list)/days
 
 
 
-    # -----------------------
-    # 睡眠债分析
-    # -----------------------
+    # -------------------------
+    # Recovery趋势
+    # -------------------------
 
-    sleep_target = 8
+    if len(recovery_list)>=2:
 
-    sleep_debt = sleep_target - avg_sleep
-
-
-    if sleep_debt <= 0:
-        sleep_comment = "睡眠充足，没有明显睡眠债"
-    elif sleep_debt < 1:
-        sleep_comment = "轻微睡眠不足，需要注意恢复"
-    else:
-        sleep_comment = "存在明显睡眠债，建议增加睡眠时间"
-
-
-
-    # -----------------------
-    # Strain风险分析
-    # -----------------------
-
-    high_strain_days = []
-
-    for i,s in enumerate(strains):
-
-        if s >= 14:
-            high_strain_days.append(i+1)
-
-
-
-    if len(high_strain_days) >= 3:
-
-        strain_comment = (
-            "⚠️ 最近7天高 Strain 天数较多，"
-            "建议安排恢复日，避免累积疲劳"
-        )
-
-    elif len(high_strain_days) > 0:
-
-        strain_comment = (
-            "注意训练负荷，保持恢复平衡"
+        recovery_change = (
+            recovery_list[0]
+            -
+            recovery_list[-1]
         )
 
     else:
+        recovery_change=0
 
-        strain_comment = (
-            "训练压力较低，没有明显过载风险"
+
+
+    if recovery_change > 5:
+
+        recovery_trend="📈 Recovery下降，需要关注恢复"
+
+    elif recovery_change < -5:
+
+        recovery_trend="📈 Recovery改善，状态提升"
+
+    else:
+
+        recovery_trend="➡️ Recovery稳定"
+
+
+
+    # -------------------------
+    # HRV趋势
+    # -------------------------
+
+    if len(hrv_list)>=2:
+
+        hrv_change=(
+            hrv_list[0]
+            -
+            hrv_list[-1]
+        )
+
+    else:
+
+        hrv_change=0
+
+
+
+    if hrv_change>10:
+
+        hrv_comment="⚠️ HRV下降明显，可能存在疲劳"
+
+    elif hrv_change<-10:
+
+        hrv_comment="✅ HRV恢复趋势良好"
+
+    else:
+
+        hrv_comment="HRV保持稳定"
+
+
+
+    # -------------------------
+    # 睡眠债
+    # -------------------------
+
+    sleep_target=8
+
+
+    total_sleep_debt=0
+
+
+    for s in sleep_list:
+
+        if s < sleep_target:
+
+            total_sleep_debt += sleep_target-s
+
+
+
+    if total_sleep_debt>=5:
+
+        sleep_comment=(
+            "⚠️ 累积睡眠债较高，建议未来几天补眠"
+        )
+
+    elif total_sleep_debt>0:
+
+        sleep_comment=(
+            "轻微睡眠债，注意早点休息"
+        )
+
+    else:
+
+        sleep_comment=(
+            "睡眠充足"
         )
 
 
 
-    # -----------------------
-    # 状态判断
-    # -----------------------
+    # -------------------------
+    # Strain风险
+    # -------------------------
 
-    if avg_recovery >= 67:
+    high_strain=0
+
+
+    for s in strain_list:
+
+        if s>=14:
+
+            high_strain+=1
+
+
+
+    if high_strain>=3:
+
+        strain_comment=(
+            "🔴 多天高负荷训练，存在过劳风险"
+        )
+
+    elif high_strain>0:
+
+        strain_comment=(
+            "🟡 有高负荷训练，需要匹配恢复"
+        )
+
+    else:
+
+        strain_comment=(
+            "🟢 当前训练压力较低"
+        )
+
+
+
+    # -------------------------
+    # 总状态
+    # -------------------------
+
+    if avg_recovery>=67:
+
         status="🟢 良好"
 
-    elif avg_recovery >=34:
+    elif avg_recovery>=34:
+
         status="🟡 需小心"
 
     else:
+
         status="🔴 危险"
+
+
+
+    # -------------------------
+    # 自动训练建议
+    # -------------------------
+
+    if avg_recovery>=67 and avg_strain<10:
+
+        training_advice=(
+            "可以进行正常训练，可安排中高强度"
+        )
+
+    elif avg_recovery>=50:
+
+        training_advice=(
+            "建议保持中等强度，以有氧训练为主"
+        )
+
+    else:
+
+        training_advice=(
+            "建议恢复训练或休息，避免高强度"
+        )
 
 
 
     return f"""
 
-<h1>WHOOP 最近7天健康报告</h1>
+<h1>
+WHOOP 最近7天私人健康报告
+</h1>
 
 
-<h2>整体状态：{status}</h2>
-
-
-<p>
-统计天数：{len(data)} 天
-</p>
+<h2>
+整体状态：
+{status}
+</h2>
 
 
 <h2>📊 平均指标</h2>
 
-<p>
+
 Recovery:
-<b>{avg_recovery:.1f}%</b>
-</p>
+<b>{avg_recovery:.1f}%</b><br>
 
+HRV:
+<b>{avg_hrv:.1f} ms</b><br>
 
-<p>
+静息心率:
+<b>{avg_hr:.1f} bpm</b><br>
+
 睡眠:
-<b>{avg_sleep:.2f} 小时</b>
-</p>
+<b>{avg_sleep:.2f} 小时</b><br>
 
-
-<p>
 Strain:
 <b>{avg_strain:.2f}</b>
-</p>
+
+
+
+<h2>📈 恢复趋势</h2>
+
+{recovery_trend}
+
+<br>
+
+{hrv_comment}
 
 
 
 <h2>💤 睡眠债分析</h2>
 
-<p>
-平均睡眠债：
-<b>{max(sleep_debt,0):.2f} 小时/天</b>
-</p>
+累计睡眠债:
+<b>{total_sleep_debt:.2f} 小时</b>
 
-<p>
+<br>
+
 {sleep_comment}
-</p>
 
 
 
+<h2>🏃 Strain风险</h2>
 
-<h2>🏃 高 Strain 风险提醒</h2>
-
-<p>
 {strain_comment}
-</p>
 
 
 
-<h2>📅 每日数据</h2>
+<h2>🤖 教练建议</h2>
+
+{training_advice}
+
+
+
+<h2>📅 每日记录</h2>
+
 
 {daily_html}
 
 
-<h2>未来1-3天建议</h2>
+<h2>
+未来1-3天行动
+</h2>
 
-<p>
-1. 根据 Recovery 调整训练强度<br>
-2. 优先保证睡眠恢复<br>
+
+1. 保证睡眠 ≥8小时<br>
+
+2. 根据 Recovery 调整训练<br>
+
 3. 避免连续多天高 Strain
-</p>
 
 
 """
