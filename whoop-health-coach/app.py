@@ -2555,7 +2555,7 @@ Recovery:
 {recovery_score}%
 
 HRV:
-{hrv:.1f} ms
+{hrv:} ms
 
 静息心率:
 {resting_hr:.0f} bpm
