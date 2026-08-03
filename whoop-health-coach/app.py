@@ -2380,87 +2380,115 @@ def generate_health_report(data):
     training_advice = "根据 Recovery 调整训练强度"
 
 
-    report = f"""
-WHOOP 今日健康报告
+    return f"""
+
+<div style="
+font-family:Arial;
+padding:20px;
+line-height:1.8;
+">
+
+<h1>
+🏋️ WHOOP 今日健康报告
+</h1>
 
 
+<h2>
 状态：
 {status}
+</h2>
 
 
+<hr>
+
+
+<h2>❤️ 恢复</h2>
+
+<p>
 Recovery：
-{recovery_score}%
+<b>{recovery_score:.1f}%</b>
+</p>
 
-
-【恢复】
-
+<p>
 HRV：
-{hrv:.1f} ms
+<b>{hrv:.1f} ms</b>
+</p>
 
-
+<p>
 静息心率：
-{resting_hr:.0f} bpm
+<b>{resting_hr:.0f} bpm</b>
+</p>
 
 
-【睡眠】
+<hr>
 
+
+<h2>💤 睡眠</h2>
+
+<p>
 睡眠时长：
-{sleep_hours} 小时
+<b>{sleep_duration:.2f} 小时</b>
+</p>
 
-
+<p>
 睡眠表现：
-{sleep_performance}%
+<b>{sleep_score:.1f}%</b>
+</p>
 
-
+<p>
 睡眠效率：
-{sleep_efficiency}%
+<b>{sleep_efficiency:.1f}%</b>
+</p>
 
 
-睡眠规律：
-{sleep_consistency}%
+<hr>
 
 
-【训练】
+<h2>🏃 训练</h2>
 
-运动类型：
-{sport_name}
-
-
-训练 Strain：
-{strain}
+<p>
+Strain：
+<b>{strain:.2f}</b>
+</p>
 
 
+<p>
 平均心率：
-{avg_hr} bpm
+<b>{avg_hr:.0f} bpm</b>
+</p>
 
 
+<p>
 最大心率：
-{max_hr} bpm
+<b>{max_hr:.0f} bpm</b>
+</p>
 
 
-开始：
-{workout_start}
+<hr>
 
 
-结束：
-{workout_end}
+<h2>🤖 训练建议</h2>
 
-
-【训练建议】
-
+<p>
 {training_advice}
+</p>
 
 
-【未来1-3天建议】
+<hr>
 
-1. 保证充足睡眠恢复
 
-2. 根据 Recovery 调整训练强度
+<h2>📅 未来1-3天</h2>
 
-3. 避免连续多天高 Strain
+<p>
+1. 保证充足睡眠恢复<br>
+2. 根据 Recovery 调整训练强度<br>
+3. 避免连续高 Strain
+</p>
+
+
+</div>
 
 """
-
 
     return report
 
