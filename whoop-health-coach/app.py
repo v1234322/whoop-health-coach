@@ -2678,14 +2678,12 @@ report = f"""
 
 WHOOP 今日健康报告
 
-
 状态：
 {status}
 
 
 Recovery：
 {recovery_score}%
-
 
 
 【恢复】
@@ -2695,7 +2693,6 @@ HRV：
 
 静息心率：
 {resting_hr:.0f} bpm
-
 
 
 【睡眠】
