@@ -1118,70 +1118,102 @@ def extract_daily_metrics(data):
     return result
 
 # =====================
-# 保存每日历史数据 V3
+# 保存每日历史数据 V4
+# 保存到 PostgreSQL
 # =====================
 
 def save_daily_data(metrics):
 
-    file = "history.json"
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
 
 
-    history = []
-
-
-    # 读取旧数据
-
-    if os.path.exists(file):
-
-        try:
-
-            with open(
-                file,
-                "r",
-                encoding="utf-8"
-            ) as f:
-
-                history = json.load(f)
-
-
-        except Exception:
-
-            history = []
-
-
-
-    # 添加日期
-
-    metrics["date"] = datetime.now().strftime(
-        "%Y-%m-%d"
-    )
-
-
-
-    history.append(metrics)
-
-
-
-    # 保存最近30天
-
-    history = history[-30:]
-
-
-
-    with open(
-        file,
-        "w",
-        encoding="utf-8"
-    ) as f:
-
-
-        json.dump(
-            history,
-            f,
-            ensure_ascii=False,
-            indent=2
+        # 北京时间日期
+        metrics["date"] = datetime.now().strftime(
+            "%Y-%m-%d"
         )
 
+
+        cur.execute(
+            """
+            INSERT INTO daily_metrics
+            (
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_score,
+                sleep_duration,
+                sleep_efficiency,
+                deep_sleep_duration,
+                rem_sleep_duration,
+                cycle_strain,
+                workout_data
+            )
+
+            VALUES
+            (
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+            )
+            """,
+
+            (
+
+                metrics.get("date"),
+
+                metrics.get("recovery"),
+
+                metrics.get("hrv"),
+
+                metrics.get("resting_hr"),
+
+                metrics.get("sleep_score"),
+
+                metrics.get("sleep_duration"),
+
+                metrics.get("sleep_efficiency"),
+
+                metrics.get("deep_sleep"),
+
+                metrics.get("rem_sleep"),
+
+                metrics.get("strain"),
+
+                json.dumps(
+                    metrics.get(
+                        "workout_data",
+                        {}
+                    ),
+                    ensure_ascii=False
+                )
+
+            )
+
+        )
+
+
+        conn.commit()
+
+
+        cur.close()
+
+        conn.close()
+
+
+        print(
+            "DAILY METRICS SAVED OK"
+        )
+
+
+    except Exception as e:
+
+        print(
+            "SAVE DAILY DATA ERROR:",
+            e
+        )
 
 # =====================
 # UTC 转北京时间
