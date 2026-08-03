@@ -514,6 +514,125 @@ def get_db_connection():
 
     return conn
 
+
+def generate_coach_advice(
+    recovery,
+    hrv,
+    sleep_hours,
+    sleep_debt,
+    strain
+):
+
+    advice = {}
+    
+
+    # ======================
+    # Recovery 判断
+    # ======================
+
+    if recovery >= 70:
+
+        status = "🟢 状态良好"
+
+        training = (
+            "今天身体恢复状态优秀，可以进行正常训练。\n"
+            "推荐：力量训练 + Zone2有氧。\n"
+            "目标 Strain：8-12"
+        )
+
+
+    elif recovery >= 40:
+
+        status = "🟡 状态一般"
+
+        training = (
+            "今天恢复一般，建议控制训练量。\n"
+            "推荐：中低强度训练或技术训练。\n"
+            "目标 Strain：5-8"
+        )
+
+
+    else:
+
+        status = "🔴 恢复不足"
+
+        training = (
+            "今天恢复不足，优先恢复。\n"
+            "推荐：散步、拉伸、低强度活动。\n"
+            "目标 Strain：<5"
+        )
+
+
+    # ======================
+    # 睡眠判断
+    # ======================
+
+    if sleep_debt >= 6:
+
+        sleep_warning = (
+            "⚠️ 睡眠债较高，需要优先补觉。"
+        )
+
+    elif sleep_debt >= 3:
+
+        sleep_warning = (
+            "🟡 存在轻中度睡眠债，建议今晚提前睡。"
+        )
+
+    else:
+
+        sleep_warning = (
+            "🟢 睡眠恢复正常。"
+        )
+
+
+    # ======================
+    # HRV判断
+    # ======================
+
+    if hrv < 30:
+
+        hrv_status = (
+            "HRV偏低，注意压力和恢复。"
+        )
+
+    else:
+
+        hrv_status = (
+            "HRV状态稳定。"
+        )
+
+
+    # ======================
+    # Strain风险
+    # ======================
+
+    if strain >= 15:
+
+        strain_warning = (
+            "⚠️ 今日负荷较高，避免连续高强度。"
+        )
+
+    else:
+
+        strain_warning = (
+            "🟢 当前训练负荷合理。"
+        )
+
+
+    advice["status"] = status
+
+    advice["training"] = training
+
+    advice["sleep"] = sleep_warning
+
+    advice["hrv"] = hrv_status
+
+    advice["strain"] = strain_warning
+
+
+    return advice
+
 # =====================
 # DATABASE INIT
 # =====================
