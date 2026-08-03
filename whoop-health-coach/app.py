@@ -1118,8 +1118,8 @@ def extract_daily_metrics(data):
     return result
 
 # =====================
-# 保存每日历史数据 V4
-# 保存到 PostgreSQL
+# 保存每日历史数据 V5
+# 保存到 PostgreSQL daily_metrics
 # =====================
 
 def save_daily_data(metrics):
@@ -1156,32 +1156,98 @@ def save_daily_data(metrics):
 
             VALUES
             (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
             )
             """,
 
             (
 
-                metrics.get("date"),
+                # 日期
+                metrics.get(
+                    "date"
+                ),
 
-                metrics.get("recovery"),
 
-                metrics.get("hrv"),
+                # Recovery
+                metrics.get(
+                    "recovery",
+                    metrics.get(
+                        "recovery_score"
+                    )
+                ),
 
-                metrics.get("resting_hr"),
 
-                metrics.get("sleep_score"),
+                # HRV
+                metrics.get(
+                    "hrv"
+                ),
 
-                metrics.get("sleep_duration"),
 
-                metrics.get("sleep_efficiency"),
+                # 静息心率
+                metrics.get(
+                    "resting_hr",
+                    metrics.get(
+                        "resting_heart_rate"
+                    )
+                ),
 
-                metrics.get("deep_sleep"),
 
-                metrics.get("rem_sleep"),
+                # 睡眠分
+                metrics.get(
+                    "sleep_score"
+                ),
 
-                metrics.get("strain"),
 
+                # 睡眠小时
+                metrics.get(
+                    "sleep_duration"
+                ),
+
+
+                # 睡眠效率
+                metrics.get(
+                    "sleep_efficiency"
+                ),
+
+
+                # 深睡
+                metrics.get(
+                    "deep_sleep",
+                    metrics.get(
+                        "deep_sleep_duration"
+                    )
+                ),
+
+
+                # REM睡眠
+                metrics.get(
+                    "rem_sleep",
+                    metrics.get(
+                        "rem_sleep_duration"
+                    )
+                ),
+
+
+                # Strain
+                metrics.get(
+                    "strain",
+                    metrics.get(
+                        "cycle_strain"
+                    )
+                ),
+
+
+                # 训练详情
                 json.dumps(
                     metrics.get(
                         "workout_data",
@@ -1210,9 +1276,10 @@ def save_daily_data(metrics):
 
     except Exception as e:
 
+
         print(
             "SAVE DAILY DATA ERROR:",
-            e
+            str(e)
         )
 
 # =====================
