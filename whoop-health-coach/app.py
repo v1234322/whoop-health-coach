@@ -1788,48 +1788,55 @@ def get_whoop_week_data():
 def generate_week_report(data):
 
     if not data:
-        return "WHOOP 最近7天报告：暂无数据"
+        return "暂无7天数据"
 
-    recovery_values = []
-    sleep_values = []
-    strain_values = []
+    recoveries = []
+    sleeps = []
+    strains = []
 
     for row in data:
-
-        if row[1] is not None:
-            recovery_values.append(float(row[1]))
-
-        if row[5] is not None:
-            sleep_values.append(float(row[5]))
-
-        if row[7] is not None:
-            strain_values.append(float(row[7]))
+        recoveries.append(row[1] or 0)
+        sleeps.append(row[5] or 0)
+        strains.append(row[7] or 0)
 
 
-    avg_recovery = round(
-        sum(recovery_values) / len(recovery_values), 1
-    ) if recovery_values else 0
+    avg_recovery = sum(recoveries) / len(recoveries)
+    avg_sleep = sum(sleeps) / len(sleeps)
+    avg_strain = sum(strains) / len(strains)
 
 
-    avg_sleep = round(
-        sum(sleep_values) / len(sleep_values), 2
-    ) if sleep_values else 0
-
-
-    avg_strain = round(
-        sum(strain_values) / len(strain_values), 2
-    ) if strain_values else 0
+    if avg_recovery >= 67:
+        status = "🟢 良好"
+    elif avg_recovery >= 34:
+        status = "🟡 需小心"
+    else:
+        status = "🔴 危险"
 
 
     return f"""
-    <h2>WHOOP 最近7天健康报告</h2>
+<h1>WHOOP 最近7天健康报告</h1>
 
-    <p>平均 Recovery: {avg_recovery}%</p>
+<h2>整体状态：{status}</h2>
 
-    <p>平均睡眠: {avg_sleep} 小时</p>
+<p>数据天数：{len(data)} 天</p>
 
-    <p>平均 Strain: {avg_strain}</p>
-    """
+<p>平均 Recovery：
+<b>{avg_recovery:.1f}%</b></p>
+
+<p>平均睡眠：
+<b>{avg_sleep:.2f} 小时</b></p>
+
+<p>平均 Strain：
+<b>{avg_strain:.2f}</b></p>
+
+
+<h2>训练建议</h2>
+
+<p>
+根据 Recovery 调整训练强度。
+保持睡眠稳定，避免连续多天高 Strain。
+</p>
+"""
     
 
 @app.route("/whoop/week")
