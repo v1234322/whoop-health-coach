@@ -107,7 +107,29 @@ def home():
                 "建议优先恢复，安排低强度活动。"
             )
 
+# Strain 解释
 
+if strain != "-" and strain is not None:
+
+
+    if float(strain) < 7:
+
+        strain_text = "低负荷恢复日，适合恢复、有氧或轻训练"
+
+
+    elif float(strain) < 12:
+
+        strain_text = "正常训练区间，可以安排主要训练"
+
+
+    else:
+
+        strain_text = "高负荷训练日，需要关注睡眠和恢复"
+
+
+else:
+
+    strain_text = "暂无训练压力数据"
 
         return f"""
 
@@ -252,7 +274,7 @@ HRV
 </h3>
 
 <div class="value">
-{hrv}
+{round(hrv,2)} ms
 </div>
 
 </div>
@@ -276,12 +298,16 @@ HRV
 <div class="card">
 
 <h3>
-Strain
+训练压力 Strain
 </h3>
 
 <div class="value">
-{strain}
+{round(strain,2)}
 </div>
+
+<p>
+{strain_text}
+</p>
 
 </div>
 
