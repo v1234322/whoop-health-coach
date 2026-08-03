@@ -1672,31 +1672,30 @@ def get_whoop_data():
 
     row = cur.fetchone()
 
+    print("DATABASE ROW:", row)
+
     cur.close()
     conn.close()
 
 
-    if not row:
-        return {}
-
+    iif not row:
 
     return {
 
-        "recovery": {
-            "score": row[0],
-            "hrv": row[1]
+        "recovery":{
+            "score":0,
+            "hrv":0
         },
 
-        "sleep": {
-            "duration": row[2]
+        "sleep":{
+            "duration":0
         },
 
-        "workout": {
-            "strain": row[3]
+        "workout":{
+            "strain":0
         }
 
     }
-
 
 
 @app.route("/whoop/today")
