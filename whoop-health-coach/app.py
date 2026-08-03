@@ -1726,10 +1726,6 @@ def auto_report():
 
     })
 
-# ============================
-# WHOOP TREND REPORT V5.1
-# 最近7天 AI趋势分析
-# ============================
 
 # ============================
 # WHOOP TREND REPORT V5.1
@@ -2029,7 +2025,7 @@ def trend_report():
         )
 
 
-            # =====================
+        # =====================
         # 风险检测
         # =====================
 
@@ -2413,206 +2409,105 @@ HRV：
 def generate_health_report(data):
 
 
-    recovery = data.get(
-        "recovery",
-        {}
-    )
-
-    sleep = data.get(
-        "sleep",
-        {}
-    )
-
-    cycle = data.get(
-        "cycle",
-        {}
-    )
-
-    workout = data.get(
-        "workout",
-        {}
-    )
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    cycle = data.get("cycle", {})
+    workout = data.get("workout", {})
 
 
 
-    # =====================
     # Recovery
-    # =====================
 
-
-    recovery_record = recovery.get(
-        "records",
-        [{}]
-    )[0]
-
-
-    recovery_score_data = recovery_record.get(
-        "score",
-        {}
+    recovery_record = (
+        recovery
+        .get("records", [{}])[0]
     )
 
 
-    recovery_score = recovery_score_data.get(
-        "recovery_score",
-        0
+    recovery_score_data = (
+        recovery_record
+        .get("score", {})
     )
 
 
-    hrv = recovery_score_data.get(
-        "hrv_rmssd_milli",
-        0
+    recovery_score = (
+        recovery_score_data
+        .get("recovery_score", 0)
     )
 
 
-    resting_hr = recovery_score_data.get(
-        "resting_heart_rate",
-        0
+    hrv = (
+        recovery_score_data
+        .get("hrv_rmssd_milli", 0)
+    )
+
+
+    resting_hr = (
+        recovery_score_data
+        .get("resting_heart_rate", 0)
     )
 
 
 
-    # =====================
     # Sleep
-    # =====================
 
-
-    sleep_record = sleep.get(
-        "records",
-        [{}]
-    )[0]
-
-
-    sleep_score = sleep_record.get(
-        "score",
-        {}
+    sleep_record = (
+        sleep
+        .get("records", [{}])[0]
     )
 
 
-    stage = sleep_score.get(
-        "stage_summary",
-        {}
+    sleep_score_data = (
+        sleep_record
+        .get("score", {})
     )
 
 
-    total_sleep_ms = (
+    sleep_hours = 0
 
-        stage.get(
-            "total_light_sleep_time_milli",
-            0
+
+    duration = (
+        sleep_score_data
+        .get("stage_summary", {})
+        .get("total_in_bed_time_milli")
+    )
+
+
+    if duration:
+        sleep_hours = round(
+            duration / 3600000,
+            2
         )
 
-        +
 
-        stage.get(
-            "total_slow_wave_sleep_time_milli",
+
+    sleep_performance = (
+        sleep_score_data
+        .get(
+            "sleep_performance_percentage",
             0
         )
-
-        +
-
-        stage.get(
-            "total_rem_sleep_time_milli",
-            0
-        )
-
-    )
-
-
-    sleep_hours = round(
-        total_sleep_ms / 3600000,
-        2
-    )
-
-
-    sleep_performance = sleep_score.get(
-        "sleep_performance_percentage",
-        0
-    )
-
-
-    sleep_efficiency = sleep_score.get(
-        "sleep_efficiency_percentage",
-        0
-    )
-
-
-    sleep_consistency = sleep_score.get(
-        "sleep_consistency_percentage",
-        0
     )
 
 
 
-    # =====================
-    # Workout
-    # =====================
+    # Strain
 
-
-    workout_records = workout.get(
-        "records",
-        []
+    cycle_record = (
+        cycle
+        .get("records", [{}])[0]
     )
 
 
-    latest_workout = (
-
-        workout_records[0]
-
-        if workout_records
-
-        else {}
-
-    )
-
-
-    workout_score = latest_workout.get(
-        "score",
-        {}
-    )
-
-
-    strain = workout_score.get(
-        "strain",
-        0
-    )
-
-
-    avg_hr = workout_score.get(
-        "average_heart_rate",
-        0
-    )
-
-
-    max_hr = workout_score.get(
-        "max_heart_rate",
-        0
-    )
-
-
-    sport_name = latest_workout.get(
-        "sport_name",
-        "无训练"
+    strain = (
+        cycle_record
+        .get("score", {})
+        .get("strain", 0)
     )
 
 
 
-    workout_start = latest_workout.get(
-        "start",
-        ""
-    )
-
-
-    workout_end = latest_workout.get(
-        "end",
-        ""
-    )
-
-
-
-    # =====================
-    # 状态判断
-    # =====================
-
+    # 状态
 
     if recovery_score >= 80:
 
@@ -2628,18 +2523,19 @@ def generate_health_report(data):
 
 
 
+    # 建议
+
     if sleep_hours < 6:
 
         training_advice = (
-            "恢复不错，但睡眠不足，"
-            "建议降低训练容量"
+            "睡眠不足，建议降低训练容量"
         )
 
     elif recovery_score >= 80:
 
         training_advice = (
-            "恢复优秀，可以进行正常训练，"
-            "但注意不要连续高负荷"
+            "恢复优秀，可以正常训练，"
+            "避免连续高负荷"
         )
 
     else:
@@ -2648,17 +2544,63 @@ def generate_health_report(data):
             "保持中低强度训练"
         )
 
-        report=f"""
+
+
+    report = f"""
 WHOOP 今日健康报告
 
-状态：
+
+状态:
 {status}
 
-Recovery：
+
+Recovery:
 {recovery_score}%
+
+
+恢复:
+
+HRV:
+{hrv:.1f} ms
+
+
+静息心率:
+{resting_hr:.0f} bpm
+
+
+睡眠:
+
+睡眠时长:
+{sleep_hours} 小时
+
+
+睡眠表现:
+{sleep_performance}%
+
+
+训练:
+
+Strain:
+{strain}
+
+
+训练建议:
+
+{training_advice}
+
+
+未来1-3天建议:
+
+1. 保证充足睡眠恢复
+
+2. 根据 Recovery 调整训练强度
+
+3. 避免连续多天高 Strain
 
 """
 
+
+    return report
 
 
             
