@@ -2546,48 +2546,32 @@ def generate_health_report(data):
 
 
 
-    report = f"""
+     report = f"""
 WHOOP 今日健康报告
-
 
 状态:
 {status}
 
-
 Recovery:
 {recovery_score}%
-
-
-恢复:
 
 HRV:
 {hrv:.1f} ms
 
-
 静息心率:
 {resting_hr:.0f} bpm
 
-
 睡眠:
-
-睡眠时长:
 {sleep_hours} 小时
 
-
 睡眠表现:
-{sleep_performance}%
+{sleep_performance:.1f}%
 
-
-训练:
-
-Strain:
+训练 Strain:
 {strain}
 
-
 训练建议:
-
 {training_advice}
-
 
 未来1-3天建议:
 
@@ -2598,7 +2582,6 @@ Strain:
 3. 避免连续多天高 Strain
 
 """
-
 
     return report
 
