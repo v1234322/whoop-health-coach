@@ -2380,33 +2380,49 @@ def whoop_week():
 
 def generate_health_report(data):
 
-    # 数据类型转换，避免字符串和数字比较报错
+    # 数据类型修正
     try:
 
-    if "recovery" in data:
-        if "score" in data["recovery"]:
-            data["recovery"]["score"] = float(data["recovery"]["score"])
+        if "recovery" in data:
 
-        if "hrv" in data["recovery"]:
-            data["recovery"]["hrv"] = float(data["recovery"]["hrv"])
+            data["recovery"]["score"] = float(
+                data["recovery"]["score"]
+            )
 
-        if "resting_hr" in data["recovery"]:
-            data["recovery"]["resting_hr"] = float(data["recovery"]["resting_hr"])
+            data["recovery"]["hrv"] = float(
+                data["recovery"]["hrv"]
+            )
 
-
-    if "sleep" in data:
-        for key in ["duration","performance","efficiency"]:
-            if key in data["sleep"]:
-                data["sleep"][key] = float(data["sleep"][key])
+            data["recovery"]["resting_hr"] = float(
+                data["recovery"]["resting_hr"]
+            )
 
 
-    if "workout" in data:
-        if "strain" in data["workout"]:
-            data["workout"]["strain"] = float(data["workout"]["strain"])
+        if "sleep" in data:
+
+            data["sleep"]["duration"] = float(
+                data["sleep"]["duration"]
+            )
+
+            data["sleep"]["performance"] = float(
+                data["sleep"]["performance"]
+            )
+
+            data["sleep"]["efficiency"] = float(
+                data["sleep"]["efficiency"]
+            )
 
 
-except Exception as e:
-    print("转换错误:", e)
+        if "workout" in data:
+
+            data["workout"]["strain"] = float(
+                data["workout"]["strain"]
+            )
+
+
+    except Exception as e:
+
+        print("数据转换错误:", e)
 
     print("DEBUG DATA:", data)
     
