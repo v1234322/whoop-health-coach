@@ -2600,23 +2600,6 @@ HRV：
 
 
 # =========================
-# HEALTH CHECK
-# =========================
-
-
-@app.route("/")
-def home():
-
-
-    return (
-
-        "WHOOP Health Coach Running"
-
-    )
-
-
-
-# =========================
 # START SERVER
 # =========================
 
