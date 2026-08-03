@@ -2434,9 +2434,15 @@ def generate_health_report(data):
 
     risk_warning = "暂无明显风险"
 
-    recovery_score = data["recovery"]["score"]
-    hrv = data["recovery"]["hrv"]
-    resting_hr = data["recovery"]["resting_hr"]
+    recovery_score = float(
+        data["recovery"]["score"]
+    )
+    hrv = float(
+        data["recovery"]["hrv"]
+    )
+    resting_hr = float(
+        data["recovery"]["resting_hr"]
+    )
     avg_hr = data["recovery"]["resting_hr"]
     max_hr = avg_hr
     workout_start = "暂无训练记录"
@@ -2444,11 +2450,15 @@ def generate_health_report(data):
     workout_duration = "暂无数据"
     workout_type = "训练"
     sleep_score = data["sleep"]["performance"]
-    sleep_duration = data["sleep"]["duration"]
+    sleep_hours = float( 
+        data["sleep"]["duration"]
+    )
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
 
-    strain = data["workout"]["strain"]
+    strain = float(
+        data["workout"]["strain"]
+    )
 
     sport_name = "综合训练"
 
