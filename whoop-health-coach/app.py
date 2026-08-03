@@ -2384,8 +2384,11 @@ def whoop_week():
 
 def generate_health_report(data):
 
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    workout = data.get("workout", {})
+
     # 数据类型修正
-        # 强制全部指标转数字
     try:
         recovery_score = float(data["recovery"]["score"])
         hrv = float(data["recovery"]["hrv"])
