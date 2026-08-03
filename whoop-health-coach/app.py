@@ -2673,14 +2673,10 @@ def generate_health_report(data):
             "保持中低强度训练"
         )
 
-
-        report = f"""
-WHOOP 今日健康报告
-
+    report = f"""WHOOP 今日健康报告
 
 状态：
 {status}
-
 
 Recovery：
 {recovery_score}%
@@ -2690,6 +2686,9 @@ Recovery：
 
     return report
 
+
+
+            
 # =========================
 # START SERVER
 # =========================
