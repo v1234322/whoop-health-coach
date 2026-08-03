@@ -2006,21 +2006,21 @@ training_plan = generate_training_plan(
 
 
 
-    # -------------------------
-    # Recovery趋势
-    # -------------------------
+# ----------------------
+# Recovery趋势
+# ----------------------
 
-    if len(recovery_list)>=2:
+if len(recovery_list) >= 2:
 
-        recovery_change = (
-            recovery_list[0]
-            -
-            recovery_list[-1]
-        )
+    recovery_change = (
+        recovery_list[0]
+        -
+        recovery_list[-1]
+    )
 
-    else:
-        recovery_change=0
+else:
 
+    recovery_change = 0
 
 
     if recovery_change > 5:
