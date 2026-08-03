@@ -1860,14 +1860,12 @@ def generate_health_report(data):
     risk_warning = "暂无明显风险"
 
     recovery_score = data["recovery"]["score"]
-
     hrv = data["recovery"]["hrv"]
-
     resting_hr = data["recovery"]["resting_hr"]
 
     sleep_hours = data["sleep"]["duration"]
-
     sleep_performance = data["sleep"]["performance"]
+    sleep_efficiency = data["sleep"]["efficiency"]
 
     strain = data["workout"]["strain"]
 
