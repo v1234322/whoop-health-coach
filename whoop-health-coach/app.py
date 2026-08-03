@@ -1653,50 +1653,84 @@ def convert_utc_to_beijing(obj):
 
 def get_whoop_data():
 
-    conn = get_db_connection()
+    try:
 
-    cur = conn.cursor()
+        conn = get_db_connection()
 
-    cur.execute(
-        """
-        SELECT
-            recovery_score,
-            hrv,
-            sleep_duration,
-            cycle_strain
-        FROM daily_metrics
-        ORDER BY report_date DESC
-        LIMIT 1
-        """
-    )
-
-    row = cur.fetchone()
-
-    print("DATABASE ROW:", row)
-
-    cur.close()
-    conn.close()
+        cur = conn.cursor()
 
 
-    iif not row:
+        cur.execute(
+            """
+            SELECT
+                recovery_score,
+                hrv,
+                sleep_hours,
+                strain
+            FROM daily_metrics
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        )
 
-    return {
 
-        "recovery":{
-            "score":0,
-            "hrv":0
-        },
+        row = cur.fetchone()
 
-        "sleep":{
-            "duration":0
-        },
 
-        "workout":{
-            "strain":0
+        print("DATABASE ROW:", row)
+
+
+        cur.close()
+
+        conn.close()
+
+
+        if not row:
+
+            return {
+                "recovery": {
+                    "score": 0,
+                    "hrv": 0
+                },
+
+                "sleep": {
+                    "duration": 0,
+                    "performance": 0
+                },
+
+                "workout": {
+                    "strain": 0
+                }
+            }
+
+
+
+        return {
+
+            "recovery": {
+                "score": row[0],
+                "hrv": row[1]
+            },
+
+
+            "sleep": {
+                "duration": row[2],
+                "performance": 0
+            },
+
+
+            "workout": {
+                "strain": row[3]
+            }
+
         }
 
-    }
 
+    except Exception as e:
+
+        print("GET WHOOP DATA ERROR:", e)
+
+        return {}
 
 @app.route("/whoop/today")
 def today():
