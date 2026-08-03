@@ -1658,12 +1658,22 @@ def today():
 
         data = get_whoop_data()
 
+        print("TODAY DATA:")
+        print(data)
+
+
         report = generate_health_report(data)
+
+        print("REPORT:")
+        print(report)
+
 
         return report
 
 
     except Exception as e:
+
+        print("TODAY ERROR:", e)
 
         return str(e)
 
