@@ -2370,6 +2370,7 @@ def generate_health_report(data):
     workout_duration = "暂无数据"
     workout_type = "训练"
     sleep_hours = data["sleep"]["duration"]
+    sleep_score = data["sleep"]["performance"]
     sleep_duration = sleep_hours
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
