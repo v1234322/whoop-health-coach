@@ -1863,6 +1863,8 @@ def generate_health_report(data):
     hrv = data["recovery"]["hrv"]
     resting_hr = data["recovery"]["resting_hr"]
 
+    avg_hr = data["recovery"]["resting_hr"]
+
     sleep_hours = data["sleep"]["duration"]
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
