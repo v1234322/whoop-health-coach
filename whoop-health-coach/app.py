@@ -1974,40 +1974,69 @@ HRV：
 
     return report
 
-def get_whoop_week_data():
+def generate_week_report(data):
+
+    if not data:
+        return "WHOOP 最近7天报告：暂无数据"
+
+
+    recovery_values = []
+    sleep_values = []
+    strain_values = []
+
+
+    for row in data:
+
+        if row[1] is not None:
+            recovery_values.append(float(row[1]))
+
+        if row[5] is not None:
+            sleep_values.append(float(row[5]))
+
+        if row[7] is not None:
+            strain_values.append(float(row[7]))
+
+
+    avg_recovery = (
+        round(sum(recovery_values) / len(recovery_values), 1)
+        if recovery_values else 0
+    )
+
+    avg_sleep = (
+        round(sum(sleep_values) / len(sleep_values), 2)
+        if sleep_values else 0
+    )
+
+    avg_strain = (
+        round(sum(strain_values) / len(strain_values), 2)
+        if strain_values else 0
+    )
+
+
+    return f"""
+    <h2>WHOOP 最近7天健康报告</h2>
+
+    <p>
+    平均 Recovery:
+    {avg_recovery}%
+    </p>
+
+    <p>
+    平均睡眠:
+    {avg_sleep} 小时
+    </p>
+
+    <p>
+    平均 Strain:
+    {avg_strain}
+    </p>
+
+    <p>
+    建议：
+    根据恢复状态调整训练强度。
+    </p>
+
     """
-    获取最近7天数据
-    """
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT
-                report_date,
-                recovery_score,
-                hrv,
-                resting_heart_rate,
-                sleep_score,
-                sleep_duration,
-                sleep_efficiency,
-                cycle_strain
-            FROM daily_metrics
-            ORDER BY report_date DESC
-            LIMIT 7
-        """)
-
-        rows = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        return rows
-
-    except Exception as e:
-        print("WEEK DATA ERROR:", e)
-        return []
 
 
 
