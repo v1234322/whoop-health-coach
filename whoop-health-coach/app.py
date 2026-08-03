@@ -16,6 +16,343 @@ app.json.ensure_ascii = False
 app.config["JSON_AS_ASCII"] = False
 
 
+# ============================
+# WHOOP Dashboard 首页
+# ============================
+
+@app.route("/")
+def home():
+
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 1
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        cur.close()
+        conn.close()
+
+
+        if row:
+
+            date = row[0]
+
+            recovery = row[1]
+
+            hrv = row[2]
+
+            sleep = row[3]
+
+            strain = row[4]
+
+
+        else:
+
+            date = "暂无数据"
+
+            recovery = "-"
+
+            hrv = "-"
+
+            sleep = "-"
+
+            strain = "-"
+
+
+
+        if recovery != "-" and recovery >= 80:
+
+            status = "🟢 今日状态：良好"
+
+            advice = (
+                "恢复状态优秀，可以进行正常训练。"
+                "建议今日 Strain 控制在 10-12。"
+            )
+
+
+        elif recovery != "-" and recovery >= 50:
+
+            status = "🟡 今日状态：需注意"
+
+            advice = (
+                "恢复一般，建议中等强度训练。"
+                "避免连续高负荷。"
+            )
+
+
+        else:
+
+            status = "🔴 今日状态：恢复不足"
+
+            advice = (
+                "建议优先恢复，安排低强度活动。"
+            )
+
+
+
+        return f"""
+
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+
+<title>WHOOP AI Coach</title>
+
+
+<style>
+
+body {{
+
+font-family:
+Arial,
+sans-serif;
+
+background:#f4f5f7;
+
+margin:0;
+
+padding:20px;
+
+}}
+
+
+.container {{
+
+max-width:700px;
+
+margin:auto;
+
+}}
+
+
+.card {{
+
+background:white;
+
+padding:25px;
+
+border-radius:18px;
+
+margin-bottom:18px;
+
+box-shadow:
+0 3px 12px rgba(0,0,0,.08);
+
+}}
+
+
+.value {{
+
+font-size:32px;
+
+font-weight:bold;
+
+}}
+
+
+.button {{
+
+display:block;
+
+padding:14px;
+
+background:#111;
+
+color:white;
+
+text-decoration:none;
+
+border-radius:12px;
+
+text-align:center;
+
+margin-top:10px;
+
+}}
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="card">
+
+<h1>
+WHOOP AI Coach
+</h1>
+
+
+<h2>
+{status}
+</h2>
+
+
+<p>
+最新数据：
+{date}
+</p>
+
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+Recovery
+</h3>
+
+<div class="value">
+{recovery}%
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+HRV
+</h3>
+
+<div class="value">
+{hrv}
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+睡眠
+</h3>
+
+<div class="value">
+{sleep} 小时
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+Strain
+</h3>
+
+<div class="value">
+{strain}
+</div>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>
+AI 教练建议
+</h3>
+
+<p>
+{advice}
+</p>
+
+</div>
+
+
+
+<div class="card">
+
+
+<a class="button"
+href="/whoop/today">
+
+今日报告
+
+</a>
+
+
+<a class="button"
+href="/whoop/trend">
+
+最近7天趋势
+
+</a>
+
+
+<a class="button"
+href="/whoop/auto-report">
+
+生成最新报告
+
+</a>
+
+
+</div>
+
+
+</div>
+
+
+</body>
+
+</html>
+
+"""
+
+
+    except Exception as e:
+
+
+        return f"""
+
+        <h1>WHOOP Dashboard Error</h1>
+
+        <p>{str(e)}</p>
+
+        """
+
+
 # =====================
 # DATABASE CONNECTION
 # =====================
