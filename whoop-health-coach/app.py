@@ -1864,6 +1864,10 @@ def generate_health_report(data):
     resting_hr = data["recovery"]["resting_hr"]
     avg_hr = data["recovery"]["resting_hr"]
     max_hr = avg_hr
+    workout_start = "暂无训练记录"
+    workout_end = "暂无训练记录"
+    workout_duration = "暂无数据"
+    workout_type = "训练"
     sleep_hours = data["sleep"]["duration"]
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
