@@ -1661,7 +1661,19 @@ def today():
 # AI 健康报告 V2
 # =====================
 
+try:
+
+    xxx
+
+
+except Exception as e:
+
+    print(e)
+
+
+
 def generate_health_report(data):
+
 
     ...
 
