@@ -2382,20 +2382,34 @@ def generate_health_report(data):
 
     # 数据类型转换，避免字符串和数字比较报错
     try:
-        data["recovery"]["score"] = float(data["recovery"]["score"])
-        data["recovery"]["hrv"] = float(data["recovery"]["hrv"])
-        data["recovery"]["resting_hr"] = float(data["recovery"]["resting_hr"])
 
-        data["sleep"]["duration"] = float(data["sleep"]["duration"])
-        data["sleep"]["performance"] = float(data["sleep"]["performance"])
-        data["sleep"]["efficiency"] = float(data["sleep"]["efficiency"])
+    if "recovery" in data:
+        if "score" in data["recovery"]:
+            data["recovery"]["score"] = float(data["recovery"]["score"])
 
-        data["workout"]["strain"] = float(data["workout"]["strain"])
+        if "hrv" in data["recovery"]:
+            data["recovery"]["hrv"] = float(data["recovery"]["hrv"])
 
-    except Exception as e:
-        print("转换错误:", e)
+        if "resting_hr" in data["recovery"]:
+            data["recovery"]["resting_hr"] = float(data["recovery"]["resting_hr"])
 
 
+    if "sleep" in data:
+        for key in ["duration","performance","efficiency"]:
+            if key in data["sleep"]:
+                data["sleep"][key] = float(data["sleep"][key])
+
+
+    if "workout" in data:
+        if "strain" in data["workout"]:
+            data["workout"]["strain"] = float(data["workout"]["strain"])
+
+
+except Exception as e:
+    print("转换错误:", e)
+
+    print("DEBUG DATA:", data)
+    
     status = "🟢 良好"
 
     sleep_consistency = "稳定"
