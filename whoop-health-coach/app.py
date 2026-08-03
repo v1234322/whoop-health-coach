@@ -1131,12 +1131,24 @@ def save_daily_data(metrics):
         cur = conn.cursor()
 
 
-        # 北京时间日期
         today = datetime.now().strftime(
             "%Y-%m-%d"
         )
 
 
+        # 删除当天旧数据
+        cur.execute(
+            """
+            DELETE FROM daily_metrics
+            WHERE report_date = %s
+            """,
+            (
+                today,
+            )
+        )
+
+
+        # 写入最新数据
         cur.execute(
             """
             INSERT INTO daily_metrics
@@ -1156,17 +1168,7 @@ def save_daily_data(metrics):
 
             VALUES
             (
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             )
             """,
 
@@ -1174,41 +1176,23 @@ def save_daily_data(metrics):
 
                 today,
 
-                metrics.get(
-                    "recovery"
-                ),
+                metrics.get("recovery"),
 
-                metrics.get(
-                    "hrv"
-                ),
+                metrics.get("hrv"),
 
-                metrics.get(
-                    "resting_hr"
-                ),
+                metrics.get("resting_hr"),
 
-                metrics.get(
-                    "sleep_score"
-                ),
+                metrics.get("sleep_score"),
 
-                metrics.get(
-                    "sleep_duration"
-                ),
+                metrics.get("sleep_duration"),
 
-                metrics.get(
-                    "sleep_efficiency"
-                ),
+                metrics.get("sleep_efficiency"),
 
-                metrics.get(
-                    "deep_sleep"
-                ),
+                metrics.get("deep_sleep"),
 
-                metrics.get(
-                    "rem_sleep"
-                ),
+                metrics.get("rem_sleep"),
 
-                metrics.get(
-                    "strain"
-                ),
+                metrics.get("strain"),
 
                 json.dumps(
                     metrics.get(
@@ -1219,7 +1203,6 @@ def save_daily_data(metrics):
                 )
 
             )
-
         )
 
 
@@ -1227,7 +1210,6 @@ def save_daily_data(metrics):
 
 
         cur.close()
-
         conn.close()
 
 
@@ -1237,7 +1219,6 @@ def save_daily_data(metrics):
 
 
     except Exception as e:
-
 
         print(
             "SAVE DAILY DATA ERROR:",
