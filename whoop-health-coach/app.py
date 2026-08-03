@@ -1756,7 +1756,33 @@ def today():
         return str(e)
 
 def get_whoop_week_data():
-    ...
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            report_date,
+            recovery_score,
+            hrv,
+            resting_heart_rate,
+            sleep_score,
+            sleep_duration,
+            sleep_efficiency,
+            cycle_strain
+        FROM daily_metrics
+        ORDER BY id DESC
+        LIMIT 7
+    """)
+
+    rows = cursor.fetchall()
+
+    print("WEEK ROW COUNT:", len(rows))
+    print("WEEK ROWS:", rows)
+
+    cursor.close()
+    conn.close()
+
+    return rows
     
 
 def generate_week_report(data):
@@ -1815,7 +1841,7 @@ def whoop_week():
 
     except Exception as e:
         print("WEEK ERROR:", e)
-        return f"WEEK ERROR: {e}"
+        return "暂无数据"
 
 # =====================
 # AI 健康报告 V2
