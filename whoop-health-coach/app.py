@@ -2381,48 +2381,18 @@ def whoop_week():
 def generate_health_report(data):
 
     # 数据类型修正
+        # 强制全部指标转数字
     try:
-
-        if "recovery" in data:
-
-            data["recovery"]["score"] = float(
-                data["recovery"]["score"]
-            )
-
-            data["recovery"]["hrv"] = float(
-                data["recovery"]["hrv"]
-            )
-
-            data["recovery"]["resting_hr"] = float(
-                data["recovery"]["resting_hr"]
-            )
-
-
-        if "sleep" in data:
-
-            data["sleep"]["duration"] = float(
-                data["sleep"]["duration"]
-            )
-
-            data["sleep"]["performance"] = float(
-                data["sleep"]["performance"]
-            )
-
-            data["sleep"]["efficiency"] = float(
-                data["sleep"]["efficiency"]
-            )
-
-
-        if "workout" in data:
-
-            data["workout"]["strain"] = float(
-                data["workout"]["strain"]
-            )
-
+        recovery_score = float(data["recovery"]["score"])
+        hrv = float(data["recovery"]["hrv"])
+        resting_hr = float(data["recovery"]["resting_hr"])
+        sleep_duration = float(data["sleep"]["duration"])
+        sleep_performance = float(data["sleep"]["performance"])
+        sleep_efficiency = float(data["sleep"]["efficiency"])
+        strain = float(data["workout"]["strain"])
 
     except Exception as e:
-
-        print("数据转换错误:", e)
+        print("数字转换失败:", e)
 
     print("DEBUG DATA:", data)
     
