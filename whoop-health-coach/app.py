@@ -1790,54 +1790,184 @@ def generate_week_report(data):
     if not data:
         return "暂无7天数据"
 
+
     recoveries = []
     sleeps = []
     strains = []
 
+    daily_html = ""
+
+
     for row in data:
-        recoveries.append(row[1] or 0)
-        sleeps.append(row[5] or 0)
-        strains.append(row[7] or 0)
+
+        # 数据库字段
+        date = row[0]
+        recovery = row[1] or 0
+        sleep = row[5] or 0
+        strain = row[7] or 0
 
 
-    avg_recovery = sum(recoveries) / len(recoveries)
-    avg_sleep = sum(sleeps) / len(sleeps)
-    avg_strain = sum(strains) / len(strains)
+        recoveries.append(recovery)
+        sleeps.append(sleep)
+        strains.append(strain)
 
+
+        daily_html += f"""
+        <hr>
+        <b>{date}</b><br>
+        Recovery: {recovery:.1f}%<br>
+        睡眠: {sleep:.2f} 小时<br>
+        Strain: {strain:.2f}
+        <br>
+        """
+
+
+    avg_recovery = sum(recoveries)/len(recoveries)
+    avg_sleep = sum(sleeps)/len(sleeps)
+    avg_strain = sum(strains)/len(strains)
+
+
+
+    # -----------------------
+    # 睡眠债分析
+    # -----------------------
+
+    sleep_target = 8
+
+    sleep_debt = sleep_target - avg_sleep
+
+
+    if sleep_debt <= 0:
+        sleep_comment = "睡眠充足，没有明显睡眠债"
+    elif sleep_debt < 1:
+        sleep_comment = "轻微睡眠不足，需要注意恢复"
+    else:
+        sleep_comment = "存在明显睡眠债，建议增加睡眠时间"
+
+
+
+    # -----------------------
+    # Strain风险分析
+    # -----------------------
+
+    high_strain_days = []
+
+    for i,s in enumerate(strains):
+
+        if s >= 14:
+            high_strain_days.append(i+1)
+
+
+
+    if len(high_strain_days) >= 3:
+
+        strain_comment = (
+            "⚠️ 最近7天高 Strain 天数较多，"
+            "建议安排恢复日，避免累积疲劳"
+        )
+
+    elif len(high_strain_days) > 0:
+
+        strain_comment = (
+            "注意训练负荷，保持恢复平衡"
+        )
+
+    else:
+
+        strain_comment = (
+            "训练压力较低，没有明显过载风险"
+        )
+
+
+
+    # -----------------------
+    # 状态判断
+    # -----------------------
 
     if avg_recovery >= 67:
-        status = "🟢 良好"
-    elif avg_recovery >= 34:
-        status = "🟡 需小心"
+        status="🟢 良好"
+
+    elif avg_recovery >=34:
+        status="🟡 需小心"
+
     else:
-        status = "🔴 危险"
+        status="🔴 危险"
+
 
 
     return f"""
+
 <h1>WHOOP 最近7天健康报告</h1>
+
 
 <h2>整体状态：{status}</h2>
 
-<p>数据天数：{len(data)} 天</p>
-
-<p>平均 Recovery：
-<b>{avg_recovery:.1f}%</b></p>
-
-<p>平均睡眠：
-<b>{avg_sleep:.2f} 小时</b></p>
-
-<p>平均 Strain：
-<b>{avg_strain:.2f}</b></p>
-
-
-<h2>训练建议</h2>
 
 <p>
-根据 Recovery 调整训练强度。
-保持睡眠稳定，避免连续多天高 Strain。
+统计天数：{len(data)} 天
 </p>
+
+
+<h2>📊 平均指标</h2>
+
+<p>
+Recovery:
+<b>{avg_recovery:.1f}%</b>
+</p>
+
+
+<p>
+睡眠:
+<b>{avg_sleep:.2f} 小时</b>
+</p>
+
+
+<p>
+Strain:
+<b>{avg_strain:.2f}</b>
+</p>
+
+
+
+<h2>💤 睡眠债分析</h2>
+
+<p>
+平均睡眠债：
+<b>{max(sleep_debt,0):.2f} 小时/天</b>
+</p>
+
+<p>
+{sleep_comment}
+</p>
+
+
+
+
+<h2>🏃 高 Strain 风险提醒</h2>
+
+<p>
+{strain_comment}
+</p>
+
+
+
+<h2>📅 每日数据</h2>
+
+{daily_html}
+
+
+<h2>未来1-3天建议</h2>
+
+<p>
+1. 根据 Recovery 调整训练强度<br>
+2. 优先保证睡眠恢复<br>
+3. 避免连续多天高 Strain
+</p>
+
+
 """
-    
+
+
 
 @app.route("/whoop/week")
 def whoop_week():
