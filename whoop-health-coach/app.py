@@ -1755,6 +1755,17 @@ def today():
 
         return str(e)
 
+@app.route("/whoop/week")
+def whoop_week():
+    try:
+        data = get_whoop_week_data()
+        report = generate_week_report(data)
+        return report
+
+    except Exception as e:
+        print("WEEK ERROR:", e)
+        return f"WEEK ERROR: {e}"
+
 # =====================
 # AI 健康报告 V2
 # =====================
