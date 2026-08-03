@@ -2400,7 +2400,7 @@ def generate_health_report(data):
 
     sleep_consistency = "稳定"
 
-    sleep_debt = "暂无数据"
+    sleep_debt = "0"
 
     risk_warning = "暂无明显风险"
 
