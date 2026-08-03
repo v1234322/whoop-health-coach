@@ -1849,7 +1849,10 @@ def generate_health_report(data):
         strain
     )
 
-    
+def generate_health_report(data):
+
+    sleep_consistency = "数据不足，暂无法判断"
+
 
     report = f"""
 WHOOP 今日健康报告
