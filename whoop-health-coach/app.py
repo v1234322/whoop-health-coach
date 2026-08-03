@@ -2674,19 +2674,21 @@ def generate_health_report(data):
         )
 
 
-    report = f"""
+        report = f"""
 WHOOP 今日健康报告
 
-状态:
+
+状态：
 {status}
 
-Recovery:
+
+Recovery：
 {recovery_score}%
+
 """
 
 
     return report
-
 
 # =========================
 # START SERVER
