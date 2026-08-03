@@ -2558,13 +2558,13 @@ HRV:
 {hrv:} ms
 
 静息心率:
-{resting_hr:.0f} bpm
+{resting_hr} bpm
 
 睡眠:
 {sleep_hours} 小时
 
 睡眠表现:
-{sleep_performance:.1f}%
+{sleep_performance}%
 
 训练 Strain:
 {strain}
