@@ -1,5 +1,6 @@
 import json
 import os
+print("WHOOP VERSION TEST 2026-08-03")
 import psycopg2
 
 from datetime import datetime, timedelta, timezone
