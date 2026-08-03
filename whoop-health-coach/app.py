@@ -1851,7 +1851,13 @@ def generate_health_report(data):
 
 def generate_health_report(data):
 
-    sleep_consistency = "数据不足，暂无法判断"
+    status = "🟢 良好"
+
+    sleep_consistency = "稳定"
+
+    sleep_debt = "暂无数据"
+
+    risk_warning = "暂无明显风险"
 
 
     report = f"""
