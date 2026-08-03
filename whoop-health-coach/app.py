@@ -2648,7 +2648,7 @@ def generate_health_report(data):
             "保持中低强度训练"
         )
 
-        report = f"""
+        report=f"""
 WHOOP 今日健康报告
 
 状态：
