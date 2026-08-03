@@ -2453,6 +2453,7 @@ def generate_health_report(data):
     sleep_hours = float( 
         data["sleep"]["duration"]
     )
+    sleep_duration = sleep_hours
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
 
