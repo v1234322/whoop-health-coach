@@ -36,7 +36,6 @@ def home():
                 report_date,
                 recovery_score,
                 hrv,
-                resting_heart_rate,
                 sleep_duration,
                 cycle_strain
             FROM daily_metrics
@@ -57,51 +56,103 @@ def home():
         if row:
 
             date = row[0]
+
             recovery = row[1]
+
             hrv = row[2]
-            resting_hr = row[3]
-            sleep = row[4]
-            strain = row[5]
+
+            sleep = row[3]
+
+            strain = row[4]
 
 
         else:
 
             date = "暂无数据"
+
             recovery = None
+
             hrv = None
-            resting_hr = None
+
             sleep = None
+
             strain = None
 
 
 
+        # =====================
+        # Readiness训练准备度
+        # =====================
+
+        readiness = 0
+
+
+        if recovery is not None:
+
+            readiness += float(recovery) * 0.4
+
+
+
+        if sleep is not None:
+
+
+            if float(sleep) >= 8:
+
+                readiness += 30
+
+
+            elif float(sleep) >= 6:
+
+                readiness += 20
+
+
+            else:
+
+                readiness += 10
+
+
+
+        if strain is not None:
+
+
+            if float(strain) < 5:
+
+                readiness += 20
+
+
+            elif float(strain) < 12:
+
+                readiness += 30
+
+
+            else:
+
+                readiness += 10
+
+
+
+        readiness = round(
+            min(readiness,100),
+            1
+        )
+
+
 
         # =====================
-        # Recovery 状态
+        # 状态判断
         # =====================
 
-        if recovery is not None and recovery >= 85:
+
+        if recovery is not None and recovery >= 80:
 
 
             status = "🟢 今日状态：优秀"
 
 
-            advice = (
-                "恢复能力优秀，可以安排主要训练。"
-                "建议今日目标 Strain 10-12。"
-            )
-
-
         elif recovery is not None and recovery >= 50:
 
 
-            status = "🟡 今日状态：正常"
-
-
-            advice = (
-                "恢复一般，建议控制训练强度。"
-                "避免连续高负荷。"
-            )
+            status = "🟡 今日状态：需注意"
 
 
         else:
@@ -110,46 +161,12 @@ def home():
             status = "🔴 今日状态：恢复不足"
 
 
-            advice = (
-                "优先恢复，建议低强度活动。"
-            )
-
-
 
 
         # =====================
-        # 睡眠分析
+        # Strain解释
         # =====================
 
-        if sleep is not None:
-
-
-            if sleep >= 8:
-
-                sleep_text = "睡眠充足，恢复支持良好"
-
-
-            elif sleep >= 6.5:
-
-                sleep_text = "睡眠正常，可以支持训练"
-
-
-            else:
-
-                sleep_text = "睡眠不足，建议增加恢复时间"
-
-
-        else:
-
-            sleep_text = "暂无睡眠数据"
-
-
-
-
-
-        # =====================
-        # Strain 分析
-        # =====================
 
         if strain is not None:
 
@@ -157,12 +174,13 @@ def home():
             strain_value = float(strain)
 
 
-            if strain_value < 7:
+
+            if strain_value < 5:
 
 
                 strain_text = (
-                    "当前训练压力较低。"
-                    "适合恢复、有氧或轻训练。"
+                    "🟢 恢复日\n"
+                    "当前训练压力较低，适合增加Zone2有氧或轻力量训练。"
                 )
 
 
@@ -170,16 +188,16 @@ def home():
 
 
                 strain_text = (
-                    "当前训练压力适中。"
-                    "适合安排主要训练。"
+                    "🟡 最佳训练区间\n"
+                    "当前负荷适中，可以完成主要训练。"
                 )
 
 
-            elif strain_value < 15:
+            elif strain_value < 17:
 
 
                 strain_text = (
-                    "训练负荷偏高。"
+                    "🟠 高压力训练\n"
                     "注意睡眠和恢复。"
                 )
 
@@ -188,8 +206,8 @@ def home():
 
 
                 strain_text = (
-                    "高训练压力。"
-                    "建议减少额外负荷。"
+                    "🔴 极高压力\n"
+                    "建议降低训练量。"
                 )
 
 
@@ -200,46 +218,37 @@ def home():
 
 
 
-
-
         # =====================
-        # 数值显示
+        # AI建议
         # =====================
 
-        recovery_display = (
-            f"{round(recovery,1)}%"
-            if isinstance(recovery,(int,float))
-            else "-"
-        )
+
+        if readiness >= 80:
 
 
-        hrv_display = (
-            f"{round(hrv,2)} ms"
-            if isinstance(hrv,(int,float))
-            else "-"
-        )
+            advice = (
+                "恢复能力优秀。"
+                "今天适合完成主要训练。"
+                "建议目标 Strain 10-12。"
+            )
 
 
-        resting_display = (
-            f"{round(resting_hr,1)} bpm"
-            if isinstance(resting_hr,(int,float))
-            else "-"
-        )
+        elif readiness >=60:
 
 
-        sleep_display = (
-            f"{round(sleep,2)} 小时"
-            if isinstance(sleep,(int,float))
-            else "-"
-        )
+            advice = (
+                "身体状态一般。"
+                "建议中等强度训练，避免连续高负荷。"
+            )
 
 
-        strain_display = (
-            f"{round(strain,2)}"
-            if isinstance(strain,(int,float))
-            else "-"
-        )
+        else:
 
+
+            advice = (
+                "当前恢复不足。"
+                "建议优先恢复、睡眠和低强度活动。"
+            )
 
 
 
@@ -248,7 +257,7 @@ def home():
 
 <!DOCTYPE html>
 
-<html>
+<html lang="zh-CN">
 
 <head>
 
@@ -260,18 +269,18 @@ def home():
 <style>
 
 
-body {{
-
-background:#f4f5f7;
+body{{
 
 font-family:Arial;
+
+background:#f4f5f7;
 
 padding:20px;
 
 }}
 
 
-.container {{
+.container{{
 
 max-width:700px;
 
@@ -280,7 +289,7 @@ margin:auto;
 }}
 
 
-.card {{
+.card{{
 
 background:white;
 
@@ -295,16 +304,16 @@ box-shadow:0 3px 12px rgba(0,0,0,.08);
 }}
 
 
-.value {{
+.value{{
 
-font-size:32px;
+font-size:36px;
 
 font-weight:bold;
 
 }}
 
 
-.button {{
+.button{{
 
 display:block;
 
@@ -312,13 +321,13 @@ background:#111;
 
 color:white;
 
-padding:14px;
+padding:15px;
+
+margin-top:10px;
 
 border-radius:12px;
 
 text-align:center;
-
-margin-top:10px;
 
 text-decoration:none;
 
@@ -326,6 +335,7 @@ text-decoration:none;
 
 
 </style>
+
 
 </head>
 
@@ -336,22 +346,14 @@ text-decoration:none;
 <div class="container">
 
 
+
 <div class="card">
 
-<h1>
-WHOOP AI 教练
-</h1>
+<h1>WHOOP AI 教练</h1>
 
+<h2>{status}</h2>
 
-<h2>
-{status}
-</h2>
-
-
-<p>
-最新数据：
-{date}
-</p>
+<p>最新数据：{date}</p>
 
 </div>
 
@@ -360,64 +362,16 @@ WHOOP AI 教练
 
 <div class="card">
 
-<h3>
-恢复 Recovery
-</h3>
+<h3>训练准备度 Readiness</h3>
 
 <div class="value">
-{recovery_display}
-</div>
 
-</div>
+{readiness}/100
 
-
-
-
-
-<div class="card">
-
-<h3>
-HRV 心率变异性
-</h3>
-
-<div class="value">
-{hrv_display}
-</div>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>
-静息心率
-</h3>
-
-<div class="value">
-{resting_display}
-</div>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>
-睡眠
-</h3>
-
-<div class="value">
-{sleep_display}
 </div>
 
 <p>
-{sleep_text}
+综合 Recovery、睡眠、训练压力计算
 </p>
 
 </div>
@@ -428,16 +382,67 @@ HRV 心率变异性
 
 <div class="card">
 
-<h3>
-训练压力 Strain
-</h3>
+<h3>恢复 Recovery</h3>
 
 <div class="value">
-{strain_display}
+
+{recovery if recovery is not None else "-" }%
+
 </div>
 
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>HRV 心率变异性</h3>
+
+<div class="value">
+
+{round(float(hrv),2) if hrv else "-" } ms
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>睡眠</h3>
+
+<div class="value">
+
+{round(float(sleep),2) if sleep else "-" } 小时
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>训练压力 Strain</h3>
+
+<div class="value">
+
+{round(float(strain),2) if strain else "-"}
+
+</div>
+
+
 <p>
+
 {strain_text}
+
 </p>
 
 </div>
@@ -448,13 +453,15 @@ HRV 心率变异性
 
 <div class="card">
 
-<h3>
-AI 教练建议
-</h3>
+<h3>AI教练建议</h3>
+
 
 <p>
+
 {advice}
+
 </p>
+
 
 </div>
 
@@ -473,7 +480,6 @@ href="/whoop/today">
 </a>
 
 
-
 <a class="button"
 href="/whoop/trend">
 
@@ -482,16 +488,16 @@ href="/whoop/trend">
 </a>
 
 
-
 <a class="button"
 href="/whoop/auto-report">
 
-生成最新报告
+最新生成报告
 
 </a>
 
 
 </div>
+
 
 
 </div>
@@ -504,20 +510,17 @@ href="/whoop/auto-report">
 """
 
 
+
     except Exception as e:
 
 
         return f"""
 
-<h1>
-WHOOP Dashboard Error
-</h1>
+        <h1>WHOOP Dashboard Error</h1>
 
-<p>
-{str(e)}
-</p>
+        <p>{str(e)}</p>
 
-"""
+        """
 
 
 # =====================
