@@ -2006,27 +2006,27 @@ training_plan = generate_training_plan(
 
 
 
-# ----------------------
-# Recovery趋势
-# ----------------------
+    # ----------------------
+    # Recovery趋势
+    # ----------------------
 
-if len(recovery_list) >= 2:
+    if len(recovery_list) >= 2:
 
-    recovery_change = (
-        recovery_list[0]
-        -
-        recovery_list[-1]
-    )
+        recovery_change = (
+            recovery_list[0]
+            -
+            recovery_list[-1]
+        )
 
-else:
+    else:
 
-    recovery_change = 0
+        recovery_change = 0
 
 
-    if recovery_change > 5:
+        if recovery_change > 5:
 
-        recovery_trend="📈 Recovery下降，需要关注恢复"
-
+            recovery_trend="📈 Recovery下降，需要关注恢复"
+    
     elif recovery_change < -5:
 
         recovery_trend="📈 Recovery改善，状态提升"
