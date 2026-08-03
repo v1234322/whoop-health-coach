@@ -52,6 +52,7 @@ def home():
         conn.close()
 
 
+
         if row:
 
             date = row[0]
@@ -69,19 +70,26 @@ def home():
 
             date = "暂无数据"
 
-            recovery = "-"
+            recovery = None
 
-            hrv = "-"
+            hrv = None
 
-            sleep = "-"
+            sleep = None
 
-            strain = "-"
+            strain = None
 
 
 
-        if recovery != "-" and recovery >= 80:
+
+        # =====================
+        # Recovery 状态判断
+        # =====================
+
+        if recovery is not None and recovery >= 80:
+
 
             status = "🟢 今日状态：良好"
+
 
             advice = (
                 "恢复状态优秀，可以进行正常训练。"
@@ -89,9 +97,11 @@ def home():
             )
 
 
-        elif recovery != "-" and recovery >= 50:
+        elif recovery is not None and recovery >= 50:
+
 
             status = "🟡 今日状态：需注意"
+
 
             advice = (
                 "恢复一般，建议中等强度训练。"
@@ -101,35 +111,121 @@ def home():
 
         else:
 
+
             status = "🔴 今日状态：恢复不足"
+
 
             advice = (
                 "建议优先恢复，安排低强度活动。"
             )
 
-# Strain 解释
-
-if strain != "-" and strain is not None:
 
 
-    if float(strain) < 7:
 
-        strain_text = "低负荷恢复日，适合恢复、有氧或轻训练"
+        # =====================
+        # Strain 解释
+        # =====================
 
-
-    elif float(strain) < 12:
-
-        strain_text = "正常训练区间，可以安排主要训练"
+        if strain is not None:
 
 
-    else:
-
-        strain_text = "高负荷训练日，需要关注睡眠和恢复"
+            strain_value = float(strain)
 
 
-else:
+            if strain_value < 7:
 
-    strain_text = "暂无训练压力数据"
+
+                strain_text = (
+                    "低训练负荷恢复日，"
+                    "适合恢复、有氧或轻训练。"
+                )
+
+
+            elif strain_value < 12:
+
+
+                strain_text = (
+                    "正常训练区间，"
+                    "可以安排主要训练。"
+                )
+
+
+            elif strain_value < 15:
+
+
+                strain_text = (
+                    "较高训练负荷，"
+                    "注意睡眠和恢复质量。"
+                )
+
+
+            else:
+
+
+                strain_text = (
+                    "高负荷训练日，"
+                    "建议减少额外压力。"
+                )
+
+
+        else:
+
+
+            strain_text = "暂无训练压力数据"
+
+
+
+
+        # =====================
+        # 显示格式
+        # =====================
+
+        recovery_display = (
+
+            f"{round(recovery,1)}%"
+
+            if isinstance(recovery,(int,float))
+
+            else "-"
+
+        )
+
+
+        hrv_display = (
+
+            f"{round(hrv,2)} ms"
+
+            if isinstance(hrv,(int,float))
+
+            else "-"
+
+        )
+
+
+        sleep_display = (
+
+            f"{round(sleep,2)} 小时"
+
+            if isinstance(sleep,(int,float))
+
+            else "-"
+
+        )
+
+
+        strain_display = (
+
+            f"{round(strain,2)}"
+
+            if isinstance(strain,(int,float))
+
+            else "-"
+
+        )
+
+
+
+
 
         return f"""
 
@@ -150,11 +246,10 @@ content="width=device-width, initial-scale=1">
 
 <style>
 
+
 body {{
 
-font-family:
-Arial,
-sans-serif;
+font-family:Arial,sans-serif;
 
 background:#f4f5f7;
 
@@ -165,6 +260,7 @@ padding:20px;
 }}
 
 
+
 .container {{
 
 max-width:700px;
@@ -172,6 +268,7 @@ max-width:700px;
 margin:auto;
 
 }}
+
 
 
 .card {{
@@ -190,6 +287,7 @@ box-shadow:
 }}
 
 
+
 .value {{
 
 font-size:32px;
@@ -197,6 +295,7 @@ font-size:32px;
 font-weight:bold;
 
 }}
+
 
 
 .button {{
@@ -218,6 +317,7 @@ text-align:center;
 margin-top:10px;
 
 }}
+
 
 </style>
 
@@ -248,8 +348,8 @@ WHOOP AI Coach
 {date}
 </p>
 
-
 </div>
+
 
 
 
@@ -260,10 +360,12 @@ Recovery
 </h3>
 
 <div class="value">
-{recovery}%
+{recovery_display}
 </div>
 
 </div>
+
+
 
 
 
@@ -274,10 +376,12 @@ HRV
 </h3>
 
 <div class="value">
-{round(hrv,2)} ms
+{hrv_display}
 </div>
 
 </div>
+
+
 
 
 
@@ -288,10 +392,12 @@ HRV
 </h3>
 
 <div class="value">
-{sleep} 小时
+{sleep_display}
 </div>
 
 </div>
+
+
 
 
 
@@ -302,14 +408,18 @@ HRV
 </h3>
 
 <div class="value">
-{round(strain,2)}
+{strain_display}
 </div>
+
 
 <p>
 {strain_text}
 </p>
 
 </div>
+
+
+
 
 
 
@@ -327,6 +437,9 @@ AI 教练建议
 
 
 
+
+
+
 <div class="card">
 
 
@@ -338,12 +451,14 @@ href="/whoop/today">
 </a>
 
 
+
 <a class="button"
 href="/whoop/trend">
 
 最近7天趋势
 
 </a>
+
 
 
 <a class="button"
@@ -357,6 +472,7 @@ href="/whoop/auto-report">
 </div>
 
 
+
 </div>
 
 
@@ -364,7 +480,9 @@ href="/whoop/auto-report">
 
 </html>
 
+
 """
+
 
 
     except Exception as e:
@@ -372,13 +490,16 @@ href="/whoop/auto-report">
 
         return f"""
 
-        <h1>WHOOP Dashboard Error</h1>
-
-        <p>{str(e)}</p>
-
-        """
+<h1>
+WHOOP Dashboard Error
+</h1>
 
 
+<p>
+{str(e)}
+</p>
+
+"""
 # =====================
 # DATABASE CONNECTION
 # =====================
