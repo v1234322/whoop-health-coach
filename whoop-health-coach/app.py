@@ -1651,6 +1651,54 @@ def convert_utc_to_beijing(obj):
 # TODAY REPORT
 # =========================
 
+def get_whoop_data():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+            recovery_score,
+            hrv,
+            sleep_duration,
+            cycle_strain
+        FROM daily_metrics
+        ORDER BY report_date DESC
+        LIMIT 1
+        """
+    )
+
+    row = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+
+    if not row:
+        return {}
+
+
+    return {
+
+        "recovery": {
+            "score": row[0],
+            "hrv": row[1]
+        },
+
+        "sleep": {
+            "duration": row[2]
+        },
+
+        "workout": {
+            "strain": row[3]
+        }
+
+    }
+
+
+
 @app.route("/whoop/today")
 def today():
 
@@ -1658,15 +1706,7 @@ def today():
 
         data = get_whoop_data()
 
-        print("TODAY DATA:")
-        print(data)
-
-
         report = generate_health_report(data)
-
-        print("REPORT:")
-        print(report)
-
 
         return report
 
@@ -1676,8 +1716,6 @@ def today():
         print("TODAY ERROR:", e)
 
         return str(e)
-
-
 
 # =====================
 # AI 健康报告 V2
