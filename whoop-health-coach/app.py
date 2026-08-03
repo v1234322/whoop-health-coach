@@ -2546,8 +2546,7 @@ def generate_health_report(data):
 
 
 
-     report = f"""
-WHOOP 今日健康报告
+     report = f"""WHOOP 今日健康报告
 
 状态:
 {status}
