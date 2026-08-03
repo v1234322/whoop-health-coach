@@ -36,6 +36,7 @@ def home():
                 report_date,
                 recovery_score,
                 hrv,
+                resting_heart_rate,
                 sleep_duration,
                 cycle_strain
             FROM daily_metrics
@@ -56,55 +57,49 @@ def home():
         if row:
 
             date = row[0]
-
             recovery = row[1]
-
             hrv = row[2]
-
-            sleep = row[3]
-
-            strain = row[4]
+            resting_hr = row[3]
+            sleep = row[4]
+            strain = row[5]
 
 
         else:
 
             date = "暂无数据"
-
             recovery = None
-
             hrv = None
-
+            resting_hr = None
             sleep = None
-
             strain = None
 
 
 
 
         # =====================
-        # Recovery 状态判断
+        # Recovery 状态
         # =====================
 
-        if recovery is not None and recovery >= 80:
+        if recovery is not None and recovery >= 85:
 
 
-            status = "🟢 今日状态：良好"
+            status = "🟢 今日状态：优秀"
 
 
             advice = (
-                "恢复状态优秀，可以进行正常训练。"
-                "建议今日 Strain 控制在 10-12。"
+                "恢复能力优秀，可以安排主要训练。"
+                "建议今日目标 Strain 10-12。"
             )
 
 
         elif recovery is not None and recovery >= 50:
 
 
-            status = "🟡 今日状态：需注意"
+            status = "🟡 今日状态：正常"
 
 
             advice = (
-                "恢复一般，建议中等强度训练。"
+                "恢复一般，建议控制训练强度。"
                 "避免连续高负荷。"
             )
 
@@ -116,14 +111,44 @@ def home():
 
 
             advice = (
-                "建议优先恢复，安排低强度活动。"
+                "优先恢复，建议低强度活动。"
             )
 
 
 
 
         # =====================
-        # Strain 解释
+        # 睡眠分析
+        # =====================
+
+        if sleep is not None:
+
+
+            if sleep >= 8:
+
+                sleep_text = "睡眠充足，恢复支持良好"
+
+
+            elif sleep >= 6.5:
+
+                sleep_text = "睡眠正常，可以支持训练"
+
+
+            else:
+
+                sleep_text = "睡眠不足，建议增加恢复时间"
+
+
+        else:
+
+            sleep_text = "暂无睡眠数据"
+
+
+
+
+
+        # =====================
+        # Strain 分析
         # =====================
 
         if strain is not None:
@@ -136,7 +161,7 @@ def home():
 
 
                 strain_text = (
-                    "低训练负荷恢复日，"
+                    "当前训练压力较低。"
                     "适合恢复、有氧或轻训练。"
                 )
 
@@ -145,8 +170,8 @@ def home():
 
 
                 strain_text = (
-                    "正常训练区间，"
-                    "可以安排主要训练。"
+                    "当前训练压力适中。"
+                    "适合安排主要训练。"
                 )
 
 
@@ -154,8 +179,8 @@ def home():
 
 
                 strain_text = (
-                    "较高训练负荷，"
-                    "注意睡眠和恢复质量。"
+                    "训练负荷偏高。"
+                    "注意睡眠和恢复。"
                 )
 
 
@@ -163,8 +188,8 @@ def home():
 
 
                 strain_text = (
-                    "高负荷训练日，"
-                    "建议减少额外压力。"
+                    "高训练压力。"
+                    "建议减少额外负荷。"
                 )
 
 
@@ -176,51 +201,43 @@ def home():
 
 
 
+
         # =====================
-        # 显示格式
+        # 数值显示
         # =====================
 
         recovery_display = (
-
             f"{round(recovery,1)}%"
-
             if isinstance(recovery,(int,float))
-
             else "-"
-
         )
 
 
         hrv_display = (
-
             f"{round(hrv,2)} ms"
-
             if isinstance(hrv,(int,float))
-
             else "-"
+        )
 
+
+        resting_display = (
+            f"{round(resting_hr,1)} bpm"
+            if isinstance(resting_hr,(int,float))
+            else "-"
         )
 
 
         sleep_display = (
-
             f"{round(sleep,2)} 小时"
-
             if isinstance(sleep,(int,float))
-
             else "-"
-
         )
 
 
         strain_display = (
-
             f"{round(strain,2)}"
-
             if isinstance(strain,(int,float))
-
             else "-"
-
         )
 
 
@@ -231,15 +248,11 @@ def home():
 
 <!DOCTYPE html>
 
-<html lang="zh-CN">
+<html>
 
 <head>
 
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1">
-
 
 <title>WHOOP AI Coach</title>
 
@@ -249,16 +262,13 @@ content="width=device-width, initial-scale=1">
 
 body {{
 
-font-family:Arial,sans-serif;
-
 background:#f4f5f7;
 
-margin:0;
+font-family:Arial;
 
 padding:20px;
 
 }}
-
 
 
 .container {{
@@ -268,7 +278,6 @@ max-width:700px;
 margin:auto;
 
 }}
-
 
 
 .card {{
@@ -281,11 +290,9 @@ border-radius:18px;
 
 margin-bottom:18px;
 
-box-shadow:
-0 3px 12px rgba(0,0,0,.08);
+box-shadow:0 3px 12px rgba(0,0,0,.08);
 
 }}
-
 
 
 .value {{
@@ -297,18 +304,15 @@ font-weight:bold;
 }}
 
 
-
 .button {{
 
 display:block;
-
-padding:14px;
 
 background:#111;
 
 color:white;
 
-text-decoration:none;
+padding:14px;
 
 border-radius:12px;
 
@@ -316,11 +320,12 @@ text-align:center;
 
 margin-top:10px;
 
+text-decoration:none;
+
 }}
 
 
 </style>
-
 
 </head>
 
@@ -334,7 +339,7 @@ margin-top:10px;
 <div class="card">
 
 <h1>
-WHOOP AI Coach
+WHOOP AI 教练
 </h1>
 
 
@@ -356,7 +361,7 @@ WHOOP AI Coach
 <div class="card">
 
 <h3>
-Recovery
+恢复 Recovery
 </h3>
 
 <div class="value">
@@ -372,11 +377,27 @@ Recovery
 <div class="card">
 
 <h3>
-HRV
+HRV 心率变异性
 </h3>
 
 <div class="value">
 {hrv_display}
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>
+静息心率
+</h3>
+
+<div class="value">
+{resting_display}
 </div>
 
 </div>
@@ -395,6 +416,10 @@ HRV
 {sleep_display}
 </div>
 
+<p>
+{sleep_text}
+</p>
+
 </div>
 
 
@@ -411,13 +436,11 @@ HRV
 {strain_display}
 </div>
 
-
 <p>
 {strain_text}
 </p>
 
 </div>
-
 
 
 
@@ -434,7 +457,6 @@ AI 教练建议
 </p>
 
 </div>
-
 
 
 
@@ -472,7 +494,6 @@ href="/whoop/auto-report">
 </div>
 
 
-
 </div>
 
 
@@ -480,9 +501,7 @@ href="/whoop/auto-report">
 
 </html>
 
-
 """
-
 
 
     except Exception as e:
@@ -494,12 +513,13 @@ href="/whoop/auto-report">
 WHOOP Dashboard Error
 </h1>
 
-
 <p>
 {str(e)}
 </p>
 
 """
+
+
 # =====================
 # DATABASE CONNECTION
 # =====================
