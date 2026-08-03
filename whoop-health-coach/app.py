@@ -1783,6 +1783,131 @@ def get_whoop_week_data():
     conn.close()
 
     return rows
+
+def predict_recovery(
+    recovery_list,
+    hrv_list,
+    hr_list,
+    sleep_debt
+):
+
+
+    score = 0
+
+
+    # Recovery趋势
+
+    if len(recovery_list)>=2:
+
+        if recovery_list[0] < recovery_list[-1]:
+            score += 1
+        else:
+            score -=1
+
+
+
+    # HRV
+
+    if len(hrv_list)>=2:
+
+        if hrv_list[0] < hrv_list[-1]:
+            score +=1
+        else:
+            score-=1
+
+
+
+    # 静息心率
+
+    if len(hr_list)>=2:
+
+        if hr_list[0] <= hr_list[-1]:
+            score +=1
+        else:
+            score-=1
+
+
+
+    # 睡眠债
+
+    if sleep_debt < 2:
+
+        score+=1
+
+    else:
+
+        score-=1
+
+
+
+    if score>=2:
+
+        return "📈 明日 Recovery 预计提升，身体状态改善"
+
+    elif score<=-2:
+
+        return "📉 明日 Recovery 可能下降，需要增加恢复"
+
+    else:
+
+        return "➡️ 明日 Recovery 预计保持稳定"
+
+def generate_training_plan(
+    recovery,
+    strain
+):
+
+
+    if recovery >=67:
+
+
+        return """
+        ✅ 今日适合训练
+
+        推荐：
+        - 力量训练45-60分钟
+        - Zone2有氧40分钟
+
+        建议目标 Strain:
+        8-12
+        """
+
+
+
+    elif recovery>=34:
+
+
+        return """
+        🟡 中等恢复状态
+
+        推荐：
+        - Zone2轻松有氧
+        - 技术训练
+        - 拉伸恢复
+
+
+        建议目标 Strain:
+        5-8
+        """
+
+
+
+    else:
+
+
+        return """
+        🔴 恢复不足
+
+        建议：
+        - 休息
+        - 散步
+        - 拉伸
+
+
+        避免：
+        - HIIT
+        - 大重量训练
+        """
     
 
 def generate_week_report(data):
@@ -1853,6 +1978,31 @@ def generate_week_report(data):
     avg_hr=sum(hr_list)/days
     avg_sleep=sum(sleep_list)/days
     avg_strain=sum(strain_list)/days
+
+    sleep_debt=0
+
+
+for s in sleep_list:
+
+    if s < 8:
+
+        sleep_debt += 8-s
+
+
+
+recovery_prediction = predict_recovery(
+    recovery_list,
+    hrv_list,
+    hr_list,
+    sleep_debt
+)
+
+
+
+training_plan = generate_training_plan(
+    avg_recovery,
+    avg_strain
+)
 
 
 
@@ -2097,6 +2247,16 @@ Strain:
 <h2>🤖 教练建议</h2>
 
 {training_advice}
+
+
+<h3>🔮 Recovery预测</h3>
+
+{recovery_prediction}
+
+
+<h3>🏋️ 明日训练计划</h3>
+
+{training_plan}
 
 
 
