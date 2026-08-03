@@ -185,14 +185,28 @@ def init_db():
             e
         )
 
-@app.route(“/privacy”) def privacy(): return ““” <!DOCTYPE html>
-Privacy Policy
-Privacy Policy
-WHOOP Health Coach accesses WHOOP data only to provide personal health
-analysis and training recommendations.
-The app does not sell, share, or publicly distribute user data.
-Users can revoke WHOOP authorization at any time.
-““”
+@app.route("/privacy")
+def privacy():
+
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Privacy Policy</title>
+    </head>
+
+    <body>
+
+    <h1>Privacy Policy</h1>
+
+    <p>
+    WHOOP Health Coach only uses WHOOP data
+    to generate personal health reports.
+    </p>
+
+    </body>
+    </html>
+    """
 
 =========================
 
