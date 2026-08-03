@@ -1676,27 +1676,46 @@ def today():
 def generate_health_report(data):
 
     recovery = data.get("recovery", {})
+
     sleep = data.get("sleep", {})
+
     workout = data.get("workout", {})
 
 
-    recovery_score = recovery.get("score", 0)
-    hrv = recovery.get("hrv", 0)
-    resting_hr = recovery.get("resting_hr", 0)
+    recovery_score = recovery.get(
+        "score",
+        0
+    )
 
 
-    sleep_hours = sleep.get("hours", 0)
-    sleep_performance = sleep.get("performance", 0)
-    sleep_efficiency = sleep.get("efficiency", 0)
-    sleep_consistency = sleep.get("consistency", 0)
+    hrv = recovery.get(
+        "hrv",
+        0
+    )
 
 
-    sport_name = workout.get("sport_name", "无")
-    strain = workout.get("strain", 0)
-    avg_hr = workout.get("avg_hr", 0)
-    max_hr = workout.get("max_hr", 0)
-    workout_start = workout.get("start", "-")
-    workout_end = workout.get("end", "-")
+    resting_hr = recovery.get(
+        "resting_hr",
+        0
+    )
+
+
+    sleep_hours = sleep.get(
+        "duration",
+        0
+    )
+
+
+    sleep_performance = sleep.get(
+        "performance",
+        0
+    )
+
+
+    strain = workout.get(
+        "strain",
+        0
+    )
 
 
     if recovery_score >= 80:
