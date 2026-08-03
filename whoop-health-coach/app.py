@@ -2674,9 +2674,9 @@ def generate_health_report(data):
         )
 
 
-report = f"""
-
+    report = f"""
 WHOOP 今日健康报告
+
 
 状态：
 {status}
@@ -2686,13 +2686,17 @@ Recovery：
 {recovery_score}%
 
 
+
 【恢复】
 
 HRV：
 {hrv:.1f} ms
 
+
 静息心率：
 {resting_hr:.0f} bpm
+
+
 
 
 【睡眠】
@@ -2700,11 +2704,19 @@ HRV：
 睡眠时长：
 {sleep_hours} 小时
 
+
 睡眠表现：
 {sleep_performance}%
 
+
 睡眠效率：
 {sleep_efficiency}%
+
+
+睡眠规律：
+{sleep_consistency}%
+
+
 
 
 
@@ -2713,26 +2725,35 @@ HRV：
 运动类型：
 {sport_name}
 
+
 训练 Strain：
 {strain}
+
 
 平均心率：
 {avg_hr} bpm
 
+
 最大心率：
 {max_hr} bpm
 
+
 开始：
 {workout_start}
+
 
 结束：
 {workout_end}
 
 
 
+
+
 【训练建议】
 
 {training_advice}
+
+
 
 
 
@@ -2748,7 +2769,7 @@ HRV：
 """
 
 
-return report
+    return report
 
 
 # =========================
