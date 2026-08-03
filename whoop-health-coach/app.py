@@ -764,361 +764,230 @@ def whoop_get(endpoint):
 
 def extract_daily_metrics(data):
 
-
     result = {}
 
 
-
+    # =====================
     # Recovery
+    # =====================
 
     try:
+
+        recovery_records = (
+            data
+            .get("recovery", {})
+            .get("records", [])
+        )
 
         recovery = (
-
-            data
-
-            .get(
-                "recovery",
-                {}
-            )
-
-            .get(
-                "records",
-                [{}]
-            )[0]
-
+            recovery_records[0]
+            if recovery_records
+            else {}
         )
 
+        score = recovery.get("score") or {}
 
-        score = recovery.get(
-            "score",
-            {}
+        result["recovery_score"] = score.get(
+            "recovery_score"
         )
 
-
-        result["recovery_score"] = (
-            score.get(
-                "recovery_score"
-            )
+        result["hrv"] = score.get(
+            "hrv_rmssd_milli"
         )
 
-
-        result["hrv"] = (
-            score.get(
-                "hrv_rmssd_milli"
-            )
+        result["resting_heart_rate"] = score.get(
+            "resting_heart_rate"
         )
-
-
-        result["resting_heart_rate"] = (
-            score.get(
-                "resting_heart_rate"
-            )
-        )
-
-
-    except Exception:
-
-
-        result["recovery_score"] = None
-
-        result["hrv"] = None
-
-        result["resting_heart_rate"] = None
-
-
-
-
-    # Sleep
-
-
-    try:
-
-        sleep = (
-
-            data
-
-            .get(
-                "sleep",
-                {}
-            )
-
-            .get(
-                "records",
-                [{}]
-            )[0]
-
-        )
-
-
-        sleep_score_data = (
-
-            sleep
-
-            .get(
-                "score",
-                {}
-            )
-
-        )
-
-
-        # 睡眠评分
-
-        result["sleep_score"] = (
-
-            sleep_score_data
-
-            .get(
-                "sleep_performance_percentage"
-            )
-
-        )
-
-
-
-        # 睡眠时长
-
-
-
-        duration = (
-
-            sleep_score_data
-
-            .get(
-                "stage_summary",
-                {}
-            )
-
-            .get(
-                "total_in_bed_time_milli"
-            )
-
-        )
-
-
-
-        # 备用字段
-
-        if not duration:
-
-
-            duration = (
-
-                sleep_score_data
-
-                .get(
-                    "total_sleep_time_milli"
-                )
-
-            )
-
-
-
-        if duration:
-
-
-            result["sleep_duration"] = (
-
-                duration
-
-                /
-
-                3600000
-
-            )
-
-
-        else:
-
-
-            result["sleep_duration"] = None
-
-
-
-        # 睡眠效率
-
-
-
-        result["sleep_efficiency"] = (
-
-            sleep_score_data
-
-            .get(
-                "sleep_efficiency_percentage"
-            )
-
-        )
-
-
-        # 深睡时间
-
-
-        deep_sleep = (
-
-            sleep_score_data
-
-            .get(
-                "stage_summary",
-                {}
-            )
-
-            .get(
-                "deep_sleep_time_milli"
-            )
-
-        )
-
-
-
-        if deep_sleep:
-
-
-            result["deep_sleep_duration"] = (
-
-                deep_sleep
-
-                /
-
-                3600000
-
-            )
-
-
-        else:
-
-
-            result["deep_sleep_duration"] = None
-
-
-
-        # REM时间
-
-
-        rem_sleep = (
-
-            sleep_score_data
-
-            .get(
-                "stage_summary",
-                {}
-            )
-
-            .get(
-                "rem_sleep_time_milli"
-            )
-
-        )
-
-
-
-        if rem_sleep:
-
-
-            result["rem_sleep_duration"] = (
-
-                rem_sleep
-
-                /
-
-                3600000
-
-            )
-
-
-        else:
-
-
-            result["rem_sleep_duration"] = None
-
-
-
 
     except Exception as e:
 
+        print(
+            "RECOVERY PARSE ERROR:",
+            e
+        )
+
+        result["recovery_score"] = None
+        result["hrv"] = None
+        result["resting_heart_rate"] = None
+
+
+    # =====================
+    # Sleep
+    # =====================
+
+    try:
+
+        sleep_records = (
+            data
+            .get("sleep", {})
+            .get("records", [])
+        )
+
+        # 优先选择非小睡且已评分的睡眠
+        main_sleep = None
+
+        for record in sleep_records:
+
+            if (
+                not record.get("nap", False)
+                and record.get("score_state") == "SCORED"
+            ):
+
+                main_sleep = record
+                break
+
+        if main_sleep is None:
+
+            main_sleep = (
+                sleep_records[0]
+                if sleep_records
+                else {}
+            )
+
+        sleep_score_data = (
+            main_sleep.get("score") or {}
+        )
+
+        stage = (
+            sleep_score_data
+            .get("stage_summary") or {}
+        )
+
+
+        result["sleep_score"] = (
+            sleep_score_data.get(
+                "sleep_performance_percentage"
+            )
+        )
+
+
+        # 实际睡眠时间：
+        # 浅睡 + 深睡 + REM
+        light_sleep = (
+            stage.get(
+                "total_light_sleep_time_milli"
+            ) or 0
+        )
+
+        deep_sleep = (
+            stage.get(
+                "total_slow_wave_sleep_time_milli"
+            ) or 0
+        )
+
+        rem_sleep = (
+            stage.get(
+                "total_rem_sleep_time_milli"
+            ) or 0
+        )
+
+        total_sleep = (
+            light_sleep
+            + deep_sleep
+            + rem_sleep
+        )
+
+
+        result["sleep_duration"] = (
+            round(
+                total_sleep / 3600000,
+                2
+            )
+            if total_sleep
+            else None
+        )
+
+
+        result["sleep_efficiency"] = (
+            sleep_score_data.get(
+                "sleep_efficiency_percentage"
+            )
+        )
+
+
+        result["deep_sleep_duration"] = (
+            round(
+                deep_sleep / 3600000,
+                2
+            )
+            if deep_sleep
+            else None
+        )
+
+
+        result["rem_sleep_duration"] = (
+            round(
+                rem_sleep / 3600000,
+                2
+            )
+            if rem_sleep
+            else None
+        )
+
+
+    except Exception as e:
 
         print(
             "SLEEP PARSE ERROR:",
             e
         )
 
-
         result["sleep_score"] = None
-
         result["sleep_duration"] = None
-
         result["sleep_efficiency"] = None
-
         result["deep_sleep_duration"] = None
-
         result["rem_sleep_duration"] = None
 
 
-
+    # =====================
     # Cycle Strain
+    # =====================
 
     try:
 
+        cycle_records = (
+            data
+            .get("cycle", {})
+            .get("records", [])
+        )
 
         cycle = (
-
-            data
-
-            .get(
-                "cycle",
-                {}
-            )
-
-            .get(
-                "records",
-                [{}]
-            )[0]
-
+            cycle_records[0]
+            if cycle_records
+            else {}
         )
 
+        cycle_score = (
+            cycle.get("score") or {}
+        )
 
         result["cycle_strain"] = (
-
-            cycle
-
-            .get(
-                "score",
-                {}
-            )
-
-            .get(
-                "strain"
-            )
-
+            cycle_score.get("strain")
         )
 
+    except Exception as e:
 
-    except Exception:
-
+        print(
+            "CYCLE PARSE ERROR:",
+            e
+        )
 
         result["cycle_strain"] = None
 
 
-
-
-
+    # =====================
     # Workout
+    # =====================
 
     result["workout_data"] = (
-
-        data.get(
-            "workout",
-            {}
-        )
-
+        data.get("workout", {})
     )
-
 
 
     return result
 
 # =====================
-# 保存每日历史数据 V5
+# 保存每日历史数据 V6
 # PostgreSQL
 # =====================
 
@@ -1136,7 +1005,7 @@ def save_daily_data(metrics):
         )
 
 
-        # 删除当天旧数据
+        # 删除当天旧数据，避免重复
         cur.execute(
             """
             DELETE FROM daily_metrics
@@ -1148,7 +1017,7 @@ def save_daily_data(metrics):
         )
 
 
-        # 写入最新数据
+        # 写入当天最新数据
         cur.execute(
             """
             INSERT INTO daily_metrics
@@ -1173,26 +1042,43 @@ def save_daily_data(metrics):
             """,
 
             (
-
                 today,
 
-                metrics.get("recovery"),
+                metrics.get(
+                    "recovery_score"
+                ),
 
-                metrics.get("hrv"),
+                metrics.get(
+                    "hrv"
+                ),
 
-                metrics.get("resting_hr"),
+                metrics.get(
+                    "resting_heart_rate"
+                ),
 
-                metrics.get("sleep_score"),
+                metrics.get(
+                    "sleep_score"
+                ),
 
-                metrics.get("sleep_duration"),
+                metrics.get(
+                    "sleep_duration"
+                ),
 
-                metrics.get("sleep_efficiency"),
+                metrics.get(
+                    "sleep_efficiency"
+                ),
 
-                metrics.get("deep_sleep"),
+                metrics.get(
+                    "deep_sleep_duration"
+                ),
 
-                metrics.get("rem_sleep"),
+                metrics.get(
+                    "rem_sleep_duration"
+                ),
 
-                metrics.get("strain"),
+                metrics.get(
+                    "cycle_strain"
+                ),
 
                 json.dumps(
                     metrics.get(
@@ -1201,13 +1087,11 @@ def save_daily_data(metrics):
                     ),
                     ensure_ascii=False
                 )
-
             )
         )
 
 
         conn.commit()
-
 
         cur.close()
         conn.close()
@@ -1358,18 +1242,20 @@ def auto_report():
     })
 
 
-# =========================
-# WHOOP TREND REPORT V3
+# ============================
+# WHOOP TREND REPORT V4
 # 最近7天趋势分析
-# =========================
+# ============================
+
 @app.route("/whoop/trend")
 def trend_report():
 
+    conn = None
+    cur = None
 
     try:
 
         conn = get_db_connection()
-
         cur = conn.cursor()
 
 
@@ -1379,21 +1265,19 @@ def trend_report():
                 report_date,
                 recovery_score,
                 hrv,
+                resting_heart_rate,
+                sleep_score,
                 sleep_duration,
+                sleep_efficiency,
                 cycle_strain
             FROM daily_metrics
-            ORDER BY id DESC
+            ORDER BY report_date DESC, id DESC
             LIMIT 7
             """
         )
 
 
         rows = cur.fetchall()
-
-
-        cur.close()
-        conn.close()
-
 
 
         if not rows:
@@ -1407,72 +1291,73 @@ def trend_report():
             })
 
 
+        # 数据库返回顺序：
+        # 最新一天在最前面
+        latest_row = rows[0]
+        oldest_row = rows[-1]
+
 
         history = []
 
+        recovery_values = []
+        hrv_values = []
+        resting_hr_values = []
+        sleep_score_values = []
+        sleep_duration_values = []
+        sleep_efficiency_values = []
+        strain_values = []
 
-        recovery_list = []
-        hrv_list = []
-        sleep_list = []
-        strain_list = []
 
-
-
-        for r in rows:
-
+        for row in rows:
 
             item = {
 
-                "date": r[0],
+                "date": row[0],
 
-                "recovery": r[1],
+                "recovery": row[1],
 
-                "hrv": r[2],
+                "hrv": row[2],
 
-                "sleep_duration": r[3],
+                "resting_heart_rate": row[3],
 
-                "strain": r[4]
+                "sleep_score": row[4],
+
+                "sleep_duration": row[5],
+
+                "sleep_efficiency": row[6],
+
+                "strain": row[7]
 
             }
-
 
             history.append(item)
 
 
+            if row[1] is not None:
+                recovery_values.append(float(row[1]))
 
-            if r[1] is not None:
+            if row[2] is not None:
+                hrv_values.append(float(row[2]))
 
-                recovery_list.append(
-                    float(r[1])
-                )
+            if row[3] is not None:
+                resting_hr_values.append(float(row[3]))
 
+            if row[4] is not None:
+                sleep_score_values.append(float(row[4]))
 
-            if r[2] is not None:
+            if row[5] is not None:
+                sleep_duration_values.append(float(row[5]))
 
-                hrv_list.append(
-                    float(r[2])
-                )
+            if row[6] is not None:
+                sleep_efficiency_values.append(float(row[6]))
 
-
-            if r[3] is not None:
-
-                sleep_list.append(
-                    float(r[3])
-                )
-
-
-            if r[4] is not None:
-
-                strain_list.append(
-                    float(r[4])
-                )
+            if row[7] is not None:
+                strain_values.append(float(row[7]))
 
 
-
-        def avg(values):
+        def average(values):
 
             if not values:
-
                 return None
 
             return round(
@@ -1481,178 +1366,412 @@ def trend_report():
             )
 
 
+        def minimum(values):
 
-        def get_trend(values):
+            if not values:
+                return None
 
-            if len(values) < 2:
+            return round(
+                min(values),
+                2
+            )
 
+
+        def maximum(values):
+
+            if not values:
+                return None
+
+            return round(
+                max(values),
+                2
+            )
+
+
+        def percentage_change(latest, oldest):
+
+            if (
+                latest is None
+                or oldest is None
+                or oldest == 0
+            ):
+                return None
+
+            return round(
+                ((latest - oldest) / oldest) * 100,
+                1
+            )
+
+
+        def higher_is_better_trend(latest, oldest, threshold=3):
+
+            if latest is None or oldest is None:
                 return "数据不足"
 
+            change = latest - oldest
 
-            if values[0] > values[-1]:
+            if change >= threshold:
+                return "明显改善"
 
-                return "下降"
+            if change <= -threshold:
+                return "明显下降"
+
+            return "基本稳定"
 
 
-            elif values[0] < values[-1]:
+        def lower_is_better_trend(latest, oldest, threshold=3):
 
-                return "上升"
+            if latest is None or oldest is None:
+                return "数据不足"
+
+            change = latest - oldest
+
+            if change <= -threshold:
+                return "明显改善"
+
+            if change >= threshold:
+                return "明显升高"
+
+            return "基本稳定"
 
 
-            else:
+        latest_recovery = latest_row[1]
+        oldest_recovery = oldest_row[1]
 
-                return "稳定"
+        latest_hrv = latest_row[2]
+        oldest_hrv = oldest_row[2]
 
+        latest_resting_hr = latest_row[3]
+        oldest_resting_hr = oldest_row[3]
+
+        latest_sleep_duration = latest_row[5]
+        oldest_sleep_duration = oldest_row[5]
+
+        latest_strain = latest_row[7]
+        oldest_strain = oldest_row[7]
+
+
+        recovery_trend = higher_is_better_trend(
+            latest_recovery,
+            oldest_recovery,
+            5
+        )
+
+        hrv_trend = higher_is_better_trend(
+            latest_hrv,
+            oldest_hrv,
+            5
+        )
+
+        resting_hr_trend = lower_is_better_trend(
+            latest_resting_hr,
+            oldest_resting_hr,
+            3
+        )
+
+        sleep_trend = higher_is_better_trend(
+            latest_sleep_duration,
+            oldest_sleep_duration,
+            0.5
+        )
 
 
         risks = []
 
 
-        if recovery_list:
+        avg_recovery = average(
+            recovery_values
+        )
 
-            if avg(recovery_list) < 50:
+        avg_hrv = average(
+            hrv_values
+        )
 
-                risks.append(
-                    "最近恢复偏低，注意训练负荷"
-                )
+        avg_resting_hr = average(
+            resting_hr_values
+        )
+
+        avg_sleep_duration = average(
+            sleep_duration_values
+        )
+
+        avg_strain = average(
+            strain_values
+        )
 
 
+        low_recovery_days = sum(
+            1
+            for value in recovery_values
+            if value < 50
+        )
 
-        coach = []
+        short_sleep_days = sum(
+            1
+            for value in sleep_duration_values
+            if value < 6
+        )
+
+        high_strain_days = sum(
+            1
+            for value in strain_values
+            if value > 14
+        )
 
 
-        if strain_list:
+        if low_recovery_days >= 2:
 
-            if avg(strain_list) > 14:
+            risks.append(
+                f"最近记录中有 {low_recovery_days} 天恢复分低于50，存在恢复不足风险"
+            )
 
-                coach.append(
-                    "建议降低训练强度"
-                )
 
-            else:
+        if short_sleep_days >= 2:
 
-                coach.append(
-                    "当前训练压力适中"
-                )
+            risks.append(
+                f"最近记录中有 {short_sleep_days} 天睡眠少于6小时，存在睡眠债风险"
+            )
 
+
+        if high_strain_days >= 2:
+
+            risks.append(
+                f"最近记录中有 {high_strain_days} 天 Strain 高于14，训练压力偏高"
+            )
+
+
+        if (
+            hrv_trend == "明显下降"
+            and resting_hr_trend == "明显升高"
+        ):
+
+            risks.append(
+                "HRV下降且静息心率升高，可能存在累积疲劳或身体压力"
+            )
+
+
+        if (
+            avg_recovery is not None
+            and avg_recovery < 50
+            and avg_strain is not None
+            and avg_strain > 12
+        ):
+
+            risks.append(
+                "训练负荷高于当前恢复能力，建议立即减量"
+            )
+
+
+        if not risks:
+
+            risks.append(
+                "目前未发现明显的恢复或训练失衡风险"
+            )
+
+
+        advice = []
+
+
+        if (
+            avg_sleep_duration is not None
+            and avg_sleep_duration < 6
+        ):
+
+            advice.append(
+                "未来1–3天优先把睡眠提高到至少7小时"
+            )
+
+
+        if (
+            avg_recovery is not None
+            and avg_recovery < 50
+        ):
+
+            advice.append(
+                "训练以休息、散步或低强度恢复性有氧为主"
+            )
+
+        elif (
+            avg_recovery is not None
+            and avg_recovery >= 80
+        ):
+
+            advice.append(
+                "恢复总体良好，可安排正常训练，但避免连续多天高 Strain"
+            )
+
+        else:
+
+            advice.append(
+                "训练维持中等强度，根据当天 Recovery 再调整"
+            )
+
+
+        if hrv_trend == "明显下降":
+
+            advice.append(
+                "连续观察HRV与静息心率，若继续恶化则降低训练量20%–30%"
+            )
 
 
         return jsonify({
 
+            "status": "success",
 
-            "status":
+            "period": "最近7天",
 
-            "success",
+            "days": len(rows),
 
-
-
-            "period":
-
-            "最近7天",
+            "timezone": "Asia/Shanghai UTC+8",
 
 
+            "latest": {
 
-            "days":
+                "date": latest_row[0],
 
-            len(history),
+                "recovery": latest_recovery,
 
+                "hrv": latest_hrv,
 
+                "resting_heart_rate":
+                    latest_resting_hr,
 
-            "summary":{
+                "sleep_duration":
+                    latest_sleep_duration,
 
-
-                "平均Recovery":
-
-                avg(recovery_list),
-
-
-
-                "平均HRV":
-
-                avg(hrv_list),
-
-
-
-                "平均睡眠小时":
-
-                avg(sleep_list),
-
-
-
-                "平均Strain":
-
-                avg(strain_list)
-
+                "strain":
+                    latest_strain
 
             },
 
 
+            "summary": {
 
-            "trend":{
+                "average_recovery":
+                    avg_recovery,
 
+                "minimum_recovery":
+                    minimum(recovery_values),
 
-                "Recovery趋势":
+                "maximum_recovery":
+                    maximum(recovery_values),
 
-                get_trend(recovery_list),
+                "average_hrv":
+                    avg_hrv,
 
+                "average_resting_heart_rate":
+                    avg_resting_hr,
 
+                "average_sleep_score":
+                    average(sleep_score_values),
 
-                "HRV趋势":
+                "average_sleep_duration":
+                    avg_sleep_duration,
 
-                get_trend(hrv_list)
+                "average_sleep_efficiency":
+                    average(sleep_efficiency_values),
 
+                "average_strain":
+                    avg_strain
 
             },
 
 
+            "change": {
 
-            "risk":
+                "recovery_percent":
+                    percentage_change(
+                        latest_recovery,
+                        oldest_recovery
+                    ),
 
-            risks,
+                "hrv_percent":
+                    percentage_change(
+                        latest_hrv,
+                        oldest_hrv
+                    ),
+
+                "resting_heart_rate_percent":
+                    percentage_change(
+                        latest_resting_hr,
+                        oldest_resting_hr
+                    ),
+
+                "sleep_duration_percent":
+                    percentage_change(
+                        latest_sleep_duration,
+                        oldest_sleep_duration
+                    ),
+
+                "strain_percent":
+                    percentage_change(
+                        latest_strain,
+                        oldest_strain
+                    )
+
+            },
 
 
+            "trend": {
 
-            "coach":
+                "recovery":
+                    recovery_trend,
 
-            coach,
+                "hrv":
+                    hrv_trend,
+
+                "resting_heart_rate":
+                    resting_hr_trend,
+
+                "sleep_duration":
+                    sleep_trend
+
+            },
 
 
+            "risk": risks,
 
-            "history":
+            "advice": advice,
 
-            history,
-
-
-
-            "timezone":
-
-            "Asia/Shanghai UTC+8"
-
+            "history": history
 
         })
 
 
-
     except Exception as e:
-
 
         print(
             "TREND ERROR:",
-            e
+            str(e)
         )
-
 
         return jsonify({
 
-            "status":
+            "status": "error",
 
-            "error",
+            "message": str(e)
 
-            "message":
+        }), 500
 
-            str(e)
 
-        }),500
+    finally:
+
+        if cur is not None:
+
+            try:
+                cur.close()
+
+            except Exception:
+                pass
+
+
+        if conn is not None:
+
+            try:
+                conn.close()
+
+            except Exception:
+                pass
 # =====================
 # AI 健康报告 V2
 # =====================
