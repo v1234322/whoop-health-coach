@@ -2435,7 +2435,7 @@ def generate_health_report(data):
 
     training_advice = "根据 Recovery 调整训练强度"
 
-
+    
     coach_advice = generate_coach_advice(
         recovery_score,
         hrv,
@@ -2444,6 +2444,12 @@ def generate_health_report(data):
         strain
     )
 
+    print("DEBUG TYPES:")
+    print(type(recovery_score))
+    print(type(hrv))
+    print(type(sleep_hours))
+    print(type(strain))
+    print(type(sleep_debt))
 
     return f"""
 
