@@ -1661,17 +1661,20 @@ def get_whoop_data():
 
 
         cur.execute(
-            """
-            SELECT
-                recovery_score,
-                hrv,
-                sleep_hours,
-                strain
-            FROM daily_metrics
-            ORDER BY id DESC
-            LIMIT 1
-            """
-        )
+           """
+           SELECT
+               recovery_score,
+               hrv,
+               resting_heart_rate,
+               sleep_score,
+               sleep_duration,
+               sleep_efficiency,
+               cycle_strain
+           FROM daily_metrics
+           ORDER BY id DESC
+           LIMIT 1
+           """
+       )
 
 
         row = cur.fetchone()
@@ -1709,18 +1712,20 @@ def get_whoop_data():
 
             "recovery": {
                 "score": row[0],
-                "hrv": row[1]
+                "hrv": row[1],
+                "resting_hr": row[2]
             },
 
 
             "sleep": {
-                "duration": row[2],
-                "performance": 0
+                "performance": row[3],
+                "duration": row[4],
+                "efficiency": row[5]
             },
 
 
             "workout": {
-                "strain": row[3]
+                "strain": row[6]
             }
 
         }
