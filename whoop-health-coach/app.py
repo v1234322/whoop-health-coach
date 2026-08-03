@@ -12,6 +12,9 @@ import time
 
 app = Flask(__name__)
 
+app.json.ensure_ascii = False
+app.config["JSON_AS_ASCII"] = False
+
 
 # =====================
 # DATABASE CONNECTION
