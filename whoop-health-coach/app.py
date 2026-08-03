@@ -2186,99 +2186,99 @@ else:
 
     return f"""
 
-<h1>
-WHOOP 最近7天私人健康报告
-</h1>
+    <h1>
+    WHOOP 最近7天私人健康报告
+    </h1>
 
 
-<h2>
-整体状态：
-{status}
-</h2>
+    <h2>
+    整体状态：
+    {status}
+    </h2>
 
 
-<h2>📊 平均指标</h2>
+    <h2>📊 平均指标</h2>
 
 
-Recovery:
-<b>{avg_recovery:.1f}%</b><br>
+    Recovery:
+    <b>{avg_recovery:.1f}%</b><br>
 
-HRV:
-<b>{avg_hrv:.1f} ms</b><br>
+    HRV:
+    <b>{avg_hrv:.1f} ms</b><br>
 
-静息心率:
-<b>{avg_hr:.1f} bpm</b><br>
+    静息心率:
+    <b>{avg_hr:.1f} bpm</b><br>
 
-睡眠:
-<b>{avg_sleep:.2f} 小时</b><br>
+    睡眠:
+    <b>{avg_sleep:.2f} 小时</b><br>
 
-Strain:
-<b>{avg_strain:.2f}</b>
-
-
-
-<h2>📈 恢复趋势</h2>
-
-{recovery_trend}
-
-<br>
-
-{hrv_comment}
+    Strain:
+    <b>{avg_strain:.2f}</b>
 
 
 
-<h2>💤 睡眠债分析</h2>
+    <h2>📈 恢复趋势</h2>
 
-累计睡眠债:
-<b>{total_sleep_debt:.2f} 小时</b>
+    {recovery_trend}
 
-<br>
-
-{sleep_comment}
-
-
-
-<h2>🏃 Strain风险</h2>
-
-{strain_comment}
+    <br>
+    
+    {hrv_comment}
 
 
 
-<h2>🤖 教练建议</h2>
+    <h2>💤 睡眠债分析</h2>
 
-{training_advice}
+    累计睡眠债:
+    <b>{total_sleep_debt:.2f} 小时</b>
 
+    <br>
 
-<h3>🔮 Recovery预测</h3>
-
-{recovery_prediction}
-
-
-<h3>🏋️ 明日训练计划</h3>
-
-{training_plan}
+    {sleep_comment}
 
 
 
-<h2>📅 每日记录</h2>
+    <h2>🏃 Strain风险</h2>
+
+    {strain_comment}
 
 
-{daily_html}
+
+    <h2>🤖 教练建议</h2>
+
+    {training_advice}
 
 
-<h2>
-未来1-3天行动
-</h2>
+    <h3>🔮 Recovery预测</h3>
+
+    {recovery_prediction}
 
 
-1. 保证睡眠 ≥8小时<br>
+    <h3>🏋️ 明日训练计划</h3>
 
-2. 根据 Recovery 调整训练<br>
-
-3. 避免连续多天高 Strain
+    {training_plan}
 
 
-"""
+
+    <h2>📅 每日记录</h2>
+
+    
+    {daily_html}
+
+
+    <h2>
+    未来1-3天行动
+    </h2>
+
+
+    1. 保证睡眠 ≥8小时<br>
+
+    2. 根据 Recovery 调整训练<br>
+
+    3. 避免连续多天高 Strain
+
+
+    """
 
 
 
