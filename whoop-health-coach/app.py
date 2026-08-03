@@ -2546,41 +2546,38 @@ def generate_health_report(data):
 
 
 
-     report = f"""WHOOP 今日健康报告
+    report = (
+        "WHOOP 今日健康报告\n\n"
+        "状态:\n"
+        + str(status)
+        + "\n\n"
+        "Recovery:\n"
+        + str(recovery_score)
+        + "%\n\n"
+        "HRV:\n"
+        + str(hrv)
+        + " ms\n\n"
+        "静息心率:\n"
+        + str(resting_hr)
+        + " bpm\n\n"
+        "睡眠:\n"
+        + str(sleep_hours)
+        + " 小时\n\n"
+        "睡眠表现:\n"
+        + str(sleep_performance)
+        + "%\n\n"
+        "训练 Strain:\n"
+        + str(strain)
+        + "\n\n"
+        "训练建议:\n"
+        + str(training_advice)
+        + "\n\n"
+        "未来1-3天建议:\n"
+        "1. 保证充足睡眠恢复\n"
+        "2. 根据 Recovery 调整训练强度\n"
+        "3. 避免连续多天高 Strain"
+    )
 
-状态:
-{status}
-
-Recovery:
-{recovery_score}%
-
-HRV:
-{hrv:} ms
-
-静息心率:
-{resting_hr} bpm
-
-睡眠:
-{sleep_hours} 小时
-
-睡眠表现:
-{sleep_performance}%
-
-训练 Strain:
-{strain}
-
-训练建议:
-{training_advice}
-
-未来1-3天建议:
-
-1. 保证充足睡眠恢复
-
-2. 根据 Recovery 调整训练强度
-
-3. 避免连续多天高 Strain
-
-"""
 
     return report
 
