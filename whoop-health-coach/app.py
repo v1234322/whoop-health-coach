@@ -534,6 +534,8 @@ def generate_coach_advice(
     # Recovery 判断
     # ======================
 
+    recovery = recovery_score
+
     if recovery >= 70:
 
         status = "🟢 状态良好"
