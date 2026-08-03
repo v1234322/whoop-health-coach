@@ -1761,44 +1761,65 @@ def today():
 
 def generate_health_report(data):
 
-    recovery = data.get("recovery", {})
 
-    sleep = data.get("sleep", {})
-
-    workout = data.get("workout", {})
-
-
-    recovery_score = recovery.get(
+    recovery_score = data.get(
+        "recovery",
+        {}
+    ).get(
         "score",
         0
     )
 
 
-    hrv = recovery.get(
+    hrv = data.get(
+        "recovery",
+        {}
+    ).get(
         "hrv",
         0
     )
 
 
-    resting_hr = recovery.get(
+    resting_hr = data.get(
+        "recovery",
+        {}
+    ).get(
         "resting_hr",
         0
     )
 
 
-    sleep_hours = sleep.get(
+    sleep_hours = data.get(
+        "sleep",
+        {}
+    ).get(
         "duration",
         0
     )
 
 
-    sleep_performance = sleep.get(
+    sleep_performance = data.get(
+        "sleep",
+        {}
+    ).get(
         "performance",
         0
     )
 
 
-    strain = workout.get(
+    sleep_efficiency = data.get(
+        "sleep",
+        {}
+    ).get(
+        "efficiency",
+        0
+    )
+
+
+    strain = data.get(
+        "workout",
+        {}
+    ).get(
         "strain",
         0
     )
