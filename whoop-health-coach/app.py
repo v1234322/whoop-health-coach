@@ -1974,6 +1974,41 @@ HRV：
 
     return report
 
+def get_whoop_week_data():
+    """
+    获取最近7天数据
+    """
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_score,
+                sleep_duration,
+                sleep_efficiency,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 7
+        """)
+
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return rows
+
+    except Exception as e:
+        print("WEEK DATA ERROR:", e)
+        return []
+
 
 
 # =====================
