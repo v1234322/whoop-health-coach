@@ -137,32 +137,6 @@ def home():
         )
 
 
-
-        # =====================
-        # 状态判断
-        # =====================
-
-
-        if recovery is not None and recovery >= 80:
-
-
-            status = "🟢 今日状态：优秀"
-
-
-        elif recovery is not None and recovery >= 50:
-
-
-            status = "🟡 今日状态：需注意"
-
-
-        else:
-
-
-            status = "🔴 今日状态：恢复不足"
-
-
-
-
         # =====================
         # Strain解释
         # =====================
