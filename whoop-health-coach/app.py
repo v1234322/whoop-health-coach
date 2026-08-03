@@ -2674,16 +2674,14 @@ def generate_health_report(data):
         )
 
 
-
-    report = f"""
+report = f"""
 
 WHOOP 今日健康报告
 
 
-【总览】
-
 状态：
 {status}
+
 
 Recovery：
 {recovery_score}%
@@ -2710,9 +2708,6 @@ HRV：
 
 睡眠效率：
 {sleep_efficiency}%
-
-睡眠规律：
-{sleep_consistency}%
 
 
 
@@ -2756,7 +2751,7 @@ HRV：
 """
 
 
-    return report
+return report
 
 
 # =========================
