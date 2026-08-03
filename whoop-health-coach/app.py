@@ -1762,68 +1762,51 @@ def today():
 def generate_health_report(data):
 
 
-    recovery_score = data.get(
-        "recovery",
-        {}
-    ).get(
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    workout = data.get("workout", {})
+
+
+    recovery_score = recovery.get(
         "score",
         0
     )
 
 
-    hrv = data.get(
-        "recovery",
-        {}
-    ).get(
+    hrv = recovery.get(
         "hrv",
         0
     )
 
 
-    resting_hr = data.get(
-        "recovery",
-        {}
-    ).get(
+    resting_hr = recovery.get(
         "resting_hr",
         0
     )
 
 
-    sleep_hours = data.get(
-        "sleep",
-        {}
-    ).get(
+    sleep_hours = sleep.get(
         "duration",
         0
     )
 
 
-    sleep_performance = data.get(
-        "sleep",
-        {}
-    ).get(
+    sleep_performance = sleep.get(
         "performance",
         0
     )
 
 
-    sleep_efficiency = data.get(
-        "sleep",
-        {}
-    ).get(
+    sleep_efficiency = sleep.get(
         "efficiency",
         0
     )
 
 
-    strain = data.get(
-        "workout",
-        {}
-    ).get(
+    strain = workout.get(
         "strain",
         0
     )
-
 
     if recovery_score >= 80:
         status = "🟢 良好"
@@ -1855,7 +1838,16 @@ def generate_health_report(data):
         training_advice = (
             "保持中低强度训练"
         )
+    print(
+        "REPORT DATA:",
+        recovery_score,
+        hrv,
+        resting_hr,
+        sleep_hours,
+        strain
+    )
 
+    
 
     report = f"""
 WHOOP 今日健康报告
