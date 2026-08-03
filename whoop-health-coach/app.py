@@ -1675,7 +1675,142 @@ def today():
 
 def generate_health_report(data):
 
-    ...
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    workout = data.get("workout", {})
+
+
+    recovery_score = recovery.get("score", 0)
+    hrv = recovery.get("hrv", 0)
+    resting_hr = recovery.get("resting_hr", 0)
+
+
+    sleep_hours = sleep.get("hours", 0)
+    sleep_performance = sleep.get("performance", 0)
+    sleep_efficiency = sleep.get("efficiency", 0)
+    sleep_consistency = sleep.get("consistency", 0)
+
+
+    sport_name = workout.get("sport_name", "无")
+    strain = workout.get("strain", 0)
+    avg_hr = workout.get("avg_hr", 0)
+    max_hr = workout.get("max_hr", 0)
+    workout_start = workout.get("start", "-")
+    workout_end = workout.get("end", "-")
+
+
+    if recovery_score >= 80:
+        status = "🟢 良好"
+
+    elif recovery_score >= 50:
+        status = "🟡 需小心"
+
+    else:
+        status = "🔴 危险"
+
+
+
+    if sleep_hours < 6:
+
+        training_advice = (
+            "睡眠不足，"
+            "建议降低训练容量"
+        )
+
+    elif recovery_score >= 80:
+
+        training_advice = (
+            "恢复优秀，可以正常训练，"
+            "避免连续高负荷"
+        )
+
+    else:
+
+        training_advice = (
+            "保持中低强度训练"
+        )
+
+
+    report = f"""
+WHOOP 今日健康报告
+
+
+状态：
+{status}
+
+
+Recovery：
+{recovery_score}%
+
+
+【恢复】
+
+HRV：
+{hrv:.1f} ms
+
+
+静息心率：
+{resting_hr:.0f} bpm
+
+
+【睡眠】
+
+睡眠时长：
+{sleep_hours} 小时
+
+
+睡眠表现：
+{sleep_performance}%
+
+
+睡眠效率：
+{sleep_efficiency}%
+
+
+睡眠规律：
+{sleep_consistency}%
+
+
+【训练】
+
+运动类型：
+{sport_name}
+
+
+训练 Strain：
+{strain}
+
+
+平均心率：
+{avg_hr} bpm
+
+
+最大心率：
+{max_hr} bpm
+
+
+开始：
+{workout_start}
+
+
+结束：
+{workout_end}
+
+
+【训练建议】
+
+{training_advice}
+
+
+【未来1-3天建议】
+
+1. 保证充足睡眠恢复
+
+2. 根据 Recovery 调整训练强度
+
+3. 避免连续多天高 Strain
+
+"""
 
 
     return report
