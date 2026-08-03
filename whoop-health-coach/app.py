@@ -2377,99 +2377,6 @@ def whoop_week():
         print("WEEK ERROR:", e)
         return "暂无数据"
 
-# =====================
-# AI 健康报告 V2
-# =====================
-
-def generate_health_report(data):
-
-    print("INPUT DATA:", data)
-
-
-    recovery = data.get("recovery", {})
-    sleep = data.get("sleep", {})
-    workout = data.get("workout", {})
-
-
-    recovery_score = recovery.get(
-        "score",
-        0
-    )
-
-
-    hrv = recovery.get(
-        "hrv",
-        0
-    )
-
-
-    resting_hr = recovery.get(
-        "resting_hr",
-        0
-    )
-
-
-    sleep_hours = sleep.get(
-        "duration",
-        0
-    )
-
-
-    sleep_performance = sleep.get(
-        "performance",
-        0
-    )
-
-
-    sleep_efficiency = sleep.get(
-        "efficiency",
-        0
-    )
-
-
-    strain = workout.get(
-        "strain",
-        0
-    )
-
-    if recovery_score >= 80:
-        status = "🟢 良好"
-
-    elif recovery_score >= 50:
-        status = "🟡 需小心"
-
-    else:
-        status = "🔴 危险"
-
-
-
-    if sleep_hours < 6:
-
-        training_advice = (
-            "睡眠不足，"
-            "建议降低训练容量"
-        )
-
-    elif recovery_score >= 80:
-
-        training_advice = (
-            "恢复优秀，可以正常训练，"
-            "避免连续高负荷"
-        )
-
-    else:
-
-        training_advice = (
-            "保持中低强度训练"
-        )
-    print(
-        "REPORT DATA:",
-        recovery_score,
-        hrv,
-        resting_hr,
-        sleep_hours,
-        strain
-    )
 
 def generate_health_report(data):
 
@@ -2490,9 +2397,8 @@ def generate_health_report(data):
     workout_end = "暂无训练记录"
     workout_duration = "暂无数据"
     workout_type = "训练"
-    sleep_hours = data["sleep"]["duration"]
     sleep_score = data["sleep"]["performance"]
-    sleep_duration = sleep_hours
+    sleep_duration = data["sleep"]["duration"]
     sleep_performance = data["sleep"]["performance"]
     sleep_efficiency = data["sleep"]["efficiency"]
 
@@ -2501,6 +2407,15 @@ def generate_health_report(data):
     sport_name = "综合训练"
 
     training_advice = "根据 Recovery 调整训练强度"
+
+
+    coach_advice = generate_coach_advice(
+        recovery_score,
+        hrv,
+        sleep_duration,
+        sleep_debt,
+        strain
+    )
 
 
     return f"""
