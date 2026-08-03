@@ -1751,22 +1751,25 @@ def auto_report():
 
     })
 
+# ============================
+# WHOOP TREND REPORT V5.1
+# 最近7天 AI趋势分析
+# ============================
 
 # ============================
-# WHOOP TREND REPORT V5
-# 最近7天可视化健康报告
+# WHOOP TREND REPORT V5.1
+# 最近7天趋势分析
 # ============================
 
 @app.route("/whoop/trend")
 def trend_report():
 
-    conn = None
-    cur = None
-
     try:
 
         conn = get_db_connection()
+
         cur = conn.cursor()
+
 
         cur.execute(
             """
@@ -1775,672 +1778,659 @@ def trend_report():
                 recovery_score,
                 hrv,
                 resting_heart_rate,
-                sleep_score,
                 sleep_duration,
-                sleep_efficiency,
+                sleep_score,
                 cycle_strain
+
             FROM daily_metrics
-            ORDER BY report_date DESC, id DESC
+
+            ORDER BY report_date DESC
+
             LIMIT 7
             """
         )
 
+
         rows = cur.fetchall()
+
+
+        cur.close()
+
+        conn.close()
+
+
 
         if not rows:
 
-            return Response(
-                """
-                <!DOCTYPE html>
-                <html lang="zh-CN">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport"
-                          content="width=device-width, initial-scale=1">
-                    <title>WHOOP 趋势报告</title>
-                </head>
+            return """
 
-                <body style="
-                    font-family: Arial, sans-serif;
-                    max-width: 760px;
-                    margin: 60px auto;
-                    padding: 20px;
-                    color: #222;
-                ">
-                    <h1>WHOOP 最近7天趋势</h1>
-                    <p>暂无历史数据。</p>
-                    <p>请先运行一次：</p>
-                    <code>/whoop/auto-report</code>
-                </body>
-                </html>
-                """,
-                mimetype="text/html"
-            )
+            <h1>
+            暂无历史数据
+            </h1>
 
-        # SQL结果为最新在前，反转后变成最旧到最新
-        rows = list(reversed(rows))
+            """
+
+
+
+        # 转换为日期正序
+
+        rows = list(
+            reversed(rows)
+        )
+
+
 
         history = []
 
+
         recovery_values = []
+
         hrv_values = []
+
         resting_hr_values = []
+
+        sleep_values = []
+
         sleep_score_values = []
-        sleep_duration_values = []
-        sleep_efficiency_values = []
+
         strain_values = []
 
-        for row in rows:
+
+
+        for r in rows:
+
 
             item = {
-                "date": row[0],
-                "recovery": row[1],
-                "hrv": row[2],
-                "resting_heart_rate": row[3],
-                "sleep_score": row[4],
-                "sleep_duration": row[5],
-                "sleep_efficiency": row[6],
-                "strain": row[7]
+
+                "date": r[0],
+
+                "recovery": r[1],
+
+                "hrv": r[2],
+
+                "resting_hr": r[3],
+
+                "sleep": r[4],
+
+                "sleep_score": r[5],
+
+                "strain": r[6]
+
             }
+
 
             history.append(item)
 
-            if row[1] is not None:
-                recovery_values.append(float(row[1]))
 
-            if row[2] is not None:
-                hrv_values.append(float(row[2]))
 
-            if row[3] is not None:
-                resting_hr_values.append(float(row[3]))
+            if r[1] is not None:
 
-            if row[4] is not None:
-                sleep_score_values.append(float(row[4]))
+                recovery_values.append(
+                    float(r[1])
+                )
 
-            if row[5] is not None:
-                sleep_duration_values.append(float(row[5]))
 
-            if row[6] is not None:
-                sleep_efficiency_values.append(float(row[6]))
+            if r[2] is not None:
 
-            if row[7] is not None:
-                strain_values.append(float(row[7]))
+                hrv_values.append(
+                    float(r[2])
+                )
 
-        def average(values):
+
+            if r[3] is not None:
+
+                resting_hr_values.append(
+                    float(r[3])
+                )
+
+
+            if r[4] is not None:
+
+                sleep_values.append(
+                    float(r[4])
+                )
+
+
+            if r[5] is not None:
+
+                sleep_score_values.append(
+                    float(r[5])
+                )
+
+
+            if r[6] is not None:
+
+                strain_values.append(
+                    float(r[6])
+                )
+
+
+
+
+        # =====================
+        # 基础计算
+        # =====================
+
+        def avg(values):
 
             if not values:
-                return None
+
+                return 0
+
 
             return round(
                 sum(values) / len(values),
                 2
             )
 
-        def format_value(value, suffix=""):
 
-            if value is None:
-                return "暂无数据"
 
-            return f"{value}{suffix}"
+        def change_percent(values):
 
-        def trend_text(values, threshold):
+            if len(values) < 2:
 
-            # 少于3天不做强趋势判断
-            if len(values) < 3:
-                return "数据不足"
+                return 0
 
-            oldest = values[0]
-            latest = values[-1]
-            change = latest - oldest
 
-            if change >= threshold:
-                return "明显上升"
+            first = values[0]
 
-            if change <= -threshold:
-                return "明显下降"
+            last = values[-1]
 
-            return "基本稳定"
 
-        avg_recovery = average(recovery_values)
-        avg_hrv = average(hrv_values)
-        avg_resting_hr = average(resting_hr_values)
-        avg_sleep_score = average(sleep_score_values)
-        avg_sleep_duration = average(sleep_duration_values)
-        avg_sleep_efficiency = average(sleep_efficiency_values)
-        avg_strain = average(strain_values)
+            if first == 0:
 
-        recovery_trend = trend_text(
-            recovery_values,
-            5
+                return 0
+
+
+            return round(
+                ((last-first)/first)*100,
+                1
+            )
+
+
+
+
+        avg_recovery = avg(
+            recovery_values
         )
 
-        hrv_trend = trend_text(
-            hrv_values,
-            5
+
+        avg_hrv = avg(
+            hrv_values
         )
 
-        sleep_trend = trend_text(
-            sleep_duration_values,
-            0.5
+
+        avg_resting_hr = avg(
+            resting_hr_values
         )
+
+
+        avg_sleep = avg(
+            sleep_values
+        )
+
+
+        avg_sleep_score = avg(
+            sleep_score_values
+        )
+
+
+        avg_strain = avg(
+            strain_values
+        )
+
+
+
+        recovery_change = change_percent(
+            recovery_values
+        )
+
+
+        hrv_change = change_percent(
+            hrv_values
+        )
+
+
+        sleep_change = change_percent(
+            sleep_values
+        )
+
+
+        strain_change = change_percent(
+            strain_values
+        )
+
+
+
 
         # =====================
-        # 总体状态判断
+        # Readiness训练准备度
         # =====================
 
-        if (
-            avg_recovery is not None
-            and avg_recovery >= 80
-        ):
+        readiness = 0
 
-            status_icon = "🟢"
-            status_text = "良好"
 
-        elif (
-            avg_recovery is not None
-            and avg_recovery >= 50
-        ):
 
-            status_icon = "🟡"
-            status_text = "需小心"
+        readiness += avg_recovery * 0.4
 
-        elif avg_recovery is not None:
 
-            status_icon = "🔴"
-            status_text = "危险"
+
+        if avg_sleep >= 8:
+
+            readiness += 30
+
+
+        elif avg_sleep >= 6.5:
+
+            readiness += 20
+
 
         else:
 
-            status_icon = "⚪"
-            status_text = "数据不足"
+            readiness += 10
 
-        # =====================
-        # 风险判断
+
+
+
+        if avg_strain < 5:
+
+            readiness += 20
+
+
+        elif avg_strain < 12:
+
+            readiness += 30
+
+
+        else:
+
+            readiness += 10
+
+
+
+        readiness = round(
+            min(readiness,100),
+            1
+        )
+
+
+            # =====================
+        # 风险检测
         # =====================
 
         risks = []
 
-        short_sleep_days = sum(
-            1
-            for value in sleep_duration_values
-            if value < 6
-        )
 
-        low_recovery_days = sum(
-            1
-            for value in recovery_values
-            if value < 50
-        )
-
-        high_strain_days = sum(
-            1
-            for value in strain_values
-            if value > 14
-        )
-
-        if short_sleep_days >= 2:
+        if len(history) < 3:
 
             risks.append(
-                f"最近记录中有 {short_sleep_days} 天睡眠少于6小时，存在睡眠债风险。"
+                "历史数据不足3天，趋势判断仅供参考"
             )
 
-        if low_recovery_days >= 2:
+
+
+        if avg_recovery < 60:
 
             risks.append(
-                f"最近记录中有 {low_recovery_days} 天恢复低于50，身体可能处于累积疲劳状态。"
+                "平均Recovery偏低，需要关注恢复"
             )
 
-        if high_strain_days >= 2:
+
+
+        if hrv_change < -10:
 
             risks.append(
-                f"最近记录中有 {high_strain_days} 天 Strain 高于14，训练压力偏高。"
+                "HRV下降超过10%，可能存在疲劳累积"
             )
 
-        if (
-            hrv_trend == "明显下降"
-            and avg_resting_hr is not None
-        ):
+
+
+        if avg_resting_hr > 0 and len(resting_hr_values) >= 3:
+
+
+            rhr_change = change_percent(
+                resting_hr_values
+            )
+
+
+            if rhr_change > 5:
+
+                risks.append(
+                    "静息心率升高，身体压力增加"
+                )
+
+
+
+        if avg_sleep < 6.5:
 
             risks.append(
-                "HRV呈下降趋势，需要关注睡眠、压力、疲劳或身体不适。"
+                "平均睡眠不足，可能影响恢复"
             )
 
-        if not risks:
 
-            risks.append(
-                "目前未发现明显的恢复、睡眠或训练失衡风险。"
-            )
+
 
         # =====================
-        # 未来1–3天建议
+        # 风险等级
         # =====================
 
-        advice = []
+        if len(risks) == 0:
 
-        if (
-            avg_sleep_duration is not None
-            and avg_sleep_duration < 7
-        ):
+            risk_level = "🟢 低风险"
 
-            advice.append(
-                "未来1–3天优先保证至少7小时睡眠，尽量固定入睡时间。"
-            )
 
-        if (
-            avg_recovery is not None
-            and avg_recovery < 50
-        ):
+        elif len(risks) <= 2:
 
-            advice.append(
-                "训练以休息、散步、拉伸或低强度恢复性有氧为主。"
-            )
+            risk_level = "🟡 中风险"
 
-        elif (
-            avg_recovery is not None
-            and avg_recovery >= 80
-        ):
-
-            advice.append(
-                "恢复总体良好，可安排正常训练，但避免连续多天高 Strain。"
-            )
 
         else:
 
-            advice.append(
-                "建议保持中等训练强度，并根据当天 Recovery 再调整训练量。"
+            risk_level = "🔴 高风险"
+
+
+
+
+
+        # =====================
+        # AI教练建议
+        # =====================
+
+        coach = []
+
+
+        if readiness >= 80:
+
+
+            coach.append(
+                "训练准备度优秀，可以保持正常训练"
             )
 
-        if hrv_trend == "明显下降":
 
-            advice.append(
-                "若HRV继续下降，建议把训练容量降低20%–30%，并观察静息心率。"
+            coach.append(
+                "建议目标 Strain：10-12"
             )
 
-        latest = history[-1]
-
-        risk_html = "".join(
-            f"<li>{risk}</li>"
-            for risk in risks
-        )
-
-        advice_html = "".join(
-            f"<li>{item}</li>"
-            for item in advice
-        )
-
-        history_rows = ""
-
-        for item in reversed(history):
-
-            history_rows += f"""
-            <tr>
-                <td>{item["date"]}</td>
-                <td>{format_value(item["recovery"], "%")}</td>
-                <td>{format_value(item["hrv"], " ms")}</td>
-                <td>{format_value(item["sleep_duration"], " h")}</td>
-                <td>{format_value(item["strain"])}</td>
-            </tr>
-            """
-
-        html = f"""
-        <!DOCTYPE html>
-
-        <html lang="zh-CN">
-
-        <head>
-
-            <meta charset="UTF-8">
-
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1">
-
-            <title>WHOOP 最近7天趋势</title>
-
-            <style>
-
-                body {{
-                    font-family:
-                        -apple-system,
-                        BlinkMacSystemFont,
-                        "Segoe UI",
-                        Arial,
-                        sans-serif;
-
-                    background: #f4f5f7;
-                    color: #191919;
-                    margin: 0;
-                    padding: 24px;
-                }}
-
-                .container {{
-                    max-width: 860px;
-                    margin: 0 auto;
-                }}
-
-                .header {{
-                    background: #111;
-                    color: white;
-                    border-radius: 18px;
-                    padding: 28px;
-                    margin-bottom: 18px;
-                }}
-
-                .header h1 {{
-                    margin: 0 0 12px 0;
-                    font-size: 30px;
-                }}
-
-                .status {{
-                    font-size: 22px;
-                    font-weight: 700;
-                }}
-
-                .subtext {{
-                    color: #cfcfcf;
-                    margin-top: 8px;
-                }}
-
-                .grid {{
-                    display: grid;
-                    grid-template-columns:
-                        repeat(auto-fit, minmax(180px, 1fr));
-                    gap: 14px;
-                    margin-bottom: 18px;
-                }}
-
-                .card {{
-                    background: white;
-                    border-radius: 16px;
-                    padding: 20px;
-                    box-shadow:
-                        0 3px 14px rgba(0, 0, 0, 0.07);
-                }}
-
-                .label {{
-                    color: #666;
-                    font-size: 14px;
-                    margin-bottom: 8px;
-                }}
 
-                .value {{
-                    font-size: 27px;
-                    font-weight: 750;
-                }}
+        elif readiness >= 60:
 
-                .trend {{
-                    margin-top: 8px;
-                    color: #555;
-                    font-size: 14px;
-                }}
 
-                h2 {{
-                    margin-top: 0;
-                    font-size: 21px;
-                }}
+            coach.append(
+                "训练准备度一般，建议中等强度训练"
+            )
 
-                ul {{
-                    padding-left: 22px;
-                    line-height: 1.7;
-                }}
 
-                table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 14px;
-                }}
+            coach.append(
+                "避免连续高负荷训练"
+            )
 
-                th,
-                td {{
-                    text-align: left;
-                    padding: 11px 8px;
-                    border-bottom: 1px solid #e9e9e9;
-                }}
 
-                th {{
-                    color: #666;
-                }}
+        else:
 
-                .footer {{
-                    text-align: center;
-                    color: #777;
-                    font-size: 13px;
-                    margin: 25px 0;
-                }}
 
-            </style>
+            coach.append(
+                "训练准备度偏低，优先恢复"
+            )
 
-        </head>
 
-        <body>
+            coach.append(
+                "未来1-3天建议降低训练量20-30%"
+            )
 
-            <div class="container">
 
-                <div class="header">
 
-                    <h1>WHOOP 最近7天趋势</h1>
+        if risks:
 
-                    <div class="status">
-                        {status_icon} 总体状态：{status_text}
-                    </div>
 
-                    <div class="subtext">
-                        已记录 {len(history)} 天 ·
-                        最新数据日期：{latest["date"]} ·
-                        北京时间 UTC+8
-                    </div>
+            coach.append(
+                "近期存在恢复压力信号，请关注睡眠"
+            )
 
-                </div>
 
 
-                <div class="grid">
 
-                    <div class="card">
-
-                        <div class="label">
-                            平均 Recovery
-                        </div>
-
-                        <div class="value">
-                            {format_value(avg_recovery, "%")}
-                        </div>
-
-                        <div class="trend">
-                            趋势：{recovery_trend}
-                        </div>
-
-                    </div>
-
-
-                    <div class="card">
-
-                        <div class="label">
-                            平均 HRV
-                        </div>
-
-                        <div class="value">
-                            {format_value(avg_hrv, " ms")}
-                        </div>
-
-                        <div class="trend">
-                            趋势：{hrv_trend}
-                        </div>
-
-                    </div>
-
-
-                    <div class="card">
-
-                        <div class="label">
-                            平均睡眠
-                        </div>
-
-                        <div class="value">
-                            {format_value(avg_sleep_duration, " h")}
-                        </div>
-
-                        <div class="trend">
-                            趋势：{sleep_trend}
-                        </div>
-
-                    </div>
-
-
-                    <div class="card">
-
-                        <div class="label">
-                            平均 Strain
-                        </div>
-
-                        <div class="value">
-                            {format_value(avg_strain)}
-                        </div>
-
-                        <div class="trend">
-                            训练压力
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="grid">
-
-                    <div class="card">
-
-                        <h2>睡眠与心率</h2>
-
-                        <p>
-                            平均睡眠表现：
-                            <strong>
-                                {format_value(avg_sleep_score, "%")}
-                            </strong>
-                        </p>
-
-                        <p>
-                            平均睡眠效率：
-                            <strong>
-                                {format_value(avg_sleep_efficiency, "%")}
-                            </strong>
-                        </p>
-
-                        <p>
-                            平均静息心率：
-                            <strong>
-                                {format_value(avg_resting_hr, " bpm")}
-                            </strong>
-                        </p>
-
-                    </div>
-
-
-                    <div class="card">
-
-                        <h2>风险提示</h2>
-
-                        <ul>
-                            {risk_html}
-                        </ul>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card"
-                     style="margin-bottom:18px;">
-
-                    <h2>未来1–3天建议</h2>
-
-                    <ul>
-                        {advice_html}
-                    </ul>
-
-                </div>
-
-
-                <div class="card">
-
-                    <h2>最近记录</h2>
-
-                    <div style="overflow-x:auto;">
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-                                    <th>日期</th>
-                                    <th>恢复</th>
-                                    <th>HRV</th>
-                                    <th>睡眠</th>
-                                    <th>Strain</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-                                {history_rows}
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-
-                <div class="footer">
-                    WHOOP 健康教练 · 仅供健康趋势参考
-                </div>
-
-            </div>
-
-        </body>
-
-        </html>
-        """
-
-        return Response(
-            html,
-            mimetype="text/html"
+        risk_html = "<br>".join(
+            [
+                "⚠️ " + r
+                for r in risks
+            ]
         )
 
 
-    except Exception as e:
+        if not risk_html:
 
-        print(
-            "TREND REPORT ERROR:",
-            str(e)
-        )
+            risk_html = "✅ 暂未发现明显恢复风险"
 
-        return Response(
-            f"""
-            <h1>趋势报告生成失败</h1>
-            <p>{str(e)}</p>
-            """,
-            status=500,
-            mimetype="text/html"
+
+
+        coach_html = "<br>".join(
+            [
+                "• " + c
+                for c in coach
+            ]
         )
 
 
-    finally:
 
-        if cur is not None:
 
-            try:
-                cur.close()
 
-            except Exception:
-                pass
+        return f"""
 
-        if conn is not None:
+<!DOCTYPE html>
 
-            try:
-                conn.close()
+<html lang="zh-CN">
 
-            except Exception:
-                pass
+<head>
+
+
+<meta charset="UTF-8">
+
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+
+<title>
+WHOOP AI Coach Trend
+</title>
+
+
+<style>
+
+
+body {{
+
+font-family:Arial,sans-serif;
+
+background:#f4f5f7;
+
+padding:20px;
+
+}}
+
+
+
+.container {{
+
+max-width:800px;
+
+margin:auto;
+
+}}
+
+
+
+.card {{
+
+background:white;
+
+padding:25px;
+
+border-radius:18px;
+
+margin-bottom:18px;
+
+box-shadow:
+0 3px 12px rgba(0,0,0,.08);
+
+}}
+
+
+
+.value {{
+
+font-size:32px;
+
+font-weight:bold;
+
+}}
+
+
+
+table {{
+
+width:100%;
+
+border-collapse:collapse;
+
+}}
+
+
+
+td,th {{
+
+padding:10px;
+
+border-bottom:1px solid #ddd;
+
+}}
+
+
+
+.button {{
+
+display:block;
+
+background:#111;
+
+color:white;
+
+padding:14px;
+
+border-radius:12px;
+
+text-align:center;
+
+text-decoration:none;
+
+}}
+
+
+
+</style>
+
+
+</head>
+
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="card">
+
+<h1>
+WHOOP AI Coach
+</h1>
+
+
+<h2>
+最近7天趋势
+</h2>
+
+
+<p>
+数据天数：
+{len(history)}
+天
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>
+训练准备度 Readiness
+</h3>
+
+
+<div class="value">
+
+{readiness}/100
+
+</div>
+
+
+<p>
+综合 Recovery、睡眠、训练压力
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>
+平均恢复指标
+</h3>
+
+
+<p>
+Recovery：
+{avg_recovery}%
+</p>
+
+
+<p>
+HRV：
+{avg_hrv} ms
+</p>
+
+
+<p>
+静息心率：
+{avg_resting_hr} bpm
+</p>
+
+
+<p>
+睡眠：
+{avg_sleep} 小时
+</p>
+
+
+<p>
+睡眠评分：
+{avg_sleep_score}%
+</p>
+
+
+<p>
+平均
+
+
 # =====================
 # AI 健康报告 V2
 # =====================
