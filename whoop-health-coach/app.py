@@ -1654,26 +1654,26 @@ def convert_utc_to_beijing(obj):
 @app.route("/whoop/today")
 def today():
 
-    ...
+    try:
+
+        data = get_whoop_data()
+
+        report = generate_health_report(data)
+
+        return report
+
+
+    except Exception as e:
+
+        return str(e)
+
 
 
 # =====================
 # AI 健康报告 V2
 # =====================
 
-try:
-
-    xxx
-
-
-except Exception as e:
-
-    print(e)
-
-
-
 def generate_health_report(data):
-
 
     ...
 
@@ -2414,6 +2414,11 @@ HRV：
 平均
 
 """
+
+    except Exception as e:
+
+        return str(e)
+
 
 # =====================
 # AI 健康报告 V2
