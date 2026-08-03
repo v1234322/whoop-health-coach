@@ -24,6 +24,8 @@ app.config["JSON_AS_ASCII"] = False
 @app.route("/")
 def home():
 
+    status = "🟢 系统正常"
+
     try:
 
         conn = get_db_connection()
