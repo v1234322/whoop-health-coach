@@ -1869,6 +1869,8 @@ def generate_health_report(data):
 
     strain = data["workout"]["strain"]
 
+    sport_name = "综合训练"
+
     training_advice = "根据 Recovery 调整训练强度"
 
 
