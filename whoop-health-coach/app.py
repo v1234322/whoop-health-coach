@@ -2384,65 +2384,75 @@ def whoop_week():
 
 def generate_health_report(data):
 
+    # =========================
+    # 数据读取
+    # =========================
     recovery = data.get("recovery", {})
     sleep = data.get("sleep", {})
     workout = data.get("workout", {})
 
-    # 数据类型修正
+    # =========================
+    # 数据类型统一
+    # =========================
     try:
-        recovery_score = float(data["recovery"]["score"])
-        hrv = float(data["recovery"]["hrv"])
-        resting_hr = float(data["recovery"]["resting_hr"])
-        sleep_duration = float(data["sleep"]["duration"])
-        sleep_performance = float(data["sleep"]["performance"])
-        sleep_efficiency = float(data["sleep"]["efficiency"])
-        strain = float(data["workout"]["strain"])
+        recovery_score = float(recovery.get("score", 0))
+        hrv = float(recovery.get("hrv", 0))
+        resting_hr = float(recovery.get("resting_hr", 0))
+
+        sleep_duration = float(sleep.get("duration", 0))
+        sleep_performance = float(sleep.get("performance", 0))
+        sleep_efficiency = float(sleep.get("efficiency", 0))
+
+        strain = float(workout.get("strain", 0))
 
     except Exception as e:
         print("数字转换失败:", e)
 
+        recovery_score = 0
+        hrv = 0
+        resting_hr = 0
+        sleep_duration = 0
+        sleep_performance = 0
+        sleep_efficiency = 0
+        strain = 0
+
+
     print("DEBUG DATA:", data)
-    
+
+
+    # =========================
+    # 基础状态
+    # =========================
     status = "🟢 良好"
 
     sleep_consistency = "稳定"
 
+    # 必须是数字，不要写 "0"
     sleep_debt = 0
 
     risk_warning = "暂无明显风险"
 
-    recovery_score = float(
-        data["recovery"]["score"]
-    )
-    hrv = float(
-        data["recovery"]["hrv"]
-    )
-    resting_hr = float(
-        data["recovery"]["resting_hr"]
-    )
-    avg_hr = data["recovery"]["resting_hr"]
-    max_hr = avg_hr
+
+    # =========================
+    # 训练信息
+    # =========================
+    avg_hr = resting_hr
+    max_hr = resting_hr
+
     workout_start = "暂无训练记录"
     workout_end = "暂无训练记录"
     workout_duration = "暂无数据"
     workout_type = "训练"
-    sleep_score = data["sleep"]["performance"]
-    sleep_hours = float( 
-        data["sleep"]["duration"]
-    )
-    sleep_duration = sleep_hours
-    sleep_performance = data["sleep"]["performance"]
-    sleep_efficiency = data["sleep"]["efficiency"]
-
-    strain = float(
-        data["workout"]["strain"]
-    )
 
     sport_name = "综合训练"
 
+
     training_advice = "根据 Recovery 调整训练强度"
 
-    
+
+    # =========================
+    # 教练建议
+    # =========================
     coach_advice = generate_coach_advice(
         recovery_score,
         hrv,
@@ -2451,10 +2461,11 @@ def generate_health_report(data):
         strain
     )
 
+
     print("DEBUG TYPES:")
     print(type(recovery_score))
     print(type(hrv))
-    print(type(sleep_hours))
+    print(type(sleep_duration))
     print(type(strain))
     print(type(sleep_debt))
 
