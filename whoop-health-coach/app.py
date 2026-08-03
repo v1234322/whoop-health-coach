@@ -516,14 +516,18 @@ def get_db_connection():
 
 
 def generate_coach_advice(
-    recovery,
+    recovery_score,
     hrv,
-    sleep_hours,
+    sleep_duration,
     sleep_debt,
     strain
 ):
 
-    advice = {}
+    recovery_score = float(recovery_score)
+    hrv = float(hrv)
+    sleep_duration = float(sleep_duration)
+    sleep_debt = float(sleep_debt)
+    strain = float(strain)
     
 
     # ======================
