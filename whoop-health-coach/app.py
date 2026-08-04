@@ -2397,10 +2397,16 @@ Strain:
 {strain_comment}
 
 
+<h2>📅 每日记录</h2>
+
+{daily_html}
+
+
 
 <h2>🤖 私人教练建议</h2>
 
 {training_plan}
+
 
 
 <h2>🧠 AI 周总结</h2>
@@ -2408,11 +2414,6 @@ Strain:
 <p>
 {ai_summary}
 </p>
-
-
-<h2>📅 每日记录</h2>
-
-{daily_html}
 
 
 <h2>未来1-3天</h2>
