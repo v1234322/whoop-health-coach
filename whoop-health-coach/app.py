@@ -2105,6 +2105,36 @@ def generate_week_report(data):
 
 
     # =========================
+    # 趋势分析
+    # =========================
+
+    if len(recovery_list) >= 2:
+
+        if recovery_list[0] > recovery_list[-1]:
+            recovery_trend = "📈 Recovery 正在提升"
+        elif recovery_list[0] < recovery_list[-1]:
+            recovery_trend = "📉 Recovery 有下降趋势"
+        else:
+            recovery_trend = "➡️ Recovery 保持稳定"
+
+    else:
+        recovery_trend = "数据不足"
+
+
+    if len(hrv_list) >= 2:
+
+        if hrv_list[0] > hrv_list[-1]:
+            hrv_trend = "📈 HRV 上升，恢复能力改善"
+        elif hrv_list[0] < hrv_list[-1]:
+            hrv_trend = "📉 HRV 下降，需要关注恢复"
+        else:
+            hrv_trend = "➡️ HRV 稳定"
+        
+    else:
+        hrv_trend = "数据不足"
+
+
+    # =========================
     # AI 周总结
     # =========================
 
@@ -2619,6 +2649,24 @@ Strain：
 
 
 <hr>
+
+
+<h2>📈 趋势分析</h2>
+
+<p>
+Recovery：
+{recovery_trend}
+</p>
+
+<p>
+HRV：
+{hrv_trend}
+</p>
+
+<p>
+7天平均 Recovery：
+{avg_recovery:.1f}%
+</p>
 
 
 <h2>🤖 训练建议</h2>
