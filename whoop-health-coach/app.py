@@ -1828,15 +1828,17 @@ def daily_scheduler():
 
 def start_scheduler():
 
-    scheduler_thread = threading.Thread(
+    t = threading.Thread(
         target=daily_scheduler,
         daemon=True
     )
 
-    scheduler_thread.start()
+    t.start()
 
     print("DAILY SCHEDULER STARTED")
-    
+
+
+start_scheduler()
 
 # =====================
 # UTC 转北京时间
