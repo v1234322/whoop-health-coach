@@ -55,6 +55,95 @@ def home():
     </html>
     """
 
+@app.route("/whoop/today")
+def today():
+
+    try:
+
+        data = get_whoop_data()
+
+        report = generate_health_report(data)
+
+        return report
+
+    except Exception as e:
+
+        print("TODAY ERROR:", e)
+
+        return str(e)
+
+
+
+@app.route("/whoop/trend")
+def trend():
+
+    try:
+
+        data = get_whoop_week_data()
+
+        report = generate_week_report(data)
+
+        return report
+
+    except Exception as e:
+
+        print("TREND ERROR:", e)
+
+        return str(e)
+
+
+
+@app.route("/whoop/auto-report")
+def auto_report():
+
+    try:
+
+        data = {
+
+            "recovery":
+            whoop_get("/recovery"),
+
+            "cycle":
+            whoop_get("/cycle"),
+
+            "sleep":
+            whoop_get("/activity/sleep"),
+
+            "workout":
+            whoop_get("/activity/workout")
+
+        }
+
+
+        convert_utc_to_beijing(data)
+
+
+        report = generate_health_report(data)
+
+
+        metrics = extract_daily_metrics(data)
+
+
+        save_daily_data(metrics)
+
+
+        return jsonify({
+
+            "status":
+            "daily report generated",
+
+            "report":
+            report
+
+        })
+
+
+    except Exception as e:
+
+        print("AUTO REPORT ERROR:", e)
+
+        return str(e)
+
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
     ""
