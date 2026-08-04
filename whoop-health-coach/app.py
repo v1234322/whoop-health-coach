@@ -18,6 +18,57 @@ client = OpenAI(
     base_url="https://api.deepseek.com"
 )
 
+def generate_ai_summary(ai_prompt):
+    """
+    调用 DeepSeek 生成 WHOOP 私人教练总结
+    """
+
+    try:
+
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
+你是我的WHOOP私人健康教练。
+
+你的任务：
+1. 根据最近7天恢复、睡眠、HRV、训练数据分析状态
+2. 判断风险：良好 / 需小心 / 危险
+3. 给未来1-3天具体行动建议
+
+输出要求：
+- 中文简体
+- 像私人教练一样
+- 先总结，再解释数据
+- 不要编造不存在的数据
+"""
+                },
+
+                {
+                    "role": "user",
+                    "content": ai_prompt
+                }
+            ],
+
+            temperature=0.4
+        )
+
+
+        return response.choices[0].message.content
+
+
+    except Exception as e:
+
+        print(
+            "AI SUMMARY ERROR:",
+            e
+        )
+
+        return "AI教练暂时无法生成建议"
+
 app = Flask(__name__)
 
 app.json.ensure_ascii = False
@@ -2133,6 +2184,46 @@ def generate_week_report(data):
     avg_sleep = sum(sleep_list) / days
     avg_strain = sum(strain_list) / days
 
+    ai_prompt = f"""
+
+    你是我的WHOOP私人健康教练。
+
+    最近7天数据：
+
+    Recovery平均:
+    {avg_recovery:.1f}%
+
+    HRV平均:
+    {avg_hrv:.1f} ms
+
+    静息心率:
+    {avg_hr:.1f} bpm
+
+    睡眠:
+    {avg_sleep:.2f}小时
+
+    Strain:
+    {avg_strain:.2f}
+
+
+    请输出：
+
+    1. 总体状态
+    2. 恢复分析
+    3. 睡眠分析
+    4. 训练建议
+    5. 未来3天行动建议
+
+
+    中文输出，300字以内。
+
+    """
+
+
+coach_advice = generate_ai_summary(
+    ai_prompt
+)
+
 
     # =========================
     # 趋势分析
@@ -2395,6 +2486,7 @@ def generate_week_report(data):
         优先睡眠和恢复
         """
 
+        
 
 
     return f"""
