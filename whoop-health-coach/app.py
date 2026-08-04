@@ -2386,6 +2386,10 @@ def whoop_week():
 
 def generate_health_report(data):
 
+    print("### USING NEW HEALTH REPORT ###")
+
+    recovery = data.get("recovery", {})
+
     # =========================
     # 数据读取
     # =========================
@@ -2455,7 +2459,10 @@ def generate_health_report(data):
     # =========================
     # 教练建议
     # =========================
-    advice = generate_coach_advice(
+       # =========================
+    # AI 教练建议
+    # =========================
+    coach_advice = generate_coach_advice(
         recovery_score,
         hrv,
         sleep_duration,
@@ -2499,17 +2506,17 @@ line-height:1.8;
 <p>
 Recovery：
 <b>{recovery_score:.1f}%</b>
-</p >
+</p>
 
 <p>
 HRV：
 <b>{hrv:.1f} ms</b>
-</p >
+</p>
 
 <p>
 静息心率：
 <b>{resting_hr:.0f} bpm</b>
-</p >
+</p>
 
 
 <hr>
@@ -2520,17 +2527,17 @@ HRV：
 <p>
 睡眠时长：
 <b>{sleep_duration:.2f} 小时</b>
-</p >
+</p>
 
 <p>
 睡眠表现：
 <b>{sleep_performance:.1f}%</b>
-</p >
+</p>
 
 <p>
 睡眠效率：
 <b>{sleep_efficiency:.1f}%</b>
-</p >
+</p>
 
 
 <hr>
@@ -2541,19 +2548,19 @@ HRV：
 <p>
 Strain：
 <b>{strain:.2f}</b>
-</p >
+</p>
 
 
 <p>
 平均心率：
 <b>{avg_hr:.0f} bpm</b>
-</p >
+</p>
 
 
 <p>
 最大心率：
 <b>{max_hr:.0f} bpm</b>
-</p >
+</p>
 
 
 <hr>
@@ -2563,7 +2570,7 @@ Strain：
 
 <p>
 {training_advice}
-</p >
+</p>
 
 
 <hr>
@@ -2572,8 +2579,8 @@ Strain：
 <h2>🧠 AI 教练建议</h2>
 
 <p>
-{advice}
-</p >
+{coach_advice}
+</p>
 
 
 <hr>
@@ -2585,13 +2592,12 @@ Strain：
 1. 保证充足睡眠恢复<br>
 2. 根据 Recovery 调整训练强度<br>
 3. 避免连续高 Strain
-</p >
+</p>
 
 
 </div>
 
 """
-
 
 # =====================
 # DAILY AUTO REPORT
