@@ -2447,7 +2447,7 @@ def auto_report():
 
       "workout":
       whoop_get("/activity/workout")
-  }
+    }
 
 
     print("========== WHOOP RAW ==========")
