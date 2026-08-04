@@ -1620,9 +1620,10 @@ def save_daily_data(metrics):
         cur = conn.cursor()
 
 
-        today = datetime.now().strftime(
-            "%Y-%m-%d"
-        )
+        today = (
+            datetime.utcnow()
+            + timedelta(hours=8)
+        ).strftime("%Y-%m-%d")
 
 
         # 删除当天旧数据，避免重复
@@ -1875,13 +1876,19 @@ def get_whoop_data():
 @app.route("/whoop/today")
 def today():
 
-    try:
+    data = get_whoop_data()
 
-        data = get_whoop_data()
 
-        report = generate_health_report(data)
+    # 保存每日数据
 
-        return report
+    metrics = extract_daily_metrics(data)
+
+    save_daily_data(metrics)
+
+
+    report = generate_health_report(data)
+
+    return report
 
 
     except Exception as e:
