@@ -96,9 +96,9 @@ def trend():
 @app.route("/whoop/auto-report")
 def auto_report():
 
-    try:
 
-        print("######## AUTO REPORT V2 RUNNING ########")
+    print("######## AUTO REPORT NEW VERSION ########")
+    try:
 
         data = {
             "recovery": whoop_get("/recovery"),
