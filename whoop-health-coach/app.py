@@ -1378,6 +1378,10 @@ def generate_health_report(data):
     sleep = data.get("sleep", {})
     workout = data.get("workout", {})
 
+    recovery_trend = data.get("recovery_trend", [])
+    sleep_trend = data.get("sleep_trend", [])
+    hrv_trend = data.get("hrv_trend", [])
+
     # 后面保持原来的代码
 
 
