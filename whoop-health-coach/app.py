@@ -1443,32 +1443,48 @@ def generate_health_report(data):
     )
 
 
-    sleep_duration = float(
-        sleep.get("duration",0)
-        or sleep.get("sleep_duration",0)
-        or sleep.get("total_in_bed_time_milli",0) / 3600000
-        or 0
-    )
+    # =========================
+    # WHOOP Sleep Parser
+    # =========================
 
+    sleep_duration = 0
+    sleep_performance = 0
+    sleep_efficiency = 0
 
-    sleep_performance = float(
-        sleep.get("performance_percentage",0)
-        or sleep.get("sleep_performance_percentage",0)
-        or sleep.get("sleep_performance",0)
-        or 0
-    )
+    try:
+        records = sleep.get("records", [])
+    
+        if records:
 
+            latest_sleep = records[0]
 
-    sleep_efficiency = float(
-        sleep.get("efficiency_percentage",0)
-        or sleep.get("efficiency",0)
-        or 0
-    )
+            stage = (
+                latest_sleep
+                .get("score", {})
+                .get("stage_summary", {})
+            )
 
-    sleep_performance = float(
-        sleep.get("sleep_performance_percentage",0)
-        or 0
-    )
+            sleep_duration = (
+                stage.get("total_sleep_time_milli", 0)
+                / 3600000
+            )
+
+            sleep_performance = (
+                stage.get(
+                    "sleep_performance_percentage",
+                    0
+                )
+            )
+
+            sleep_efficiency = (
+                stage.get(
+                    "sleep_efficiency_percentage",
+                    0
+                )
+            )
+
+    except Exception as e:
+        print("SLEEP PARSER ERROR:", e)
 
 
     strain = float(
