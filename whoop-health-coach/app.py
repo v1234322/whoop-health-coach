@@ -1375,13 +1375,10 @@ def generate_health_report(data):
     print("### USING NEW HEALTH REPORT ###")
 
     recovery = data.get("recovery", {})
-
-    # =========================
-    # 数据读取
-    # =========================
-    recovery = data.get("recovery", {})
     sleep = data.get("sleep", {})
     workout = data.get("workout", {})
+
+    # 后面保持原来的代码
 
 
     # =========================
