@@ -1473,6 +1473,8 @@ def generate_health_report(data):
 
            stage = score.get("stage_summary", {})
 
+           print("STAGE DATA >>>", stage)
+
            sleep_duration = round(
                stage.get("total_in_bed_time_milli",0) / 3600000,
                2
