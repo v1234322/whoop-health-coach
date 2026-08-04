@@ -1471,59 +1471,40 @@ def generate_health_report(data):
                {}
            )
 
-           stage = score.get(
-               "stage_summary",
-               {}
+           stage = score.get("stage_summary", {})
+
+           sleep_duration = round(
+               stage.get("total_in_bed_time_milli",0) / 3600000,
+               2
            )
 
+           sleep_performance = stage.get(
+               "sleep_performance_percentage",
+               0
+           )
 
-           # 睡眠小时
-           sleep_duration = round(
-               stage.get(
-                   "total_sleep_time_milli",
-                   0
-                )
-                / 3600000,
-                2
-            )
+           sleep_efficiency = stage.get(
+               "sleep_efficiency_percentage",
+               0
+           )
 
-
-           # 睡眠表现
-           sleep_performance = round(
-               stage.get(
-                   "sleep_performance_percentage",
-                    0
-                ),
-               1
-            )
-
-
-           # 睡眠效率
-           sleep_efficiency = round(
-               stage.get(
-                   "sleep_efficiency_percentage",
-                   0
-                ),
-               1
-            )
-
-
-           # 睡眠周期
            sleep_cycles = stage.get(
                "sleep_cycle_count",
-                0
-            )
+               0
+           )
 
-
-           # 清醒时间
-           awake_time = round(
-               stage.get(
-                   "total_awake_time_milli",
+           sleep_needed = round(
+               stage.get("sleep_needed", {}).get(
+                   "baseline_milli",
                    0
-                )
-                / 60000,
+               ) / 3600000,
+               2
+           )
+
+           awake_time = round(
+               stage.get("total_awake_time_milli",0) / 60000,
                1
-            )
+           )
 
            # 需要睡眠
            sleep_needed = round(
