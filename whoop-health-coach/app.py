@@ -1463,7 +1463,7 @@ def generate_health_report(data):
        if records:
 
            # 取最新一次睡眠
-           latest_sleep = records[-1]
+           latest_sleep = records[0]
 
            score = latest_sleep.get(
                "score",
