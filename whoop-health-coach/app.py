@@ -76,21 +76,8 @@ app.json.ensure_ascii = False
 app.config["JSON_AS_ASCII"] = False
 
 
-# ==========================
-# 启动每日自动保存任务
-# ==========================
-
-def start_scheduler():
-
-    t = threading.Thread(
-        target=daily_scheduler,
-        daemon=True
-    )
-
-    t.start()
-
-
 start_scheduler()
+
 
 
 # ============================
@@ -1835,7 +1822,21 @@ def daily_scheduler():
 
         time.sleep(86400)
 
+# ==========================
+# 启动每日自动保存线程
+# ==========================
 
+def start_scheduler():
+
+    scheduler_thread = threading.Thread(
+        target=daily_scheduler,
+        daemon=True
+    )
+
+    scheduler_thread.start()
+
+    print("DAILY SCHEDULER STARTED")
+    
 
 # =====================
 # UTC 转北京时间
