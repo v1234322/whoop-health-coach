@@ -1465,15 +1465,21 @@ def generate_health_report(data):
            # 取最新一次睡眠
            latest_sleep = records[-1]
 
-
            score = latest_sleep.get(
                "score",
                {}
            )
 
-           stage = score.get("stage_summary", {})
+           stage = score.get(
+               "stage_summary",
+               {}
+           )
 
+           print("========== DEBUG SLEEP ==========")
+           print("LATEST SLEEP:", latest_sleep)
+           print("SCORE:", score)
            print("STAGE DATA >>>", stage)
+           print("================================")
 
            sleep_duration = round(
                stage.get("total_in_bed_time_milli",0) / 3600000,
