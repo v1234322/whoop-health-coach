@@ -2393,6 +2393,7 @@ def generate_health_report(data):
     sleep = data.get("sleep", {})
     workout = data.get("workout", {})
 
+
     # =========================
     # 数据类型统一
     # =========================
@@ -2429,7 +2430,6 @@ def generate_health_report(data):
 
     sleep_consistency = "稳定"
 
-    # 必须是数字，不要写 "0"
     sleep_debt = 0
 
     risk_warning = "暂无明显风险"
@@ -2455,7 +2455,7 @@ def generate_health_report(data):
     # =========================
     # 教练建议
     # =========================
-    coach_advice = generate_coach_advice(
+    advice = generate_coach_advice(
         recovery_score,
         hrv,
         sleep_duration,
@@ -2463,7 +2463,6 @@ def generate_health_report(data):
         strain
     )
 
-    advice= coach_advice
 
     print("DEBUG TYPES:")
     print(type(recovery_score))
@@ -2471,6 +2470,7 @@ def generate_health_report(data):
     print(type(sleep_duration))
     print(type(strain))
     print(type(sleep_debt))
+
 
     return f"""
 
@@ -2499,17 +2499,17 @@ line-height:1.8;
 <p>
 Recovery：
 <b>{recovery_score:.1f}%</b>
-</p>
+</p >
 
 <p>
 HRV：
 <b>{hrv:.1f} ms</b>
-</p>
+</p >
 
 <p>
 静息心率：
 <b>{resting_hr:.0f} bpm</b>
-</p>
+</p >
 
 
 <hr>
@@ -2520,17 +2520,17 @@ HRV：
 <p>
 睡眠时长：
 <b>{sleep_duration:.2f} 小时</b>
-</p>
+</p >
 
 <p>
 睡眠表现：
-<b>{sleep_score:.1f}%</b>
-</p>
+<b>{sleep_performance:.1f}%</b>
+</p >
 
 <p>
 睡眠效率：
 <b>{sleep_efficiency:.1f}%</b>
-</p>
+</p >
 
 
 <hr>
@@ -2541,19 +2541,19 @@ HRV：
 <p>
 Strain：
 <b>{strain:.2f}</b>
-</p>
+</p >
 
 
 <p>
 平均心率：
 <b>{avg_hr:.0f} bpm</b>
-</p>
+</p >
 
 
 <p>
 最大心率：
 <b>{max_hr:.0f} bpm</b>
-</p>
+</p >
 
 
 <hr>
@@ -2563,7 +2563,17 @@ Strain：
 
 <p>
 {training_advice}
-</p>
+</p >
+
+
+<hr>
+
+
+<h2>🧠 AI 教练建议</h2>
+
+<p>
+{advice}
+</p >
 
 
 <hr>
@@ -2575,15 +2585,12 @@ Strain：
 1. 保证充足睡眠恢复<br>
 2. 根据 Recovery 调整训练强度<br>
 3. 避免连续高 Strain
-</p>
+</p >
 
 
 </div>
 
 """
-
-    return report
-
 
 
 # =====================
