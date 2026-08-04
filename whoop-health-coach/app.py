@@ -1382,7 +1382,21 @@ def generate_health_report(data):
     sleep_trend = data.get("sleep_trend", [])
     hrv_trend = data.get("hrv_trend", [])
 
-    # 后面保持原来的代码
+    avg_recovery = 0
+    avg_sleep = 0
+    avg_hrv = 0
+
+    recovery_change = 0
+    sleep_change = 0
+    hrv_change = 0
+
+    recovery_status = "暂无恢复趋势数据"
+    sleep_status = "暂无睡眠趋势数据"
+    hrv_status = "暂无HRV趋势数据"
+
+    recommendation = []
+    advice = []
+    trend_summary = ""
 
 
     # =========================
