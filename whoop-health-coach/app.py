@@ -129,8 +129,14 @@ def auto_report():
         print("SLEEP KEYS:")
         print(data["sleep"].keys())
 
-        print("FIRST SLEEP RECORD:")
-        print(data["sleep"]["records"][0])
+        print("SLEEP TYPE:")
+        print(type(data["sleep"]))
+
+        if "records" in data["sleep"]:
+            print("FIRST SLEEP RECORD:")
+            print(data["sleep"]["records"][0])
+        else:
+            print("NO RECORDS FIELD")
         
         print("WORKOUT:")
         print(data["workout"])
