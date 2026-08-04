@@ -1470,9 +1470,11 @@ def generate_health_report(data):
                {}
            )
 
-           stage = score.get(
-               "stage_summary",
-               {}
+           stage = (
+               score.get("stage_summary")
+               or latest_sleep.get("stage_summary")
+               or latest_sleep.get("score", {}).get("stage_summary")
+               or {}
            )
 
            print("========== DEBUG SLEEP ==========")
