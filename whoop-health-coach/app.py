@@ -1458,14 +1458,19 @@ def generate_health_report(data):
 
     try:
 
-       records = sleep.get("records", [])
+        records = (
+            sleep.get("records")
+            or sleep.get("data")
+            or sleep.get("sleep")
+            or []
+        )
 
-       print("DEBUG RECORDS:")
-       print(records)
+            print("DEBUG SLEEP DATA:")
+            print(records)
 
-       if records:
+            if records:
 
-           latest_sleep = records[0]
+                latest_sleep = records[0]
 
            print("========== SLEEP STRUCTURE DEBUG ==========")
            print("RECORD COUNT:", len(records))
