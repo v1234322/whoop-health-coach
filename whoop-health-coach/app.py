@@ -1597,21 +1597,21 @@ except Exception as e:
     print("Strain:", strain)
 
 
-    return {
-        "recovery": recovery_score,
-        "hrv": hrv,
-        "resting_hr": resting_hr,
+return {
+    "recovery": recovery_score,
+    "hrv": hrv,
+    "resting_hr": resting_hr,
 
-        "sleep": sleep_duration,
-        "sleep_performance": sleep_performance,
-        "sleep_efficiency": sleep_efficiency,
-        "sleep_quality": sleep_quality,
-        "sleep_cycles": sleep_cycles,
-        "sleep_needed": sleep_needed,
-        "awake_minutes": awake_time,
+    "sleep": sleep_duration,
+    "sleep_performance": sleep_performance,
+    "sleep_efficiency": sleep_efficiency,
+    "sleep_quality": sleep_quality,
+    "sleep_cycles": sleep_cycles,
+    "sleep_needed": sleep_needed,
+    "awake_minutes": awake_time,
 
-        "strain": strain
-    }
+    "strain": strain
+}
 
     # =========================
     # 基础状态
