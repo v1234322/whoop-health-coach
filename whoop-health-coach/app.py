@@ -1389,122 +1389,84 @@ def generate_coach_advice(
 
 def generate_health_report(data):
 
-    print("### USING NEW HEALTH REPORT ###")
-
-    recovery = data.get("recovery", {})
-    sleep = data.get("sleep", {})
-    workout = data.get("workout", {})
-
-    recovery_trend = data.get("recovery_trend", [])
-    sleep_trend = data.get("sleep_trend", [])
-    hrv_trend = data.get("hrv_trend", [])
-
-    avg_recovery = 0
-    avg_sleep = 0
-    avg_hrv = 0
-
-    recovery_change = 0
-    sleep_change = 0
-    hrv_change = 0
-
-    recovery_status = "暂无恢复趋势数据"
-    sleep_status = "暂无睡眠趋势数据"
-    hrv_status = "暂无HRV趋势数据"
-
-    recommendation = []
-    advice = []
-    trend_summary = ""
+    recovery_raw = data.get("recovery", {})
+    sleep_raw = data.get("sleep", {})
+    workout_raw = data.get("workout", {})
 
 
-    # =========================
-    # 数据类型统一
-    # =========================
+    # WHOOP API 返回 records
+    recovery = (
+        recovery_raw.get("records",[{}])[0]
+        if isinstance(recovery_raw, dict)
+        else {}
+    )
 
-    try:
+    sleep = (
+        sleep_raw.get("records",[{}])[0]
+        if isinstance(sleep_raw, dict)
+        else {}
+    )
 
-        # Recovery
-        recovery_data = recovery.get("score", {})
-
-        if isinstance(recovery_data, dict):
-            recovery_score = float(
-                recovery_data.get("recovery_score", 0) or 0
-            )
-
-            hrv = float(
-                recovery_data.get("hrv_rmssd_milli", 0) or 0
-            )
-
-            resting_hr = float(
-                recovery_data.get("resting_heart_rate", 0) or 0
-            )
-
-        else:
-            recovery_score = float(
-                recovery_data or 0
-            )
-
-            hrv = float(
-                recovery.get("hrv", 0) or 0
-            )
-
-            resting_hr = float(
-                recovery.get("resting_hr", 0) or 0
-            )
+    workout = (
+        workout_raw.get("records",[{}])[0]
+        if isinstance(workout_raw, dict)
+        else {}
+    )
 
 
-        # Sleep
-        sleep_duration = float(
-            sleep.get("duration", 0)
-            or sleep.get("sleep_duration", 0)
-            or 0
-        )
+    score = recovery.get("score", {})
 
 
-        sleep_performance = float(
-            sleep.get("performance", 0)
-            or sleep.get("sleep_performance", 0)
-            or 0
-        )
+    recovery_score = float(
+        score.get("recovery_score",0)
+        or 0
+    )
+
+    hrv = float(
+        score.get("hrv_rmssd_milli",0)
+        or 0
+    )
+
+    resting_hr = float(
+        score.get("resting_heart_rate",0)
+        or 0
+    )
 
 
-        sleep_efficiency = float(
-            sleep.get("efficiency", 0)
-            or sleep.get("sleep_efficiency", 0)
-            or 0
-        )
+    sleep_duration = float(
+        sleep.get("sleep_duration",0)
+        or 0
+    )
+
+    sleep_performance = float(
+        sleep.get("sleep_performance_percentage",0)
+        or 0
+    )
 
 
-        # Workout
-        strain = float(
-            workout.get("strain", 0)
-            or workout.get("cycle_strain", 0)
-            or 0
-        )
+    strain = float(
+        workout.get("score",{}).get("strain",0)
+        or 0
+    )
 
 
-    except Exception as e:
-
-        print("数字转换失败:", e)
-
-        recovery_score = 0
-        hrv = 0
-        resting_hr = 0
-
-        sleep_duration = 0
-        sleep_performance = 0
-        sleep_efficiency = 0
-
-        strain = 0
-
-
-    print("DEBUG VALUES:")
+    print("FIXED VALUES")
     print("Recovery:", recovery_score)
     print("HRV:", hrv)
     print("Rest HR:", resting_hr)
     print("Sleep:", sleep_duration)
     print("Sleep performance:", sleep_performance)
-    print("Efficiency:", sleep_efficiency)
     print("Strain:", strain)
+
+
+    return {
+        "recovery": recovery_score,
+        "hrv": hrv,
+        "resting_hr": resting_hr,
+        "sleep": sleep_duration,
+        "sleep_performance": sleep_performance,
+        "strain": strain
+    }
 
     # =========================
     # 基础状态
