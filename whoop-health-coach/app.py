@@ -101,16 +101,18 @@ def auto_report():
         data = {
 
             "recovery": whoop_get("/recovery"),
- 
+
             "cycle": whoop_get("/cycle"),
 
             "sleep": whoop_get("/activity/sleep"),
 
             "workout": whoop_get("/activity/workout")
- 
-        }
- 
 
+        }
+
+
+        print("######## TEST AUTO REPORT V2 ########")
+        
         print("========== AUTO REPORT RAW ==========")
 
         print("RECOVERY:")
@@ -121,10 +123,11 @@ def auto_report():
 
         print("SLEEP:")
         print(data["sleep"])
-
+        
         print("WORKOUT:")
         print(data["workout"])
 
+        
         print("====================================")
         
         convert_utc_to_beijing(data)
