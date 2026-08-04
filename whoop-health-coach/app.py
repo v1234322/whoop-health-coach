@@ -1,22 +1,67 @@
 import json
+
 import os
+
 print("WHOOP HEALTH COACH STARTED")
+
 import psycopg2
 
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, request, Response
+
 import requests
+
 import threading
+
 import time
 
 from openai import OpenAI
-
 
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com"
 )
+
+app = Flask(__name__)
+
+app.json.ensure_ascii = False
+
+app.config["JSON_AS_ASCII"] = False
+
+WHOOP_CLIENT_ID = os.environ.get(
+    "WHOOP_CLIENT_ID",
+    ""
+).strip()
+
+WHOOP_CLIENT_SECRET = os.environ.get(
+    "WHOOP_CLIENT_SECRET",
+    ""
+).strip()
+
+WHOOP_REFRESH_TOKEN = os.environ.get(
+    "WHOOP_REFRESH_TOKEN",
+    ""
+).strip()
+
+API_SECRET = os.environ.get(
+    "API_SECRET",
+    ""
+).strip()
+
+WHOOP_TOKEN_URL = (
+    "https://api.prod.whoop.com/oauth/oauth2/token"
+)
+
+WHOOP_API_BASE = (
+    "https://api.prod.whoop.com/developer/v2"
+)
+
+ACCESS_TOKEN = None
+
+ACCESS_TOKEN_EXPIRE = 0
+
+TOKEN_LOCK = threading.Lock()
 
 def generate_ai_summary(ai_prompt):
     """
@@ -69,501 +114,6 @@ def generate_ai_summary(ai_prompt):
 
         return "AI教练暂时无法生成建议"
 
-app = Flask(__name__)
-
-
-app.json.ensure_ascii = False
-app.config["JSON_AS_ASCII"] = False
-
-
-
-# ============================
-# WHOOP Dashboard 首页
-# ============================
-
-@app.route("/")
-def home():
-
-    status = "🟢 系统正常"
-
-    try:
-
-        conn = get_db_connection()
-
-        cur = conn.cursor()
-
-
-        cur.execute(
-            """
-            SELECT
-                report_date,
-                recovery_score,
-                hrv,
-                sleep_duration,
-                cycle_strain
-            FROM daily_metrics
-            ORDER BY report_date DESC
-            LIMIT 1
-            """
-        )
-
-
-        row = cur.fetchone()
-
-
-        cur.close()
-        conn.close()
-
-
-
-        if row:
-
-            date = row[0]
-
-            recovery = row[1]
-
-            hrv = row[2]
-
-            sleep = row[3]
-
-            strain = row[4]
-
-
-        else:
-
-            date = "暂无数据"
-
-            recovery = None
-
-            hrv = None
-
-            sleep = None
-
-            strain = None
-
-
-
-        # =====================
-        # Readiness训练准备度
-        # =====================
-
-        readiness = 0
-
-
-        if recovery is not None:
-
-            readiness += float(recovery) * 0.4
-
-
-
-        if sleep is not None:
-
-
-            if float(sleep) >= 8:
-
-                readiness += 30
-
-
-            elif float(sleep) >= 6:
-
-                readiness += 20
-
-
-            else:
-
-                readiness += 10
-
-
-
-        if strain is not None:
-
-
-            if float(strain) < 5:
-
-                readiness += 20
-
-
-            elif float(strain) < 12:
-
-                readiness += 30
-
-
-            else:
-
-                readiness += 10
-
-
-
-        readiness = round(
-            min(readiness,100),
-            1
-        )
-
-
-        # =====================
-        # Strain解释
-        # =====================
-
-
-        if strain is not None:
-
-
-            strain_value = float(strain)
-
-
-
-            if strain_value < 5:
-
-
-                strain_text = (
-                    "🟢 恢复日\n"
-                    "当前训练压力较低，适合增加Zone2有氧或轻力量训练。"
-                )
-
-
-            elif strain_value < 12:
-
-
-                strain_text = (
-                    "🟡 最佳训练区间\n"
-                    "当前负荷适中，可以完成主要训练。"
-                )
-
-
-            elif strain_value < 17:
-
-
-                strain_text = (
-                    "🟠 高压力训练\n"
-                    "注意睡眠和恢复。"
-                )
-
-
-            else:
-
-
-                strain_text = (
-                    "🔴 极高压力\n"
-                    "建议降低训练量。"
-                )
-
-
-        else:
-
-
-            strain_text = "暂无训练压力数据"
-
-
-
-        # =====================
-        # AI建议
-        # =====================
-
-
-        if readiness >= 80:
-
-
-            advice = (
-                "恢复能力优秀。"
-                "今天适合完成主要训练。"
-                "建议目标 Strain 10-12。"
-            )
-
-
-        elif readiness >=60:
-
-
-            advice = (
-                "身体状态一般。"
-                "建议中等强度训练，避免连续高负荷。"
-            )
-
-
-        else:
-
-
-            advice = (
-                "当前恢复不足。"
-                "建议优先恢复、睡眠和低强度活动。"
-            )
-
-
-
-
-        return f"""
-
-<!DOCTYPE html>
-
-<html lang="zh-CN">
-
-<head>
-
-<meta charset="UTF-8">
-
-<title>WHOOP AI Coach</title>
-
-
-<style>
-
-
-body{{
-
-font-family:Arial;
-
-background:#f4f5f7;
-
-padding:20px;
-
-}}
-
-
-.container{{
-
-max-width:700px;
-
-margin:auto;
-
-}}
-
-
-.card{{
-
-background:white;
-
-padding:25px;
-
-border-radius:18px;
-
-margin-bottom:18px;
-
-box-shadow:0 3px 12px rgba(0,0,0,.08);
-
-}}
-
-
-.value{{
-
-font-size:36px;
-
-font-weight:bold;
-
-}}
-
-
-.button{{
-
-display:block;
-
-background:#111;
-
-color:white;
-
-padding:15px;
-
-margin-top:10px;
-
-border-radius:12px;
-
-text-align:center;
-
-text-decoration:none;
-
-}}
-
-
-</style>
-
-
-</head>
-
-
-<body>
-
-
-<div class="container">
-
-
-
-<div class="card">
-
-<h1>WHOOP AI 教练</h1>
-
-<h2>{status}</h2>
-
-<p>最新数据：{date}</p>
-
-</div>
-
-
-
-
-<div class="card">
-
-<h3>训练准备度 Readiness</h3>
-
-<div class="value">
-
-{readiness}/100
-
-</div>
-
-<p>
-综合 Recovery、睡眠、训练压力计算
-</p>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>恢复 Recovery</h3>
-
-<div class="value">
-
-{recovery if recovery is not None else "-" }%
-
-</div>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>HRV 心率变异性</h3>
-
-<div class="value">
-
-{round(float(hrv),2) if hrv else "-" } ms
-
-</div>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>睡眠</h3>
-
-<div class="value">
-
-{round(float(sleep),2) if sleep else "-" } 小时
-
-</div>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>训练压力 Strain</h3>
-
-<div class="value">
-
-{round(float(strain),2) if strain else "-"}
-
-</div>
-
-
-<p>
-
-{strain_text}
-
-</p>
-
-</div>
-
-
-
-
-
-<div class="card">
-
-<h3>AI教练建议</h3>
-
-
-<p>
-
-{coach_advice}
-
-</p>
-
-
-</div>
-
-
-
-
-
-<div class="card">
-
-
-<a class="button"
-href="/whoop/today">
-
-今日报告
-
-</a>
-
-
-<a class="button"
-href="/whoop/trend">
-
-最近7天趋势
-
-</a>
-
-
-<a class="button"
-href="/whoop/auto-report">
-
-最新生成报告
-
-</a>
-
-
-</div>
-
-
-
-</div>
-
-
-</body>
-
-</html>
-
-"""
-
-
-
-    except Exception as e:
-
-
-        return f"""
-
-        <h1>WHOOP Dashboard Error</h1>
-
-        <p>{str(e)}</p>
-
-        """
-
-
-# =====================
-# DATABASE CONNECTION
-# =====================
-
 def get_db_connection():
 
     return psycopg2.connect(
@@ -573,136 +123,6 @@ def get_db_connection():
     )
 
     return conn
-
-
-def generate_coach_advice(
-    recovery_score,
-    hrv,
-    sleep_duration,
-    sleep_debt,
-    strain
-):
-
-    recovery_score = float(recovery_score)
-    hrv = float(hrv)
-    sleep_duration = float(sleep_duration)
-    sleep_debt = float(sleep_debt)
-    strain = float(strain)
-    
-
-    # ======================
-    # Recovery 判断
-    # ======================
-
-    recovery = recovery_score
-
-    if recovery >= 70:
-
-        status = "🟢 状态良好"
-
-        training = (
-            "今天身体恢复状态优秀，可以进行正常训练。\n"
-            "推荐：力量训练 + Zone2有氧。\n"
-            "目标 Strain：8-12"
-        )
-
-
-    elif recovery >= 40:
-
-        status = "🟡 状态一般"
-
-        training = (
-            "今天恢复一般，建议控制训练量。\n"
-            "推荐：中低强度训练或技术训练。\n"
-            "目标 Strain：5-8"
-        )
-
-
-    else:
-
-        status = "🔴 恢复不足"
-
-        training = (
-            "今天恢复不足，优先恢复。\n"
-            "推荐：散步、拉伸、低强度活动。\n"
-            "目标 Strain：<5"
-        )
-
-
-    # ======================
-    # 睡眠判断
-    # ======================
-
-    if sleep_debt >= 6:
-
-        sleep_warning = (
-            "⚠️ 睡眠债较高，需要优先补觉。"
-        )
-
-    elif sleep_debt >= 3:
-
-        sleep_warning = (
-            "🟡 存在轻中度睡眠债，建议今晚提前睡。"
-        )
-
-    else:
-
-        sleep_warning = (
-            "🟢 睡眠恢复正常。"
-        )
-
-
-    # ======================
-    # HRV判断
-    # ======================
-
-    if hrv < 30:
-
-        hrv_status = (
-            "HRV偏低，注意压力和恢复。"
-        )
-
-    else:
-
-        hrv_status = (
-            "HRV状态稳定。"
-        )
-
-
-    # ======================
-    # Strain风险
-    # ======================
-
-    if strain >= 15:
-
-        strain_warning = (
-            "⚠️ 今日负荷较高，避免连续高强度。"
-        )
-
-    else:
-
-        strain_warning = (
-            "🟢 当前训练负荷合理。"
-        )
-
-    advice = {}
-    
-    advice["status"] = status
-
-    advice["training"] = training
-
-    advice["sleep"] = sleep_warning
-
-    advice["hrv"] = hrv_status
-
-    advice["strain"] = strain_warning
-
-
-    return advice
-
-# =====================
-# DATABASE INIT
-# =====================
 
 def init_db():
 
@@ -860,7 +280,6 @@ def init_db():
             e
         )
 
-@app.route("/privacy")
 def privacy():
     return """
     <!DOCTYPE html>
@@ -890,75 +309,6 @@ def privacy():
     </html>
     """
 
-
-# =========================
-# DATABASE INIT
-# =========================
-
-init_db()
-
-
-# =========================
-# ENVIRONMENT
-# =========================
-
-WHOOP_CLIENT_ID = os.environ.get(
-    "WHOOP_CLIENT_ID",
-    ""
-).strip()
-
-
-
-WHOOP_CLIENT_SECRET = os.environ.get(
-    "WHOOP_CLIENT_SECRET",
-    ""
-).strip()
-
-
-
-WHOOP_REFRESH_TOKEN = os.environ.get(
-    "WHOOP_REFRESH_TOKEN",
-    ""
-).strip()
-
-
-
-API_SECRET = os.environ.get(
-    "API_SECRET",
-    ""
-).strip()
-
-
-
-WHOOP_TOKEN_URL = (
-    "https://api.prod.whoop.com/oauth/oauth2/token"
-)
-
-
-
-WHOOP_API_BASE = (
-    "https://api.prod.whoop.com/developer/v2"
-)
-
-
-
-
-# =========================
-# TOKEN CACHE
-# =========================
-
-ACCESS_TOKEN = None
-
-ACCESS_TOKEN_EXPIRE = 0
-
-
-TOKEN_LOCK = threading.Lock()
-
-
-# =========================
-# API KEY
-# =========================
-
 def check_api_key():
 
 
@@ -969,12 +319,6 @@ def check_api_key():
 
     return key == API_SECRET
 
-
-# =====================
-# WHOOP CALLBACK
-# =====================
-
-@app.route("/callback")
 def callback():
 
 
@@ -1077,12 +421,6 @@ def callback():
 
 })
 
-
-# =========================
-# AUTH CODE TOKEN
-# =========================
-
-@app.route("/whoop/token")
 def whoop_token():
 
 
@@ -1164,11 +502,6 @@ def whoop_token():
         r.json()
     )
 
-
-# =====================
-# TOKEN STORAGE
-# =====================
-
 def save_refresh_token(token):
 
     conn = get_db_connection()
@@ -1205,12 +538,6 @@ def save_refresh_token(token):
         "NEW REFRESH TOKEN SAVED"
     )
 
-
-
-# =====================
-# LOAD REFRESH TOKEN
-# =====================
-
 def load_refresh_token():
 
 
@@ -1243,11 +570,6 @@ def load_refresh_token():
 
 
     return None
-
-
-# =====================
-# WHOOP Refresh Token
-# =====================
 
 def refresh_access_token():
 
@@ -1350,10 +672,6 @@ def refresh_access_token():
 
     return access_token
 
-# =========================
-# WHOOP API GET
-# =========================
-
 def whoop_get(endpoint):
 
 
@@ -1429,11 +747,6 @@ def whoop_get(endpoint):
 
 
     return r.json()
-
-
-# =========================
-# EXTRACT DAILY METRICS
-# =========================
 
 def extract_daily_metrics(data):
 
@@ -1659,11 +972,6 @@ def extract_daily_metrics(data):
 
     return result
 
-# =====================
-# 保存每日历史数据 V6
-# PostgreSQL
-# =====================
-
 def save_daily_data(metrics):
 
     conn = None
@@ -1774,7 +1082,6 @@ def save_daily_data(metrics):
         if conn:
             conn.close()
 
-
 def convert_utc_to_beijing(obj):
 
     if isinstance(obj, dict):
@@ -1823,10 +1130,363 @@ def convert_utc_to_beijing(obj):
 
             convert_utc_to_beijing(item)
 
+def generate_coach_advice(
+    recovery_score,
+    hrv,
+    sleep_duration,
+    sleep_debt,
+    strain
+):
 
-# =========================
-# TODAY REPORT
-# =========================
+    recovery_score = float(recovery_score)
+    hrv = float(hrv)
+    sleep_duration = float(sleep_duration)
+    sleep_debt = float(sleep_debt)
+    strain = float(strain)
+    
+
+    # ======================
+    # Recovery 判断
+    # ======================
+
+    recovery = recovery_score
+
+    if recovery >= 70:
+
+        status = "🟢 状态良好"
+
+        training = (
+            "今天身体恢复状态优秀，可以进行正常训练。\n"
+            "推荐：力量训练 + Zone2有氧。\n"
+            "目标 Strain：8-12"
+        )
+
+
+    elif recovery >= 40:
+
+        status = "🟡 状态一般"
+
+        training = (
+            "今天恢复一般，建议控制训练量。\n"
+            "推荐：中低强度训练或技术训练。\n"
+            "目标 Strain：5-8"
+        )
+
+
+    else:
+
+        status = "🔴 恢复不足"
+
+        training = (
+            "今天恢复不足，优先恢复。\n"
+            "推荐：散步、拉伸、低强度活动。\n"
+            "目标 Strain：<5"
+        )
+
+
+    # ======================
+    # 睡眠判断
+    # ======================
+
+    if sleep_debt >= 6:
+
+        sleep_warning = (
+            "⚠️ 睡眠债较高，需要优先补觉。"
+        )
+
+    elif sleep_debt >= 3:
+
+        sleep_warning = (
+            "🟡 存在轻中度睡眠债，建议今晚提前睡。"
+        )
+
+    else:
+
+        sleep_warning = (
+            "🟢 睡眠恢复正常。"
+        )
+
+
+    # ======================
+    # HRV判断
+    # ======================
+
+    if hrv < 30:
+
+        hrv_status = (
+            "HRV偏低，注意压力和恢复。"
+        )
+
+    else:
+
+        hrv_status = (
+            "HRV状态稳定。"
+        )
+
+
+    # ======================
+    # Strain风险
+    # ======================
+
+    if strain >= 15:
+
+        strain_warning = (
+            "⚠️ 今日负荷较高，避免连续高强度。"
+        )
+
+    else:
+
+        strain_warning = (
+            "🟢 当前训练负荷合理。"
+        )
+
+    advice = {}
+    
+    advice["status"] = status
+
+    advice["training"] = training
+
+    advice["sleep"] = sleep_warning
+
+    advice["hrv"] = hrv_status
+
+    advice["strain"] = strain_warning
+
+
+    return advice
+
+def generate_health_report(data):
+
+    print("### USING NEW HEALTH REPORT ###")
+
+    recovery = data.get("recovery", {})
+
+    # =========================
+    # 数据读取
+    # =========================
+    recovery = data.get("recovery", {})
+    sleep = data.get("sleep", {})
+    workout = data.get("workout", {})
+
+
+    # =========================
+    # 数据类型统一
+    # =========================
+    try:
+        recovery_score = float(recovery.get("score", 0))
+        hrv = float(recovery.get("hrv", 0))
+        resting_hr = float(recovery.get("resting_hr", 0))
+
+        sleep_duration = float(sleep.get("duration", 0))
+        sleep_performance = float(sleep.get("performance", 0))
+        sleep_efficiency = float(sleep.get("efficiency", 0))
+
+        strain = float(workout.get("strain", 0))
+
+    except Exception as e:
+        print("数字转换失败:", e)
+
+        recovery_score = 0
+        hrv = 0
+        resting_hr = 0
+        sleep_duration = 0
+        sleep_performance = 0
+        sleep_efficiency = 0
+        strain = 0
+
+
+    print("DEBUG DATA:", data)
+
+
+    # =========================
+    # 基础状态
+    # =========================
+    status = "🟢 良好"
+
+    sleep_consistency = "稳定"
+
+    sleep_debt = 0
+
+    risk_warning = "暂无明显风险"
+
+
+    # =========================
+    # 训练信息
+    # =========================
+    avg_hr = resting_hr
+    max_hr = resting_hr
+
+    workout_start = "暂无训练记录"
+    workout_end = "暂无训练记录"
+    workout_duration = "暂无数据"
+    workout_type = "训练"
+
+    sport_name = "综合训练"
+
+
+    training_advice = "根据 Recovery 调整训练强度"
+
+
+    # =========================
+    # AI 教练建议
+    # =========================
+    coach_advice = generate_coach_advice(
+        recovery_score,
+        hrv,
+        sleep_duration,
+        sleep_debt,
+        strain
+    )
+
+    if isinstance(coach_advice, dict):
+        coach_advice = "<br>".join(coach_advice.values())
+
+
+    print("DEBUG TYPES:")
+    print(type(recovery_score))
+    print(type(hrv))
+    print(type(sleep_duration))
+    print(type(strain))
+    print(type(sleep_debt))
+
+
+    return f"""
+
+<div style="
+font-family:Arial;
+padding:20px;
+line-height:1.8;
+">
+
+<h1>
+🏋️ WHOOP 今日健康报告
+</h1>
+
+
+<h2>
+状态：
+{status}
+</h2>
+
+
+<hr>
+
+
+<h2>❤️ 恢复</h2>
+
+<p>
+Recovery：
+<b>{recovery_score:.1f}%</b>
+</p>
+
+<p>
+HRV：
+<b>{hrv:.1f} ms</b>
+</p>
+
+<p>
+静息心率：
+<b>{resting_hr:.0f} bpm</b>
+</p>
+
+
+<hr>
+
+
+<h2>💤 睡眠</h2>
+
+<p>
+睡眠时长：
+<b>{sleep_duration:.2f} 小时</b>
+</p>
+
+<p>
+睡眠表现：
+<b>{sleep_performance:.1f}%</b>
+</p>
+
+<p>
+睡眠效率：
+<b>{sleep_efficiency:.1f}%</b>
+</p>
+
+
+<hr>
+
+
+<h2>🏃 训练</h2>
+
+<p>
+Strain：
+<b>{strain:.2f}</b>
+</p>
+
+
+<p>
+平均心率：
+<b>{avg_hr:.0f} bpm</b>
+</p>
+
+
+<p>
+最大心率：
+<b>{max_hr:.0f} bpm</b>
+</p>
+
+
+<hr>
+
+
+<h2>📈 趋势分析</h2>
+
+<p>
+Recovery：
+{recovery_trend}
+</p>
+
+<p>
+HRV：
+{hrv_trend}
+</p>
+
+<p>
+7天平均 Recovery：
+{avg_recovery:.1f}%
+</p>
+
+
+<h2>🤖 训练建议</h2>
+
+<p>
+{training_advice}
+</p>
+
+
+<hr>
+
+
+<h2>🧠 AI 教练建议</h2>
+
+<p>
+{coach_advice}
+</p>
+
+
+<hr>
+
+
+<h2>📅 未来1-3天</h2>
+
+<p>
+1. 保证充足睡眠恢复<br>
+2. 根据 Recovery 调整训练强度<br>
+3. 避免连续高 Strain
+</p>
+
+
+</div>
+
+"""
 
 def get_whoop_data():
 
@@ -1914,8 +1574,6 @@ def get_whoop_data():
 
         return {}
 
-
-@app.route("/whoop/today")
 def today():
 
     try:
@@ -2087,7 +1745,6 @@ def generate_training_plan(
         - HIIT
         - 大重量训练
         """
-    
 
 def generate_week_report(data):
 
@@ -2579,9 +2236,6 @@ Strain风险：
 
 """
 
-
-
-@app.route("/whoop/week")
 def whoop_week():
     try:
         data = get_whoop_week_data()
@@ -2591,241 +2245,6 @@ def whoop_week():
     except Exception as e:
         print("WEEK ERROR:", e)
         return "暂无数据"
-
-
-def generate_health_report(data):
-
-    print("### USING NEW HEALTH REPORT ###")
-
-    recovery = data.get("recovery", {})
-
-    # =========================
-    # 数据读取
-    # =========================
-    recovery = data.get("recovery", {})
-    sleep = data.get("sleep", {})
-    workout = data.get("workout", {})
-
-
-    # =========================
-    # 数据类型统一
-    # =========================
-    try:
-        recovery_score = float(recovery.get("score", 0))
-        hrv = float(recovery.get("hrv", 0))
-        resting_hr = float(recovery.get("resting_hr", 0))
-
-        sleep_duration = float(sleep.get("duration", 0))
-        sleep_performance = float(sleep.get("performance", 0))
-        sleep_efficiency = float(sleep.get("efficiency", 0))
-
-        strain = float(workout.get("strain", 0))
-
-    except Exception as e:
-        print("数字转换失败:", e)
-
-        recovery_score = 0
-        hrv = 0
-        resting_hr = 0
-        sleep_duration = 0
-        sleep_performance = 0
-        sleep_efficiency = 0
-        strain = 0
-
-
-    print("DEBUG DATA:", data)
-
-
-    # =========================
-    # 基础状态
-    # =========================
-    status = "🟢 良好"
-
-    sleep_consistency = "稳定"
-
-    sleep_debt = 0
-
-    risk_warning = "暂无明显风险"
-
-
-    # =========================
-    # 训练信息
-    # =========================
-    avg_hr = resting_hr
-    max_hr = resting_hr
-
-    workout_start = "暂无训练记录"
-    workout_end = "暂无训练记录"
-    workout_duration = "暂无数据"
-    workout_type = "训练"
-
-    sport_name = "综合训练"
-
-
-    training_advice = "根据 Recovery 调整训练强度"
-
-
-    # =========================
-    # AI 教练建议
-    # =========================
-    coach_advice = generate_coach_advice(
-        recovery_score,
-        hrv,
-        sleep_duration,
-        sleep_debt,
-        strain
-    )
-
-    if isinstance(coach_advice, dict):
-        coach_advice = "<br>".join(coach_advice.values())
-
-
-    print("DEBUG TYPES:")
-    print(type(recovery_score))
-    print(type(hrv))
-    print(type(sleep_duration))
-    print(type(strain))
-    print(type(sleep_debt))
-
-
-    return f"""
-
-<div style="
-font-family:Arial;
-padding:20px;
-line-height:1.8;
-">
-
-<h1>
-🏋️ WHOOP 今日健康报告
-</h1>
-
-
-<h2>
-状态：
-{status}
-</h2>
-
-
-<hr>
-
-
-<h2>❤️ 恢复</h2>
-
-<p>
-Recovery：
-<b>{recovery_score:.1f}%</b>
-</p>
-
-<p>
-HRV：
-<b>{hrv:.1f} ms</b>
-</p>
-
-<p>
-静息心率：
-<b>{resting_hr:.0f} bpm</b>
-</p>
-
-
-<hr>
-
-
-<h2>💤 睡眠</h2>
-
-<p>
-睡眠时长：
-<b>{sleep_duration:.2f} 小时</b>
-</p>
-
-<p>
-睡眠表现：
-<b>{sleep_performance:.1f}%</b>
-</p>
-
-<p>
-睡眠效率：
-<b>{sleep_efficiency:.1f}%</b>
-</p>
-
-
-<hr>
-
-
-<h2>🏃 训练</h2>
-
-<p>
-Strain：
-<b>{strain:.2f}</b>
-</p>
-
-
-<p>
-平均心率：
-<b>{avg_hr:.0f} bpm</b>
-</p>
-
-
-<p>
-最大心率：
-<b>{max_hr:.0f} bpm</b>
-</p>
-
-
-<hr>
-
-
-<h2>📈 趋势分析</h2>
-
-<p>
-Recovery：
-{recovery_trend}
-</p>
-
-<p>
-HRV：
-{hrv_trend}
-</p>
-
-<p>
-7天平均 Recovery：
-{avg_recovery:.1f}%
-</p>
-
-
-<h2>🤖 训练建议</h2>
-
-<p>
-{training_advice}
-</p>
-
-
-<hr>
-
-
-<h2>🧠 AI 教练建议</h2>
-
-<p>
-{coach_advice}
-</p>
-
-
-<hr>
-
-
-<h2>📅 未来1-3天</h2>
-
-<p>
-1. 保证充足睡眠恢复<br>
-2. 根据 Recovery 调整训练强度<br>
-3. 避免连续高 Strain
-</p>
-
-
-</div>
-
-"""
-
 
 def auto_save_daily():
 
@@ -2871,10 +2290,6 @@ def daily_scheduler():
 
         time.sleep(86400)
 
-# ==========================
-# 启动每日自动保存线程
-# ==========================
-
 def start_scheduler():
 
     t = threading.Thread(
@@ -2886,15 +2301,6 @@ def start_scheduler():
 
     print("DAILY SCHEDULER STARTED")
 
-
-start_scheduler()
-
-
-# =====================
-# DAILY AUTO REPORT
-# =====================
-
-@app.route("/whoop/auto-report")
 def auto_report():
 
 
@@ -2946,13 +2352,6 @@ def auto_report():
 
     })
 
-
-# ============================
-# WHOOP TREND REPORT V5.1
-# 最近7天趋势分析
-# ============================
-
-@app.route("/whoop/trend")
 def trend_report():
 
     try:
@@ -3627,12 +3026,484 @@ HRV：
 
         return str(e)
 
+def home():
 
-            
-# =========================
-# START SERVER
-# =========================
+    status = "🟢 系统正常"
 
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 1
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        cur.close()
+        conn.close()
+
+
+
+        if row:
+
+            date = row[0]
+
+            recovery = row[1]
+
+            hrv = row[2]
+
+            sleep = row[3]
+
+            strain = row[4]
+
+
+        else:
+
+            date = "暂无数据"
+
+            recovery = None
+
+            hrv = None
+
+            sleep = None
+
+            strain = None
+
+
+
+        # =====================
+        # Readiness训练准备度
+        # =====================
+
+        readiness = 0
+
+
+        if recovery is not None:
+
+            readiness += float(recovery) * 0.4
+
+
+
+        if sleep is not None:
+
+
+            if float(sleep) >= 8:
+
+                readiness += 30
+
+
+            elif float(sleep) >= 6:
+
+                readiness += 20
+
+
+            else:
+
+                readiness += 10
+
+
+
+        if strain is not None:
+
+
+            if float(strain) < 5:
+
+                readiness += 20
+
+
+            elif float(strain) < 12:
+
+                readiness += 30
+
+
+            else:
+
+                readiness += 10
+
+
+
+        readiness = round(
+            min(readiness,100),
+            1
+        )
+
+
+        # =====================
+        # Strain解释
+        # =====================
+
+
+        if strain is not None:
+
+
+            strain_value = float(strain)
+
+
+
+            if strain_value < 5:
+
+
+                strain_text = (
+                    "🟢 恢复日\n"
+                    "当前训练压力较低，适合增加Zone2有氧或轻力量训练。"
+                )
+
+
+            elif strain_value < 12:
+
+
+                strain_text = (
+                    "🟡 最佳训练区间\n"
+                    "当前负荷适中，可以完成主要训练。"
+                )
+
+
+            elif strain_value < 17:
+
+
+                strain_text = (
+                    "🟠 高压力训练\n"
+                    "注意睡眠和恢复。"
+                )
+
+
+            else:
+
+
+                strain_text = (
+                    "🔴 极高压力\n"
+                    "建议降低训练量。"
+                )
+
+
+        else:
+
+
+            strain_text = "暂无训练压力数据"
+
+
+
+        # =====================
+        # AI建议
+        # =====================
+
+
+        if readiness >= 80:
+
+
+            advice = (
+                "恢复能力优秀。"
+                "今天适合完成主要训练。"
+                "建议目标 Strain 10-12。"
+            )
+
+
+        elif readiness >=60:
+
+
+            advice = (
+                "身体状态一般。"
+                "建议中等强度训练，避免连续高负荷。"
+            )
+
+
+        else:
+
+
+            advice = (
+                "当前恢复不足。"
+                "建议优先恢复、睡眠和低强度活动。"
+            )
+
+
+
+
+        return f"""
+
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>WHOOP AI Coach</title>
+
+
+<style>
+
+
+body{{
+
+font-family:Arial;
+
+background:#f4f5f7;
+
+padding:20px;
+
+}}
+
+
+.container{{
+
+max-width:700px;
+
+margin:auto;
+
+}}
+
+
+.card{{
+
+background:white;
+
+padding:25px;
+
+border-radius:18px;
+
+margin-bottom:18px;
+
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+}}
+
+
+.value{{
+
+font-size:36px;
+
+font-weight:bold;
+
+}}
+
+
+.button{{
+
+display:block;
+
+background:#111;
+
+color:white;
+
+padding:15px;
+
+margin-top:10px;
+
+border-radius:12px;
+
+text-align:center;
+
+text-decoration:none;
+
+}}
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+
+<div class="card">
+
+<h1>WHOOP AI 教练</h1>
+
+<h2>{status}</h2>
+
+<p>最新数据：{date}</p>
+
+</div>
+
+
+
+
+<div class="card">
+
+<h3>训练准备度 Readiness</h3>
+
+<div class="value">
+
+{readiness}/100
+
+</div>
+
+<p>
+综合 Recovery、睡眠、训练压力计算
+</p>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>恢复 Recovery</h3>
+
+<div class="value">
+
+{recovery if recovery is not None else "-" }%
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>HRV 心率变异性</h3>
+
+<div class="value">
+
+{round(float(hrv),2) if hrv else "-" } ms
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>睡眠</h3>
+
+<div class="value">
+
+{round(float(sleep),2) if sleep else "-" } 小时
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>训练压力 Strain</h3>
+
+<div class="value">
+
+{round(float(strain),2) if strain else "-"}
+
+</div>
+
+
+<p>
+
+{strain_text}
+
+</p>
+
+</div>
+
+
+
+
+
+<div class="card">
+
+<h3>AI教练建议</h3>
+
+
+<p>
+
+{coach_advice}
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="card">
+
+
+<a class="button"
+href="/whoop/today">
+
+今日报告
+
+</a>
+
+
+<a class="button"
+href="/whoop/trend">
+
+最近7天趋势
+
+</a>
+
+
+<a class="button"
+href="/whoop/auto-report">
+
+最新生成报告
+
+</a>
+
+
+</div>
+
+
+
+</div>
+
+
+</body>
+
+</html>
+
+"""
+
+
+
+    except Exception as e:
+
+
+        return f"""
+
+        <h1>WHOOP Dashboard Error</h1>
+
+        <p>{str(e)}</p>
+
+        """
+
+init_db()
 
 if __name__ == "__main__":
 
