@@ -101,16 +101,13 @@ def auto_report():
         print("######## AUTO REPORT V2 RUNNING ########")
 
         data = {
-
             "recovery": whoop_get("/recovery"),
-
             "cycle": whoop_get("/cycle"),
-
             "sleep": whoop_get("/activity/sleep"),
-
             "workout": whoop_get("/activity/workout")
-
         }
+
+        print("RAW SLEEP RESPONSE >>>", data["sleep"])
 
 
         print("######## TEST AUTO REPORT V2 ########")
