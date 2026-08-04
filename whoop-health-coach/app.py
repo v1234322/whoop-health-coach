@@ -1470,7 +1470,7 @@ def generate_health_report(data):
 
         if records:
 
-                latest_sleep = records[0]
+           latest_sleep = records[0]
 
            print("========== SLEEP STRUCTURE DEBUG ==========")
            print("RECORD COUNT:", len(records))
