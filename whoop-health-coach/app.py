@@ -1460,6 +1460,9 @@ def generate_health_report(data):
 
        records = sleep.get("records", [])
 
+       print("DEBUG RECORDS:")
+       print(records)
+
        if records:
 
            latest_sleep = records[0]
