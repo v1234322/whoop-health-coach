@@ -1799,6 +1799,24 @@ def auto_save_daily():
             e
         )
 
+def daily_scheduler():
+
+    while True:
+
+        try:
+
+            auto_save_daily()
+
+        except Exception as e:
+
+            print(
+                "SCHEDULER ERROR:",
+                e
+            )
+
+
+        time.sleep(86400)
+
 
 
 # =====================
@@ -3610,10 +3628,16 @@ HRV：
 if __name__ == "__main__":
 
 
+    scheduler_thread = threading.Thread(
+        target=daily_scheduler,
+        daemon=True
+    )
+
+
+    scheduler_thread.start()
+
+
     app.run(
-
         host="0.0.0.0",
-
-        port=10000
-
+        port=8080
     )
