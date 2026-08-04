@@ -1456,35 +1456,31 @@ def generate_health_report(data):
     awake_time = 0
 
 
-    try:
+   try:
 
-        records = (
-            sleep.get("records")
-            or sleep.get("data")
-            or sleep.get("sleep")
-            or []
-        )
+        records = sleep.get("records", [])
 
-            print("DEBUG SLEEP DATA:")
-            print(records)
+        print("DEBUG SLEEP DATA:")
+        print(records)
 
         if records:
 
             latest_sleep = records[0]
 
-            print("DEBUG SLEEP DATA:")
-            print(latest_sleep)
+            print("========= SLEEP STRUCTURE DEBUG =========")
+            print("RECORD COUNT:", len(records))
+            print("FIRST RECORD KEYS:", records[0].keys())
+            print("FIRST RECORD:", records[0])
+            print("=========================================")
 
             score = latest_sleep.get(
                 "score",
                 {}
             )
 
-            stage = (
-                score.get("stage_summary")
-                or latest_sleep.get("stage_summary")
-                or latest_sleep.get("score", {}).get("stage_summary")
-                or {}
+            stage = score.get(
+                "stage_summary",
+                {}
             )
 
            print("========== DEBUG SLEEP ==========")
