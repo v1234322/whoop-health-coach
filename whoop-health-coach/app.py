@@ -1611,11 +1611,7 @@ return {
     "awake_minutes": awake_time,
 
     "strain": strain
-}
 
-    # =========================
-    # 基础状态
-    # =========================
     status = "🟢 良好"
 
     sleep_consistency = "稳定"
@@ -1624,6 +1620,7 @@ return {
 
     risk_warning = "暂无明显风险"
 
+}
 
     # =========================
     # 训练信息
