@@ -1443,122 +1443,137 @@ def generate_health_report(data):
     )
 
 
-    # =========================
-    # WHOOP Sleep Parser V2
-    # =========================
+# =========================
+# WHOOP Sleep Parser V2
+# =========================
 
-    sleep_duration = 0
-    sleep_performance = 0
-    sleep_efficiency = 0
-    sleep_quality = "Unknown"
-    sleep_cycles = 0
-    sleep_needed = 0
-    awake_time = 0
-
-
-   try:
-
-        records = sleep.get("records", [])
-
-        print("DEBUG SLEEP DATA:")
-        print(records)
-
-        if records:
-
-            latest_sleep = records[0]
-
-            print("========= SLEEP STRUCTURE DEBUG =========")
-            print("RECORD COUNT:", len(records))
-            print("FIRST RECORD KEYS:", records[0].keys())
-            print("FIRST RECORD:", records[0])
-            print("=========================================")
-
-            score = latest_sleep.get(
-                "score",
-                {}
-            )
-
-            stage = score.get(
-                "stage_summary",
-                {}
-            )
-
-           print("========== DEBUG SLEEP ==========")
-           print("LATEST SLEEP:", latest_sleep)
-           print("SCORE:", score)
-           print("STAGE DATA >>>", stage)
-           print("================================")
-
-           sleep_duration = round(
-               stage.get("total_in_bed_time_milli",0) / 3600000,
-               2
-           )
-
-           sleep_performance = stage.get(
-               "sleep_performance_percentage",
-               0
-           )
-
-           sleep_efficiency = stage.get(
-               "sleep_efficiency_percentage",
-               0
-           )
-
-           sleep_cycles = stage.get(
-               "sleep_cycle_count",
-               0
-           )
-
-           sleep_needed = round(
-               stage.get("sleep_needed", {}).get(
-                   "baseline_milli",
-                   0
-               ) / 3600000,
-               2
-           )
-
-           awake_time = round(
-               stage.get("total_awake_time_milli",0) / 60000,
-               1
-           )
-
-           # 需要睡眠
-           sleep_needed = round(
-               stage
-               .get(
-                   "sleep_needed",
-                   {}
-               )
-               .get(
-                   "baseline_milli",
-                   0
-               )
-               / 3600000,
-                2
-               )
+sleep_duration = 0
+sleep_performance = 0
+sleep_efficiency = 0
+sleep_quality = "Unknown"
+sleep_cycles = 0
+sleep_needed = 0
+awake_time = 0
 
 
-           # 睡眠评级
-           if sleep_performance >= 85:
-              sleep_quality = "Excellent"
+try:
 
-           elif sleep_performance >= 70:
-              sleep_quality = "Good"
-
-           elif sleep_performance >= 50:
-               sleep_quality = "Fair"
-
-           else:
-              sleep_quality = "Poor"
+    records = (
+        sleep.get("records")
+        or sleep.get("data")
+        or sleep.get("sleep")
+        or []
+    )
 
 
+    print("DEBUG SLEEP DATA:")
+    print(records)
 
-    except Exception as e:
 
-        print(
-            "SLEEP PARSER ERROR:",
-            e
+    if records:
+
+        latest_sleep = records[0]
+
+
+        print("========= SLEEP STRUCTURE DEBUG =========")
+        print("RECORD COUNT:", len(records))
+        print("FIRST RECORD KEYS:", latest_sleep.keys())
+        print("FIRST RECORD:", latest_sleep)
+        print("=========================================")
+
+
+        score = latest_sleep.get(
+            "score",
+            {}
         )
+
+
+        stage = (
+            score.get("stage_summary")
+            or latest_sleep.get("stage_summary")
+            or {}
+        )
+
+
+        print("STAGE DATA >>>")
+        print(stage)
+
+
+        sleep_duration = round(
+            stage.get(
+                "total_in_bed_time_milli",
+                0
+            ) / 3600000,
+            2
+        )
+
+
+        sleep_performance = stage.get(
+            "sleep_performance_percentage",
+            0
+        )
+
+
+        sleep_efficiency = stage.get(
+            "sleep_efficiency_percentage",
+            0
+        )
+
+
+        sleep_cycles = stage.get(
+            "sleep_cycle_count",
+            0
+        )
+
+
+        sleep_needed = round(
+            stage.get(
+                "sleep_needed",
+                {}
+            ).get(
+                "baseline_milli",
+                0
+            ) / 3600000,
+            2
+        )
+
+
+        awake_time = round(
+            stage.get(
+                "total_awake_time_milli",
+                0
+            ) / 60000,
+            1
+        )
+
+
+        if sleep_performance >= 85:
+
+            sleep_quality = "Excellent"
+
+
+        elif sleep_performance >= 70:
+
+            sleep_quality = "Good"
+
+
+        elif sleep_performance >= 50:
+
+            sleep_quality = "Fair"
+
+
+        else:
+
+            sleep_quality = "Poor"
+
+
+
+except Exception as e:
+
+    print(
+        "SLEEP PARSER ERROR:",
+        e
+    )
 
     strain = float(
         workout.get("score",{}).get("strain",0)
