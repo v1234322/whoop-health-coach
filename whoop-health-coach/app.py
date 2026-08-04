@@ -29,6 +29,32 @@ app.json.ensure_ascii = False
 
 app.config["JSON_AS_ASCII"] = False
 
+@app.route("/")
+def home():
+    return """
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <title>WHOOP AI Coach</title>
+    </head>
+
+    <body>
+    <h1>🏋️ WHOOP AI 教练</h1>
+
+    <h2>🟢 系统正常</h2>
+
+    <p>WHOOP Health Coach is running.</p >
+
+    <hr>
+
+    <a href=" ">今日报告</a >
+    <br><br>
+    <a href="/whoop/trend">7天趋势</a >
+
+    </body>
+    </html>
+    """
+
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
     ""
