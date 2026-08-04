@@ -1462,9 +1462,14 @@ def generate_health_report(data):
 
        if records:
 
-           # 取最新一次睡眠
            latest_sleep = records[0]
 
+           print("========== SLEEP STRUCTURE DEBUG ==========")
+           print("RECORD COUNT:", len(records))
+           print("FIRST RECORD KEYS:", records[0].keys())
+           print("FIRST RECORD:", records[0])
+           print("==========================================")
+           
            score = latest_sleep.get(
                "score",
                {}
