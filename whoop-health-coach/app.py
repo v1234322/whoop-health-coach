@@ -1664,6 +1664,9 @@ def extract_daily_metrics(data):
 
 def save_daily_data(metrics):
 
+    conn = None
+    cur = None
+
     try:
 
         conn = get_db_connection()
@@ -1671,25 +1674,24 @@ def save_daily_data(metrics):
         cur = conn.cursor()
 
 
+        # 北京时间日期
         today = (
             datetime.utcnow()
             + timedelta(hours=8)
         ).strftime("%Y-%m-%d")
 
 
-        # 删除当天旧数据，避免重复
+        # 删除当天旧数据
         cur.execute(
             """
             DELETE FROM daily_metrics
             WHERE report_date = %s
             """,
-            (
-                today,
-            )
+            (today,)
         )
 
 
-        # 写入当天最新数据
+        # 保存当天数据
         cur.execute(
             """
             INSERT INTO daily_metrics
@@ -1712,45 +1714,27 @@ def save_daily_data(metrics):
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             )
             """,
-
             (
+
                 today,
 
-                metrics.get(
-                    "recovery_score"
-                ),
+                metrics.get("recovery_score"),
 
-                metrics.get(
-                    "hrv"
-                ),
+                metrics.get("hrv"),
 
-                metrics.get(
-                    "resting_heart_rate"
-                ),
+                metrics.get("resting_heart_rate"),
 
-                metrics.get(
-                    "sleep_score"
-                ),
+                metrics.get("sleep_score"),
 
-                metrics.get(
-                    "sleep_duration"
-                ),
+                metrics.get("sleep_duration"),
 
-                metrics.get(
-                    "sleep_efficiency"
-                ),
+                metrics.get("sleep_efficiency"),
 
-                metrics.get(
-                    "deep_sleep_duration"
-                ),
+                metrics.get("deep_sleep_duration"),
 
-                metrics.get(
-                    "rem_sleep_duration"
-                ),
+                metrics.get("rem_sleep_duration"),
 
-                metrics.get(
-                    "cycle_strain"
-                ),
+                metrics.get("cycle_strain"),
 
                 json.dumps(
                     metrics.get(
@@ -1765,12 +1749,10 @@ def save_daily_data(metrics):
 
         conn.commit()
 
-        cur.close()
-        conn.close()
-
 
         print(
-            "DAILY METRICS SAVED OK"
+            "DAILY METRICS SAVED OK:",
+            today
         )
 
 
@@ -1780,6 +1762,44 @@ def save_daily_data(metrics):
             "SAVE DAILY DATA ERROR:",
             str(e)
         )
+
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
+
+def auto_save_daily():
+
+    try:
+
+        whoop_data = get_whoop_data()
+
+        metrics = extract_daily_metrics(
+            whoop_data
+        )
+
+        save_daily_data(
+            metrics
+        )
+
+        print(
+            "AUTO DAILY SAVE OK"
+        )
+
+
+    except Exception as e:
+
+        print(
+            "AUTO DAILY SAVE ERROR:",
+            e
+        )
+
+
 
 # =====================
 # UTC 转北京时间
@@ -1974,19 +1994,6 @@ def get_whoop_week_data():
 
     print("WEEK ROW COUNT:", len(rows))
     print("WEEK ROWS:", rows)
-
-
-    # ===== 添加这里 =====
-    cursor.execute("""
-    SELECT COUNT(*)
-    FROM daily_metrics
-    """)
-
-    count = cursor.fetchone()
-
-    print("DATABASE TOTAL COUNT:", count)
-    # ===== 添加结束 =====
-
 
     cursor.close()
     conn.close()
