@@ -1,6 +1,6 @@
 import json
 import os
-print("WHOOP VERSION TEST 2026-08-03")
+print("WHOOP HEALTH COACH STARTED")
 import psycopg2
 
 from datetime import datetime, timedelta, timezone
@@ -71,8 +71,26 @@ def generate_ai_summary(ai_prompt):
 
 app = Flask(__name__)
 
+
 app.json.ensure_ascii = False
 app.config["JSON_AS_ASCII"] = False
+
+
+# ==========================
+# 启动每日自动保存任务
+# ==========================
+
+def start_scheduler():
+
+    t = threading.Thread(
+        target=daily_scheduler,
+        daemon=True
+    )
+
+    t.start()
+
+
+start_scheduler()
 
 
 # ============================
