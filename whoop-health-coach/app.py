@@ -2458,9 +2458,6 @@ def generate_health_report(data):
 
 
     # =========================
-    # 教练建议
-    # =========================
-       # =========================
     # AI 教练建议
     # =========================
     coach_advice = generate_coach_advice(
@@ -2470,6 +2467,9 @@ def generate_health_report(data):
         sleep_debt,
         strain
     )
+
+    if isinstance(coach_advice, dict):
+        coach_advice = "<br>".join(coach_advice.values())
 
 
     print("DEBUG TYPES:")
