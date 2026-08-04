@@ -1876,19 +1876,23 @@ def get_whoop_data():
 @app.route("/whoop/today")
 def today():
 
-    data = get_whoop_data()
+    @app.route("/whoop/today")
+def today():
+
+    try:
+
+        data = get_whoop_data()
 
 
-    # 保存每日数据
+        # 保存每日数据
+        metrics = extract_daily_metrics(data)
 
-    metrics = extract_daily_metrics(data)
-
-    save_daily_data(metrics)
+        save_daily_data(metrics)
 
 
-    report = generate_health_report(data)
+        report = generate_health_report(data)
 
-    return report
+        return report
 
 
     except Exception as e:
