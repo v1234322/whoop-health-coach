@@ -1402,7 +1402,7 @@ def generate_health_report(data):
     # =========================
     # 数据类型统一
     # =========================
-   try:
+    try:
 
        # Recovery
        recovery_score = float(
