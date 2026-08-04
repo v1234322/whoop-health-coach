@@ -1610,14 +1610,10 @@ return {
     "sleep_needed": sleep_needed,
     "awake_minutes": awake_time,
 
-    "strain": strain
-
+    "strain": strain,
     "status": "🟢 良好",
-
     "sleep_consistency": "稳定",
-
     "sleep_debt": 0,
-
     "risk_warning": "暂无明显风险"
 
 }
