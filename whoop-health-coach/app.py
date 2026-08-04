@@ -2530,6 +2530,10 @@ WHOOP 最近7天私人健康报告
 {status}
 </h2>
 
+<h2>📅 每日记录</h2>
+
+{daily_html}
+
 
 <h2>📊 平均指标</h2>
 
@@ -2550,18 +2554,6 @@ Strain:
 
 
 
-<h2>📈 Recovery趋势</h2>
-
-{recovery_trend}
-
-
-
-<h2>❤️ HRV趋势</h2>
-
-{hrv_comment}
-
-
-
 <h2>💤 睡眠债分析</h2>
 
 累计睡眠债:
@@ -2573,21 +2565,27 @@ Strain:
 
 
 
-<h2>🏃 Strain风险</h2>
+<h2>📊 数据趋势</h2>
 
+Recovery趋势：
+{recovery_trend}
+
+<br>
+
+HRV趋势：
+{hrv_comment}
+
+<br>
+
+睡眠情况：
+{sleep_comment}
+
+<br>
+
+Strain风险：
 {strain_comment}
 
-
-
-<h2>🤖 私人教练建议</h2>
-
-{training_plan}
-
-
-
-<h2>📅 每日记录</h2>
-
-{daily_html}
+<br>
 
 
 <h2>未来1-3天</h2>
@@ -2602,6 +2600,11 @@ Strain:
 <div style="white-space:pre-line;">
 {ai_summary}
 </div>
+
+
+<h2>🤖 私人教练建议</h2>
+
+{training_plan}
 
 
 """
