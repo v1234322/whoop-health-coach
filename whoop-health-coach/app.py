@@ -1402,52 +1402,65 @@ def generate_health_report(data):
     # =========================
     # 数据类型统一
     # =========================
+
     try:
 
-       # Recovery
-       recovery_score = float(
-            recovery.get("score")
-            or recovery.get("recovery_score")
-            or 0
-        )
+        # Recovery
+        recovery_data = recovery.get("score", {})
 
-        hrv = float(
-            recovery.get("hrv")
-            or recovery.get("hrv_rmssd_milli")
-            or 0
-        )    
+        if isinstance(recovery_data, dict):
+            recovery_score = float(
+                recovery_data.get("recovery_score", 0) or 0
+            )
 
-        resting_hr = float(
-            recovery.get("resting_hr")
-            or recovery.get("resting_heart_rate")
-            or 0
-        )
+            hrv = float(
+                recovery_data.get("hrv_rmssd_milli", 0) or 0
+            )
+
+            resting_hr = float(
+                recovery_data.get("resting_heart_rate", 0) or 0
+            )
+
+        else:
+            recovery_score = float(
+                recovery_data or 0
+            )
+
+            hrv = float(
+                recovery.get("hrv", 0) or 0
+            )
+
+            resting_hr = float(
+                recovery.get("resting_hr", 0) or 0
+            )
 
 
         # Sleep
         sleep_duration = float(
-            sleep.get("duration")
-            or sleep.get("sleep_duration")
+            sleep.get("duration", 0)
+            or sleep.get("sleep_duration", 0)
             or 0
         )
+
 
         sleep_performance = float(
-            sleep.get("performance")
-            or sleep.get("sleep_performance")
+            sleep.get("performance", 0)
+            or sleep.get("sleep_performance", 0)
             or 0
         )
+
 
         sleep_efficiency = float(
-            sleep.get("efficiency")
-            or sleep.get("sleep_efficiency")
+            sleep.get("efficiency", 0)
+            or sleep.get("sleep_efficiency", 0)
             or 0
         )
 
-    
+
         # Workout
         strain = float(
-            workout.get("strain")
-            or workout.get("cycle_strain")
+            workout.get("strain", 0)
+            or workout.get("cycle_strain", 0)
             or 0
         )
 
@@ -1459,14 +1472,22 @@ def generate_health_report(data):
         recovery_score = 0
         hrv = 0
         resting_hr = 0
+
         sleep_duration = 0
         sleep_performance = 0
         sleep_efficiency = 0
+
         strain = 0
 
 
-    print("DEBUG DATA:", data)
-
+    print("DEBUG VALUES:")
+    print("Recovery:", recovery_score)
+    print("HRV:", hrv)
+    print("Rest HR:", resting_hr)
+    print("Sleep:", sleep_duration)
+    print("Sleep performance:", sleep_performance)
+    print("Efficiency:", sleep_efficiency)
+    print("Strain:", strain)
 
     # =========================
     # 基础状态
