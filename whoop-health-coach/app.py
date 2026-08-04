@@ -16,7 +16,7 @@ from openai import OpenAI
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com"
-)
+)ƒ
 
 def generate_ai_summary(ai_prompt):
     """
@@ -1987,13 +1987,6 @@ def today():
     try:
 
         data = get_whoop_data()
-
-
-        # 保存每日数据
-        metrics = extract_daily_metrics(data)
-
-        save_daily_data(metrics)
-
 
         report = generate_health_report(data)
 
