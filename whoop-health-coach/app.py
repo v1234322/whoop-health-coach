@@ -1434,7 +1434,24 @@ def generate_health_report(data):
 
 
     sleep_duration = float(
-        sleep.get("sleep_duration",0)
+        sleep.get("duration",0)
+        or sleep.get("sleep_duration",0)
+        or sleep.get("total_in_bed_time_milli",0) / 3600000
+        or 0
+    )
+
+
+    sleep_performance = float(
+        sleep.get("performance_percentage",0)
+        or sleep.get("sleep_performance_percentage",0)
+        or sleep.get("sleep_performance",0)
+        or 0
+    )
+
+
+    sleep_efficiency = float(
+        sleep.get("efficiency_percentage",0)
+        or sleep.get("efficiency",0)
         or 0
     )
 
