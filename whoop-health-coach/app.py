@@ -2220,9 +2220,9 @@ def generate_week_report(data):
     """
 
 
-coach_advice = generate_ai_summary(
-    ai_prompt
-)
+    coach_advice = generate_ai_summary(
+        ai_prompt
+    )
 
 
     # =========================
@@ -2258,53 +2258,6 @@ coach_advice = generate_ai_summary(
     else:
         hrv_trend = "数据不足"
 
-    # =========================
-    # AI 周总结
-    # =========================
-
-    if avg_recovery >= 70:
-
-        ai_summary = """
-    🟢 本周恢复状态良好。
-    
-    Recovery 平均水平较高，
-    HRV表现稳定，身体恢复能力充足。
-
-    训练方面可以保持正常计划，
-    未来1-3天建议：
-    1. 保持力量训练或Zone2有氧
-    2. 控制单日 Strain 在8-12
-    3. 保证睡眠7.5小时以上
-    """
-
-
-    elif avg_recovery >= 40:
-
-        ai_summary = """
-    🟡 本周恢复状态一般。
-
-    身体可以支持训练，
-    但需要注意训练负荷不要连续增加。
-
-    未来1-3天建议：
-    1. 降低高强度训练比例
-    2. 增加恢复性有氧
-    3. 优先保证睡眠质量
-    """
-
-
-    else:
-
-        ai_summary = """
-    🔴 本周恢复不足。
-
-    可能存在累积疲劳。
-
-    未来1-3天建议：
-    1. 降低训练强度
-    2. 增加睡眠时间
-    3. 避免高 Strain训练
-    """
 
     # ======================
     # Recovery趋势
@@ -2432,11 +2385,11 @@ coach_advice = generate_ai_summary(
     # 状态判断
     # ======================
 
-    if avg_recovery >= 67:
+    if avg_recovery >= 70:
 
         status = "🟢 良好"
 
-    elif avg_recovery >= 34:
+    elif avg_recovery >= 40:
 
         status = "🟡 需小心"
 
