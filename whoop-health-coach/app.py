@@ -1558,10 +1558,10 @@ def generate_health_report(data):
 
     except Exception as e:
 
-    print(
-        "SLEEP PARSER ERROR:",
-        e
-    )
+        print(
+            "SLEEP PARSER ERROR:",
+            e
+        )
 
     strain = float(
         workout.get("score",{}).get("strain",0)
