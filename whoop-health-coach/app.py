@@ -1779,7 +1779,7 @@ def auto_save_daily():
 
     try:
 
-        data = get_whoop_today()
+        data = get_whoop_data()
 
         metrics = extract_daily_metrics(
             data
