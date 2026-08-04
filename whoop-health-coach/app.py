@@ -1444,48 +1444,127 @@ def generate_health_report(data):
 
 
     # =========================
-    # WHOOP Sleep Parser
+    # WHOOP Sleep Parser V2
     # =========================
 
     sleep_duration = 0
     sleep_performance = 0
     sleep_efficiency = 0
+    sleep_quality = "Unknown"
+    sleep_cycles = 0
+    sleep_needed = 0
+    awake_time = 0
+
 
     try:
-        records = sleep.get("records", [])
-    
+
+       records = sleep.get("records", [])
+
+
         if records:
 
-            latest_sleep = records[0]
+            # 取最新一次睡眠
+            latest_sleep = records[-1]
 
-            stage = (
-                latest_sleep
-                .get("score", {})
-                .get("stage_summary", {})
+
+            score = latest_sleep.get(
+                "score",
+                {}
             )
 
-            sleep_duration = (
-                stage.get("total_sleep_time_milli", 0)
-                / 3600000
+
+            stage = score.get(
+                "stage_summary",
+                {}
             )
 
-            sleep_performance = (
+
+            # 睡眠小时
+            sleep_duration = round(
+                stage.get(
+                    "total_sleep_time_milli",
+                    0
+                )
+                / 3600000,
+                2
+            )
+
+
+            # 睡眠表现
+            sleep_performance = round(
                 stage.get(
                     "sleep_performance_percentage",
                     0
-                )
+                ),
+                1
             )
 
-            sleep_efficiency = (
+
+            # 睡眠效率
+            sleep_efficiency = round(
                 stage.get(
                     "sleep_efficiency_percentage",
                     0
-                )
+                ),
+                1
             )
 
-    except Exception as e:
-        print("SLEEP PARSER ERROR:", e)
 
+            # 睡眠周期
+            sleep_cycles = stage.get(
+                "sleep_cycle_count",
+                0
+            )
+
+
+            # 清醒时间
+            awake_time = round(
+                stage.get(
+                    "total_awake_time_milli",
+                    0
+                )
+                / 60000,
+                1
+            )
+
+
+            # 需要睡眠
+            sleep_needed = round(
+                stage
+                .get(
+                    "sleep_needed",
+                    {}
+                )
+                .get(
+                    "baseline_milli",
+                    0
+                )
+                / 3600000,
+                2
+            )
+
+
+            # 睡眠评级
+            if sleep_performance >= 85:
+                sleep_quality = "Excellent"
+
+            elif sleep_performance >= 70:
+                sleep_quality = "Good"
+
+            elif sleep_performance >= 50:
+                sleep_quality = "Fair"
+
+            else:
+                sleep_quality = "Poor"
+
+
+
+    except Exception as e:
+
+    print(
+        "SLEEP PARSER ERROR:",
+        e
+    )
 
     strain = float(
         workout.get("score",{}).get("strain",0)
@@ -1497,8 +1576,15 @@ def generate_health_report(data):
     print("Recovery:", recovery_score)
     print("HRV:", hrv)
     print("Rest HR:", resting_hr)
+
     print("Sleep:", sleep_duration)
     print("Sleep performance:", sleep_performance)
+    print("Sleep efficiency:", sleep_efficiency)
+    print("Sleep quality:", sleep_quality)
+    print("Sleep cycles:", sleep_cycles)
+    print("Sleep needed:", sleep_needed)
+    print("Awake minutes:", awake_time)
+
     print("Strain:", strain)
 
 
@@ -1506,8 +1592,15 @@ def generate_health_report(data):
         "recovery": recovery_score,
         "hrv": hrv,
         "resting_hr": resting_hr,
+
         "sleep": sleep_duration,
         "sleep_performance": sleep_performance,
+        "sleep_efficiency": sleep_efficiency,
+        "sleep_quality": sleep_quality,
+        "sleep_cycles": sleep_cycles,
+        "sleep_needed": sleep_needed,
+        "awake_minutes": awake_time,
+
         "strain": strain
     }
 
