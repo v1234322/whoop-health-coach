@@ -76,9 +76,6 @@ app.json.ensure_ascii = False
 app.config["JSON_AS_ASCII"] = False
 
 
-    start_scheduler()
-
-
 
 # ============================
 # WHOOP Dashboard 首页
