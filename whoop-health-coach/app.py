@@ -1873,10 +1873,8 @@ def get_whoop_data():
 
         return {}
 
-@app.route("/whoop/today")
-def today():
 
-    @app.route("/whoop/today")
+@app.route("/whoop/today")
 def today():
 
     try:
