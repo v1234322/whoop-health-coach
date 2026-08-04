@@ -2512,17 +2512,6 @@ def generate_week_report(data):
     ai_summary = f"""
     {coach_advice}
 
-    Recovery趋势：
-    {recovery_trend}
-
-    HRV趋势：
-    {hrv_comment}
-
-    睡眠情况：
-    {sleep_comment}
-
-    Strain风险：
-    {strain_comment}
 
     训练建议：
     {training_plan}
