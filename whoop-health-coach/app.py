@@ -2436,23 +2436,23 @@ def auto_report():
 
     data = {
 
-    "recovery":
-    whoop_get("/recovery"),
+      "recovery":
+      whoop_get("/recovery"),
 
-    "cycle":
-    whoop_get("/cycle"),
+      "cycle":
+      whoop_get("/cycle"),
 
-    "sleep":
-    whoop_get("/activity/sleep"),
+      "sleep":
+      whoop_get("/activity/sleep"),
 
-    "workout":
-    whoop_get("/activity/workout")
-}
+      "workout":
+      whoop_get("/activity/workout")
+  }
 
 
-print("========== WHOOP RAW ==========")
-print(data)
-print("==============================")
+    print("========== WHOOP RAW ==========")
+    print(data)
+    print("==============================")
 
 
     convert_utc_to_beijing(data)
