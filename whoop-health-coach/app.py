@@ -2056,7 +2056,7 @@ def generate_week_report(data):
     for row in data:
 
         date = row[0]
-
+        date_text = str(date)
         recovery = row[1] or 0
         hrv = row[2] or 0
         resting_hr = row[3] or 0
@@ -2074,7 +2074,7 @@ def generate_week_report(data):
         daily_html += f"""
         <hr>
 
-        <h3>{date}</h3>
+        <h3>📅 {date_text}</h3>
 
         Recovery:
         {recovery:.1f}%<br>
