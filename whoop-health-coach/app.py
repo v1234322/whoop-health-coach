@@ -1911,8 +1911,22 @@ def get_whoop_week_data():
 
     rows = cursor.fetchall()
 
+
     print("WEEK ROW COUNT:", len(rows))
     print("WEEK ROWS:", rows)
+
+
+    # ===== 添加这里 =====
+    cursor.execute("""
+    SELECT COUNT(*)
+    FROM daily_metrics
+    """)
+
+    count = cursor.fetchone()
+
+    print("DATABASE TOTAL COUNT:", count)
+    # ===== 添加结束 =====
+
 
     cursor.close()
     conn.close()
