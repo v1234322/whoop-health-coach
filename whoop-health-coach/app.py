@@ -1460,102 +1460,99 @@ def generate_health_report(data):
 
        records = sleep.get("records", [])
 
+       if records:
 
-        if records:
-
-            # 取最新一次睡眠
-            latest_sleep = records[-1]
-
-
-            score = latest_sleep.get(
-                "score",
-                {}
-            )
+           # 取最新一次睡眠
+           latest_sleep = records[-1]
 
 
-            stage = score.get(
-                "stage_summary",
-                {}
-            )
+           score = latest_sleep.get(
+               "score",
+               {}
+           )
+
+           stage = score.get(
+               "stage_summary",
+               {}
+           )
 
 
-            # 睡眠小时
-            sleep_duration = round(
-                stage.get(
-                    "total_sleep_time_milli",
-                    0
+           # 睡眠小时
+           sleep_duration = round(
+               stage.get(
+                   "total_sleep_time_milli",
+                   0
                 )
                 / 3600000,
                 2
             )
 
 
-            # 睡眠表现
-            sleep_performance = round(
-                stage.get(
-                    "sleep_performance_percentage",
+           # 睡眠表现
+           sleep_performance = round(
+               stage.get(
+                   "sleep_performance_percentage",
                     0
                 ),
-                1
+               1
             )
 
 
-            # 睡眠效率
-            sleep_efficiency = round(
-                stage.get(
-                    "sleep_efficiency_percentage",
-                    0
+           # 睡眠效率
+           sleep_efficiency = round(
+               stage.get(
+                   "sleep_efficiency_percentage",
+                   0
                 ),
-                1
+               1
             )
 
 
-            # 睡眠周期
-            sleep_cycles = stage.get(
-                "sleep_cycle_count",
+           # 睡眠周期
+           sleep_cycles = stage.get(
+               "sleep_cycle_count",
                 0
             )
 
 
-            # 清醒时间
-            awake_time = round(
-                stage.get(
-                    "total_awake_time_milli",
-                    0
+           # 清醒时间
+           awake_time = round(
+               stage.get(
+                   "total_awake_time_milli",
+                   0
                 )
                 / 60000,
-                1
+               1
             )
 
-
-            # 需要睡眠
-            sleep_needed = round(
-                stage
-                .get(
-                    "sleep_needed",
-                    {}
-                )
-                .get(
-                    "baseline_milli",
-                    0
-                )
-                / 3600000,
+           # 需要睡眠
+           sleep_needed = round(
+               stage
+               .get(
+                   "sleep_needed",
+                   {}
+               )
+               .get(
+                   "baseline_milli",
+                   0
+               )
+               / 3600000,
                 2
-            )
+               )
 
 
-            # 睡眠评级
-            if sleep_performance >= 85:
-                sleep_quality = "Excellent"
+           # 睡眠评级
+           if sleep_performance >= 85:
+              sleep_quality = "Excellent"
 
-            elif sleep_performance >= 70:
-                sleep_quality = "Good"
+           elif sleep_performance >= 70:
+              sleep_quality = "Good"
 
-            elif sleep_performance >= 50:
-                sleep_quality = "Fair"
+           elif sleep_performance >= 50:
+               sleep_quality = "Fair"
 
-            else:
-                sleep_quality = "Poor"
+           else:
+              sleep_quality = "Poor"
 
 
 
