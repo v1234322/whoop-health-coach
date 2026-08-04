@@ -1468,7 +1468,7 @@ def generate_health_report(data):
             print("DEBUG SLEEP DATA:")
             print(records)
 
-            if records:
+        if records:
 
                 latest_sleep = records[0]
 
