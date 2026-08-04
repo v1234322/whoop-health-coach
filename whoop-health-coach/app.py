@@ -625,7 +625,8 @@ def generate_coach_advice(
             "🟢 当前训练负荷合理。"
         )
 
-
+    advice = {}
+    
     advice["status"] = status
 
     advice["training"] = training
