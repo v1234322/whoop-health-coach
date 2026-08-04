@@ -1775,72 +1775,6 @@ def save_daily_data(metrics):
             conn.close()
 
 
-def auto_save_daily():
-
-    try:
-
-        data = get_whoop_data()
-
-        metrics = extract_daily_metrics(
-            data
-        )
-
-        save_daily_data(
-            metrics
-        )
-
-        print(
-            "AUTO DAILY SAVE OK"
-        )
-
-
-    except Exception as e:
-
-        print(
-            "AUTO DAILY SAVE ERROR:",
-            e
-        )
-
-def daily_scheduler():
-
-    while True:
-
-        try:
-
-            auto_save_daily()
-
-        except Exception as e:
-
-            print(
-                "SCHEDULER ERROR:",
-                e
-            )
-
-
-        time.sleep(86400)
-
-# ==========================
-# 启动每日自动保存线程
-# ==========================
-
-def start_scheduler():
-
-    t = threading.Thread(
-        target=daily_scheduler,
-        daemon=True
-    )
-
-    t.start()
-
-    print("DAILY SCHEDULER STARTED")
-
-
-start_scheduler()
-
-# =====================
-# UTC 转北京时间
-# =====================
-
 def convert_utc_to_beijing(obj):
 
     if isinstance(obj, dict):
@@ -2891,6 +2825,70 @@ HRV：
 </div>
 
 """
+
+
+def auto_save_daily():
+
+    try:
+
+        data = get_whoop_data()
+
+        metrics = extract_daily_metrics(
+            data
+        )
+
+        save_daily_data(
+            metrics
+        )
+
+        print(
+            "AUTO DAILY SAVE OK"
+        )
+
+
+    except Exception as e:
+
+        print(
+            "AUTO DAILY SAVE ERROR:",
+            e
+        )
+
+def daily_scheduler():
+
+    while True:
+
+        try:
+
+            auto_save_daily()
+
+        except Exception as e:
+
+            print(
+                "SCHEDULER ERROR:",
+                e
+            )
+
+
+        time.sleep(86400)
+
+# ==========================
+# 启动每日自动保存线程
+# ==========================
+
+def start_scheduler():
+
+    t = threading.Thread(
+        target=daily_scheduler,
+        daemon=True
+    )
+
+    t.start()
+
+    print("DAILY SCHEDULER STARTED")
+
+
+start_scheduler()
+
 
 # =====================
 # DAILY AUTO REPORT
