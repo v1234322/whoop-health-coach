@@ -2407,8 +2407,6 @@ def generate_health_report(data):
 
         strain = float(workout.get("strain", 0))
 
-        advice = "根据 Recovery 调整训练强度，保持充足睡眠恢复"
-
     except Exception as e:
         print("数字转换失败:", e)
 
@@ -2465,6 +2463,7 @@ def generate_health_report(data):
         strain
     )
 
+    advice= coach_advice
 
     print("DEBUG TYPES:")
     print(type(recovery_score))
