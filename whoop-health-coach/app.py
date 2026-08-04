@@ -435,7 +435,7 @@ text-decoration:none;
 
 <p>
 
-{advice}
+{coach_advice}
 
 </p>
 
