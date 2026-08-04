@@ -2397,11 +2397,6 @@ Strain:
 {strain_comment}
 
 
-<h2>📅 每日记录</h2>
-
-{daily_html}
-
-
 
 <h2>🤖 私人教练建议</h2>
 
@@ -2409,11 +2404,9 @@ Strain:
 
 
 
-<h2>🧠 AI 周总结</h2>
+<h2>📅 每日记录</h2>
 
-<p>
-{ai_summary}
-</p>
+{daily_html}
 
 
 <h2>未来1-3天</h2>
@@ -2421,6 +2414,13 @@ Strain:
 1. 保证睡眠 ≥8小时<br>
 2. 根据 Recovery 调整训练<br>
 3. 避免连续高 Strain
+
+
+<h2>🧠 AI 周总结</h2>
+
+<p>
+{ai_summary}
+</p>
 
 
 """
