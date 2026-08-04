@@ -125,6 +125,12 @@ def auto_report():
 
         print("SLEEP:")
         print(data["sleep"])
+
+        print("SLEEP KEYS:")
+        print(data["sleep"].keys())
+
+        print("FIRST SLEEP RECORD:")
+        print(data["sleep"]["records"][0])
         
         print("WORKOUT:")
         print(data["workout"])
