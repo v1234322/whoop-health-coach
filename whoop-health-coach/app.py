@@ -98,6 +98,8 @@ def auto_report():
 
     try:
 
+        print("######## AUTO REPORT V2 RUNNING ########")
+
         data = {
 
             "recovery": whoop_get("/recovery"),
