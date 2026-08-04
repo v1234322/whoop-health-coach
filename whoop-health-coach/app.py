@@ -107,6 +107,7 @@ def auto_report():
             "workout": whoop_get("/activity/workout")
         }
 
+        print("######## NEW CODE LOADED ########")
         print("RAW SLEEP RESPONSE >>>", data["sleep"])
 
 
