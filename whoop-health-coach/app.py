@@ -1402,18 +1402,58 @@ def generate_health_report(data):
     # =========================
     # 数据类型统一
     # =========================
-    try:
-        recovery_score = float(recovery.get("score", 0))
-        hrv = float(recovery.get("hrv", 0))
-        resting_hr = float(recovery.get("resting_hr", 0))
+   try:
 
-        sleep_duration = float(sleep.get("duration", 0))
-        sleep_performance = float(sleep.get("performance", 0))
-        sleep_efficiency = float(sleep.get("efficiency", 0))
+       # Recovery
+       recovery_score = float(
+            recovery.get("score")
+            or recovery.get("recovery_score")
+            or 0
+        )
 
-        strain = float(workout.get("strain", 0))
+        hrv = float(
+            recovery.get("hrv")
+            or recovery.get("hrv_rmssd_milli")
+            or 0
+        )    
+
+        resting_hr = float(
+            recovery.get("resting_hr")
+            or recovery.get("resting_heart_rate")
+            or 0
+        )
+
+
+        # Sleep
+        sleep_duration = float(
+            sleep.get("duration")
+            or sleep.get("sleep_duration")
+            or 0
+        )
+
+        sleep_performance = float(
+            sleep.get("performance")
+            or sleep.get("sleep_performance")
+            or 0
+        )
+
+        sleep_efficiency = float(
+            sleep.get("efficiency")
+            or sleep.get("sleep_efficiency")
+            or 0
+        )
+
+    
+        # Workout
+        strain = float(
+            workout.get("strain")
+            or workout.get("cycle_strain")
+            or 0
+        )
+
 
     except Exception as e:
+
         print("数字转换失败:", e)
 
         recovery_score = 0
