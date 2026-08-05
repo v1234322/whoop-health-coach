@@ -118,6 +118,33 @@ def init_db():
 
 init_db()
 
+# =========================
+# WHOOP 环境变量
+# =========================
+
+WHOOP_CLIENT_ID = os.environ.get(
+    "WHOOP_CLIENT_ID",
+    ""
+).strip()
+
+WHOOP_CLIENT_SECRET = os.environ.get(
+    "WHOOP_CLIENT_SECRET",
+    ""
+).strip()
+
+WHOOP_REFRESH_TOKEN = os.environ.get(
+    "WHOOP_REFRESH_TOKEN",
+    ""
+).strip()
+
+
+print("========== ENV CHECK ==========")
+print("CLIENT ID:", bool(WHOOP_CLIENT_ID))
+print("CLIENT SECRET:", bool(WHOOP_CLIENT_SECRET))
+print("REFRESH TOKEN:", bool(WHOOP_REFRESH_TOKEN))
+print("TOKEN LENGTH:", len(WHOOP_REFRESH_TOKEN))
+print("==============================")
+
 @app.route("/")
 def home():
     return """
