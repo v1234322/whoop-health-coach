@@ -171,17 +171,17 @@ def auto_report():
 
         <p>
         恢复评分：
-        <b>{recovery_score}</b>
+        <b>{report.get("恢复期",0)}</b>
         </p>
 
         <p>
         HRV：
-        <b>{hrv}</b>
+        <b>{report.get("心率变异性",0)}</b>
         </p>
 
         <p>
         静息心率：
-        <b>{resting_hr}</b>
+        <b>{report.get("休息时间",0)}</b>
         </p>
 
 
