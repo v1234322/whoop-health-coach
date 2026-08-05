@@ -154,15 +154,89 @@ def auto_report():
         save_daily_data(metrics)
 
 
-        return jsonify({
+        return f"""
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <title>WHOOP Health Coach</title>
+        </head>
 
-            "status":
-            "daily report generated",
+        <body>
 
-            "report":
-            report
+        <h1>🧠 WHOOP 健康教练日报</h1>
 
-        })
+        <hr>
+
+        <h2>❤️ Recovery</h2>
+
+        <p>
+        恢复评分：
+        <b>{recovery_score}</b>
+        </p>
+
+        <p>
+        HRV：
+        <b>{hrv}</b>
+        </p>
+
+        <p>
+        静息心率：
+        <b>{resting_hr}</b>
+        </p>
+
+
+        <hr>
+
+        <h2>💤 睡眠</h2>
+
+        <p>
+        睡眠时长：
+        <b>{sleep_duration:.2f} 小时</b>
+        </p>
+
+        <p>
+        睡眠需求：
+        <b>{sleep_needed:.2f} 小时</b>
+        </p>
+
+        <p>
+        睡眠表现：
+        <b>{sleep_performance:.1f}%</b>
+        </p>
+
+        <p>
+        睡眠效率：
+        <b>{sleep_efficiency:.1f}%</b>
+        </p>
+
+        <p>
+        睡眠周期：
+        <b>{sleep_cycles} 次</b>
+        </p>
+
+
+        <hr>
+
+        <h2>🔥 Strain</h2>
+
+        <p>
+        今日训练负荷：
+        <b>{strain}</b>
+        </p>
+
+
+        <hr>
+
+        <h2>🧠 AI 教练建议</h2>
+
+        <p>
+        {coach_advice}
+        </p>
+
+
+        </body>
+        </html>
+        """
 
 
     except Exception as e:
