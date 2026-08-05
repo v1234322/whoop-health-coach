@@ -1707,11 +1707,7 @@ def generate_health_report(data):
 
     return f"""
 
-    <div style="
-    font-family:Arial;
-    padding:20px;
-    line-height:1.8;
-    ">
+    <div >
 
 
     <h1>
