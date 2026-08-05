@@ -1,9 +1,10 @@
 import json
-
 import os
 
 print("WHOOP HEALTH COACH STARTED")
 
+
+import sqlite3
 import psycopg2
 
 from datetime import datetime, timedelta, timezone
@@ -18,11 +19,22 @@ import time
 
 from openai import OpenAI
 
+
+# =========================
+# DeepSeek
+# =========================
+
 client = OpenAI(
-    api_key=os.environ.get("DEEPSEEK_API_KEY"),
+    api_key=os.environ.get(
+        "DEEPSEEK_API_KEY"
+    ),
     base_url="https://api.deepseek.com"
 )
 
+
+# =========================
+# Flask
+# =========================
 
 app = Flask(__name__)
 
@@ -37,8 +49,6 @@ app.config["JSON_AS_ASCII"] = False
 
 def get_db_connection():
 
-    import sqlite3
-
     conn = sqlite3.connect(
         "whoop.db"
     )
@@ -47,22 +57,21 @@ def get_db_connection():
 
     return conn
 
+
 # =========================
 # 数据库初始化
 # =========================
 
 def init_db():
 
-    import sqlite3
-
-    conn = sqlite3.connect("whoop.db")
+    conn = sqlite3.connect(
+        "whoop.db"
+    )
 
     cursor = conn.cursor()
 
 
-    # =========================
-    # 每日健康数据表
-    # =========================
+    # 每日数据
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS daily_metrics(
@@ -83,9 +92,7 @@ def init_db():
     """)
 
 
-    # =========================
-    # WHOOP Token 表
-    # =========================
+    # WHOOP TOKEN
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tokens(
@@ -112,19 +119,23 @@ def init_db():
 
 init_db()
 
+
 # =========================
 # WHOOP 环境变量
 # =========================
+
 
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
     ""
 ).strip()
 
+
 WHOOP_CLIENT_SECRET = os.environ.get(
     "WHOOP_CLIENT_SECRET",
     ""
 ).strip()
+
 
 WHOOP_REFRESH_TOKEN = os.environ.get(
     "WHOOP_REFRESH_TOKEN",
@@ -133,11 +144,116 @@ WHOOP_REFRESH_TOKEN = os.environ.get(
 
 
 print("========== ENV CHECK ==========")
-print("CLIENT ID:", bool(WHOOP_CLIENT_ID))
-print("CLIENT SECRET:", bool(WHOOP_CLIENT_SECRET))
-print("REFRESH TOKEN:", bool(WHOOP_REFRESH_TOKEN))
-print("TOKEN LENGTH:", len(WHOOP_REFRESH_TOKEN))
+
+print(
+    "CLIENT ID:",
+    bool(WHOOP_CLIENT_ID)
+)
+
+
+print(
+    "CLIENT SECRET:",
+    bool(WHOOP_CLIENT_SECRET)
+)
+
+
+print(
+    "REFRESH TOKEN:",
+    bool(WHOOP_REFRESH_TOKEN)
+)
+
+
+print(
+    "TOKEN LENGTH:",
+    len(WHOOP_REFRESH_TOKEN)
+)
+
+
 print("==============================")
+
+
+# =========================
+# 保存 Refresh Token 到数据库
+# =========================
+
+
+def save_refresh_token_to_db():
+
+    if not WHOOP_REFRESH_TOKEN:
+
+        print(
+            "NO ENV REFRESH TOKEN"
+        )
+
+        return
+
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+    
+
+    cursor.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        LIMIT 1
+        """
+    )
+
+    result = cursor.fetchone()
+
+
+    if result is None:
+
+        cursor.execute(
+            """
+            INSERT INTO tokens
+            (
+                refresh_token,
+                expires_at
+            )
+            VALUES
+            (
+                ?,
+                ?
+            )
+            """,
+            (
+                WHOOP_REFRESH_TOKEN,
+                0
+            )
+        )
+
+        conn.commit()
+
+
+        print(
+            "REFRESH TOKEN SAVED TO DATABASE"
+        )
+
+    else:
+
+        cursor.execute(
+            """
+            UPDATE tokens
+            SET refresh_token=?
+            """,
+            (
+                WHOOP_REFRESH_TOKEN,
+            )
+        )
+
+        conn.commit()
+
+        print(
+            "REFRESH TOKEN UPDATED"
+        )
+
+
+    conn.close()
+
+save_refresh_token_to_db()
 
 @app.route("/")
 def home():
