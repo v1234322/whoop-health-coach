@@ -1562,7 +1562,7 @@ def save_daily_data(metrics):
         cur.execute(
             """
             DELETE FROM daily_metrics
-            WHERE report_date = %s
+            WHERE report_date = ？
             """,
             (today,)
         )
