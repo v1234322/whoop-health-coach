@@ -150,6 +150,12 @@ WHOOP_REFRESH_TOKEN = os.environ.get(
 ).strip()
 
 
+WHOOP_ACCESS_TOKEN = os.environ.get(
+    "WHOOP_ACCESS_TOKEN",
+    ""
+).strip()
+
+
 print("========== ENV CHECK ==========")
 
 print(
@@ -1235,9 +1241,7 @@ def refresh_access_token():
 
 def whoop_get(endpoint):
 
-
-    token = refresh_access_token()
-
+    token = os.environ.get("WHOOP_ACCESS_TOKEN")
 
 
     r = requests.get(
