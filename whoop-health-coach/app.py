@@ -1461,20 +1461,13 @@ def generate_health_report(data):
         print("RAW SLEEP RESPONSE:")
         print(sleep)
 
-        records = (
-            sleep.get("records")
-            or sleep.get("data")
-            or sleep.get("sleep")
-            or []
-        )
-
         print("DEBUG SLEEP DATA:")
-        print(records)
+        print(sleep)
 
 
-        if records:
+        if sleep:
 
-            latest_sleep = records[0]
+            latest_sleep = sleep
 
             if isinstance(latest_sleep, dict) is False:
                 latest_sleep = {}
