@@ -1072,7 +1072,10 @@ def load_refresh_token():
 def refresh_access_token():
 
 
-    refresh_token = load_refresh_token()
+    refresh_token = os.environ.get(
+        "WHOOP_REFRESH_TOKEN",
+        ""
+    ).strip()
 
 
     client_id = os.environ.get(
