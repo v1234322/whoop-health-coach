@@ -1496,13 +1496,13 @@ def generate_health_report(data):
         )
 
 
-        sleep_performance = stage.get(
+        sleep_performance = score.get(
             "sleep_performance_percentage",
             0
         )
 
 
-        sleep_efficiency = stage.get(
+        sleep_efficiency = score.get(
             "sleep_efficiency_percentage",
             0
         )
@@ -1515,7 +1515,7 @@ def generate_health_report(data):
 
 
         sleep_needed = round(
-            stage.get(
+            score.get(
                 "sleep_needed",
                 {}
             ).get(
