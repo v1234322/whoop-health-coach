@@ -89,9 +89,16 @@ def init_db():
     )
     """)
 
-    
+
+    # 删除旧 daily_metrics
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS daily_metrics (
+    DROP TABLE IF EXISTS daily_metrics
+    """)
+
+
+    # 创建新 daily_metrics
+    cursor.execute("""
+    CREATE TABLE daily_metrics (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         report_date TEXT,
         recovery_score REAL,
@@ -107,6 +114,7 @@ def init_db():
     )
     """)
 
+
     conn.commit()
 
     conn.close()
@@ -116,7 +124,6 @@ def init_db():
 
 
 init_db()
-
 
 # =========================
 # WHOOP 环境变量
