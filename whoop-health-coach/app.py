@@ -65,6 +65,11 @@ def init_db():
 
     cursor = conn.cursor()
 
+
+    # =========================
+    # 每日健康数据表
+    # =========================
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS daily_metrics(
 
@@ -83,9 +88,30 @@ def init_db():
     )
     """)
 
+
+    # =========================
+    # WHOOP Token 表
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tokens(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        access_token TEXT,
+
+        refresh_token TEXT,
+
+        expires_at INTEGER
+
+    )
+    """)
+
+
     conn.commit()
 
     conn.close()
+
 
     print("DATABASE READY")
 
