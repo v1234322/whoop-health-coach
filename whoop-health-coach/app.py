@@ -1608,15 +1608,36 @@ def generate_health_report(data):
         "sleep_quality": sleep_quality,
         "sleep_cycles": sleep_cycles,
         "sleep_needed": sleep_needed,
-        "awake_minutes": awake_time,
-
-        "strain": strain,
-        "status": "🟢 良好",
-        "sleep_consistency": "稳定",
-        "sleep_debt": 0,
-        "risk_warning": "暂无明显风险"
+        "awake_minutes": awake_time，
 
     }
+
+
+    # =========================
+    # WHOOP Strain Parser
+    # =========================
+
+    strain = 0.0
+
+    try:
+        if isinstance(workout, dict):
+    
+            workout_score = workout.get("score", {})
+
+            if isinstance(workout_score, dict):
+
+                strain_value = workout_score.get(
+                    "strain",
+                    0
+                )
+
+                if strain_value is not None:
+                    strain = float(strain_value)
+
+    except Exception as e:
+        print("STRAIN PARSER ERROR:", e)
+        strain = 0.0
+
 
     # =========================
     # 训练信息
