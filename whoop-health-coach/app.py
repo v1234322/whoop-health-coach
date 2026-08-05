@@ -262,6 +262,18 @@ def save_refresh_token_to_db():
 
 save_refresh_token_to_db()
 
+@app.route("/callback")
+def callback():
+
+    code = request.args.get("code")
+
+    if not code:
+        return "NO CODE"
+
+    print("AUTH CODE:", code)
+
+    return "WHOOP AUTH SUCCESS"
+
 @app.route("/")
 def home():
     return """
@@ -862,14 +874,10 @@ def callback():
             code,
 
             "client_id":
-            os.environ.get(
-                "WHOOP_CLIENT_ID"
-            ),
+            WHOOP_CLIENT_ID,
 
             "client_secret":
-            os.environ.get(
-                "WHOOP_CLIENT_SECRET"
-            ),
+            WHOOP_CLIENT_SECRET,
 
             "redirect_uri":
             "https://whoop-health-coach.onrender.com/callback"
