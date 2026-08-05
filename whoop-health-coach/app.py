@@ -337,74 +337,74 @@ HRV：
 
         def generate_ai_summary(ai_prompt):
 
-    """
-    调用 DeepSeek 生成 WHOOP 私人教练总结
-    """
+            """
+            调用 DeepSeek 生成 WHOOP 私人教练总结
+            """
 
-    try:
-
-
-        response = client.chat.completions.create(
-
-            model="deepseek-chat",
+            try:
 
 
-            messages=[
+                response = client.chat.completions.create(
 
-                {
-                    "role": "system",
-
-                    "content": """
-你是我的WHOOP私人健康教练。
-
-你的任务：
-
-1. 根据恢复、睡眠、HRV、训练数据分析状态
-2. 判断风险：
-良好 / 需小心 / 危险
-
-3. 给未来1-3天具体行动建议
+                    model="deepseek-chat",
 
 
-输出要求：
+                    messages=[
+        
+                        {
+                            "role": "system",
 
-- 中文简体
-- 像私人教练一样
-- 先总结，再解释数据
-- 不要编造不存在的数据
+                            "content": """
+        你是我的WHOOP私人健康教练。
 
-"""
-                },
+        你的任务：
 
+        1. 根据恢复、睡眠、HRV、训练数据分析状态
+        2. 判断风险：
+        良好 / 需小心 / 危险
 
-                {
-                    "role": "user",
-
-                    "content": ai_prompt
-                }
-
-            ],
+        3. 给未来1-3天具体行动建议
 
 
-            temperature=0.4
+        输出要求：
 
-        )
+        - 中文简体
+        - 像私人教练一样
+        - 先总结，再解释数据
+        - 不要编造不存在的数据
+
+        """
+                        },
+
+        
+                        {
+                            "role": "user",
+
+                            "content": ai_prompt
+                        }
+        
+                    ],
 
 
-        return response.choices[0].message.content
+                    temperature=0.4
+
+                )
+
+
+                return response.choices[0].message.content
 
 
 
-    except Exception as e:
+            except Exception as e:
 
 
-        print(
-            "AI SUMMARY ERROR:",
-            e
-        )
+                print(
+                    "AI SUMMARY ERROR:",
+                    e
+                )
 
 
-        return "AI教练暂时无法生成建议"
+                return "AI教练暂时无法生成建议"
 
         # =================================
         # 创建 daily_metrics 主表
