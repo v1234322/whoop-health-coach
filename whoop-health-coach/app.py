@@ -1704,9 +1704,16 @@ HRV：
 
 <h2>💤 睡眠</h2>
 
+<h2>💤 睡眠</h2>
+
 <p>
 睡眠时长：
 <b>{sleep_duration:.2f} 小时</b>
+</p>
+
+<p>
+睡眠需求：
+<b>{sleep_needed:.2f} 小时</b>
 </p>
 
 <p>
@@ -1717,6 +1724,16 @@ HRV：
 <p>
 睡眠效率：
 <b>{sleep_efficiency:.1f}%</b>
+</p>
+
+<p>
+睡眠周期：
+<b>{sleep_cycles} 次</b>
+</p>
+
+<p>
+清醒时间：
+<b>{awake_time:.1f} 分钟</b>
 </p>
 
 
