@@ -295,28 +295,31 @@ def generate_ai_summary(ai_prompt):
             model="deepseek-chat",
 
             messages=[
-                {
-                    "role": "system",
-                    "content": """
+    {
+        "role": "system",
+        "content": """
+你是我的WHOOP私人健康教练。
 
-任务：
-1. 根据恢复、睡眠、HRV、训练数据分析状态
-2. 判断风险等级
-3. 给未来1-3天行动建议
+你的任务：
 
-要求：
+1. 根据最近7天恢复、睡眠、HRV、训练数据分析状态
+2. 判断风险：良好 / 需小心 / 危险
+3. 给未来1-3天具体行动建议
+
+输出要求：
+
 - 中文简体
-- 像私人教练
-- 不编造数据
+- 像私人教练一样
+- 先总结，再解释数据
+- 不要编造不存在的数据
 """
-                },
-                {
-                    "role": "user",
-                    "content": ai_prompt
-                }
-            ],
-
-            temperature=0.4
+    },
+    {
+        "role": "user",
+        "content": ai_prompt
+    }
+],
+temperature=0.4
         )
 
         return response.choices[0].message.content
