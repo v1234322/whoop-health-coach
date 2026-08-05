@@ -1474,6 +1474,9 @@ def generate_health_report(data):
 
             latest_sleep = records[0]
 
+            if isinstance(latest_sleep, dict) is False:
+                latest_sleep = {}
+
 
             print("========= SLEEP STRUCTURE DEBUG =========")
             print("RECORD COUNT:", len(records))
