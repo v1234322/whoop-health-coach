@@ -130,6 +130,13 @@ WHOOP_CLIENT_ID = os.environ.get(
     ""
 ).strip()
 
+print(
+    "START CLIENT ID:",
+    WHOOP_CLIENT_ID[:6],
+    "...",
+    WHOOP_CLIENT_ID[-4:]
+)
+
 
 WHOOP_CLIENT_SECRET = os.environ.get(
     "WHOOP_CLIENT_SECRET",
@@ -1081,6 +1088,7 @@ def refresh_access_token():
     client_id = os.environ.get(
         "WHOOP_CLIENT_ID"
     )
+    
 
     client_secret = os.environ.get(
         "WHOOP_CLIENT_SECRET"
