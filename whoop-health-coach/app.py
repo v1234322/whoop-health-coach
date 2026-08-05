@@ -1458,13 +1458,17 @@ def generate_health_report(data):
 
     try:
 
+        sleep = get_sleep_data()
+
+        print("RAW SLEEP RESPONSE:")
+        print(sleep)
+
         records = (
             sleep.get("records")
             or sleep.get("data")
             or sleep.get("sleep")
             or []
         )
-
 
         print("DEBUG SLEEP DATA:")
         print(records)
