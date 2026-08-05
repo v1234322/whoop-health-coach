@@ -1128,11 +1128,12 @@ def refresh_access_token():
 
 
     response = requests.post(
-
         "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data=payload
-
+        data=payload,
+        headers={
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+        }
     )
 
 
