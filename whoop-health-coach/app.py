@@ -1294,9 +1294,7 @@ def whoop_get(endpoint):
     if r.status_code == 401:
 
 
-        token = refresh_access_token(
-            True
-        )
+        token = refresh_access_token(）
 
 
         r = requests.get(
