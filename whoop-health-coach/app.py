@@ -298,7 +298,6 @@ def generate_ai_summary(ai_prompt):
                 {
                     "role": "system",
                     "content": """
-你是我的WHOOP私人健康教练。
 
 任务：
 1. 根据恢复、睡眠、HRV、训练数据分析状态
