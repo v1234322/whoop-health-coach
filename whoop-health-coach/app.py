@@ -1706,20 +1706,17 @@ def generate_health_report(data):
 
 
     return f"""
+    <div>
 
-    <div >
+    <h1>🏋 WHOOP 今日健康报告</h1>
 
+    <h2>状态：</h2>
 
-    <h1>
-    🏋️ WHOOP 今日健康报告
-    </h1>
-
-
-    <h2>
-    状态：
+    <p>
     {status}
-    </h2>
+    </p>
 
+    </div>
 
     <hr>
 
