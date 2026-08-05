@@ -300,18 +300,19 @@ def generate_ai_summary(ai_prompt):
 你是我的WHOOP私人健康教练。
 
 你的任务：
+
 1. 根据最近7天恢复、睡眠、HRV、训练数据分析状态
 2. 判断风险：良好 / 需小心 / 危险
 3. 给未来1-3天具体行动建议
 
 输出要求：
+
 - 中文简体
 - 像私人教练一样
 - 先总结，再解释数据
 - 不要编造不存在的数据
 """
                 },
-
                 {
                     "role": "user",
                     "content": ai_prompt
@@ -333,25 +334,6 @@ def generate_ai_summary(ai_prompt):
         )
 
         return "AI教练暂时无法生成建议"
-
-def get_db_connection():
-
-    return psycopg2.connect(
-        os.environ.get(
-            "DATABASE_URL"
-        )
-    )
-
-    return conn
-
-def init_db():
-
-    try:
-
-        conn = get_db_connection()
-
-        cur = conn.cursor()
-
 
         # =================================
         # 创建 daily_metrics 主表
