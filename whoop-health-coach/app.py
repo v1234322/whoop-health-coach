@@ -1167,10 +1167,20 @@ def refresh_access_token():
 
     if new_refresh_token:
 
+        print(
+            "NEW REFRESH TOKEN RECEIVED:",
+            new_refresh_token[:10]
+        )
+
         save_refresh_token(
             new_refresh_token
         )
 
+    else:
+
+        print(
+            "NO NEW REFRESH TOKEN"
+        )
 
     return access_token
 
