@@ -270,9 +270,41 @@ def callback():
     if not code:
         return "NO CODE"
 
-    print("AUTH CODE:", code)
 
-    return "WHOOP AUTH SUCCESS"
+    payload = {
+
+        "grant_type": "authorization_code",
+
+        "code": code,
+
+        "client_id": WHOOP_CLIENT_ID,
+
+        "client_secret": WHOOP_CLIENT_SECRET,
+
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback"
+
+    }
+
+
+    response = requests.post(
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+        data=payload,
+        headers={
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+        }
+    )
+
+
+    print(
+        "TOKEN RESPONSE:",
+        response.text
+    )
+
+
+    return response.text
+    
 
 @app.route("/")
 def home():
