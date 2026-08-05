@@ -1588,7 +1588,7 @@ def save_daily_data(metrics):
 
             VALUES
             (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                ?,?,?,?,?,?,?,?,?,?,?
             )
             """,
             (
