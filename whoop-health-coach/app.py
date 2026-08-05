@@ -38,6 +38,22 @@ app.config["JSON_AS_ASCII"] = False
 
 
 # =========================
+# 数据库连接
+# =========================
+
+def get_db_connection():
+
+    import sqlite3
+
+    conn = sqlite3.connect(
+        "whoop.db"
+    )
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+# =========================
 # 数据库初始化
 # =========================
 
