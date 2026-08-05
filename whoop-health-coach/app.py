@@ -29,6 +29,53 @@ app.json.ensure_ascii = False
 
 app.config["JSON_AS_ASCII"] = False
 
+
+app = Flask(__name__)
+
+app.json.ensure_ascii = False
+
+app.config["JSON_AS_ASCII"] = False
+
+
+# =========================
+# 数据库初始化
+# =========================
+
+def init_db():
+
+    import sqlite3
+
+    conn = sqlite3.connect("whoop.db")
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_metrics(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        date TEXT,
+
+        recovery REAL,
+
+        hrv REAL,
+
+        sleep REAL,
+
+        strain REAL
+
+    )
+    """)
+
+    conn.commit()
+
+    conn.close()
+
+    print("DATABASE READY")
+
+
+init_db()
+
 @app.route("/")
 def home():
     return """
