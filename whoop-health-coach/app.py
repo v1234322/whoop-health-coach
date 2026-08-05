@@ -1073,7 +1073,7 @@ def save_refresh_token(token):
         """
         INSERT INTO tokens
         (refresh_token)
-        VALUES (%s)
+        VALUES (？)
         """,
         (token,)
     )
