@@ -73,7 +73,9 @@ def init_db():
     cursor = conn.cursor()
 
 
+    # =========================
     # WHOOP TOKEN
+    # =========================
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tokens(
@@ -90,27 +92,42 @@ def init_db():
     """)
 
 
-    # 删除旧 daily_metrics
+    # =========================
+    # 重建 daily_metrics
+    # =========================
+
     cursor.execute("""
     DROP TABLE IF EXISTS daily_metrics
     """)
 
 
-    # 创建新 daily_metrics
     cursor.execute("""
     CREATE TABLE daily_metrics (
+
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
         report_date TEXT,
+
         recovery_score REAL,
+
         hrv REAL,
+
         resting_heart_rate REAL,
+
         sleep_score REAL,
+
         sleep_duration REAL,
+
         sleep_efficiency REAL,
+
         deep_sleep_duration REAL,
+
         rem_sleep_duration REAL,
+
         cycle_strain REAL,
+
         workout_data TEXT
+
     )
     """)
 
