@@ -1461,109 +1461,91 @@ def generate_health_report(data):
         print("RAW SLEEP RESPONSE:")
         print(sleep)
 
-        print("DEBUG SLEEP DATA:")
-        print(sleep)
+
+        latest_sleep = sleep
 
 
-        if sleep:
-
-            latest_sleep = sleep
-
-            if isinstance(latest_sleep, dict) is False:
-                latest_sleep = {}
+        print("========= SLEEP STRUCTURE DEBUG =========")
+        print("SLEEP KEYS:", latest_sleep.keys())
+        print("SLEEP DATA:", latest_sleep)
+        print("=========================================")
 
 
-            print("========= SLEEP STRUCTURE DEBUG =========")
-            print("RECORD COUNT:", len(records))
-            print("FIRST RECORD KEYS:", latest_sleep.keys())
-            print("FIRST RECORD:", latest_sleep)
-            print("=========================================")
+        score = latest_sleep.get(
+            "score",
+            {}
+        )
 
 
-            score = latest_sleep.get(
-                "score",
+        stage = score.get(
+            "stage_summary",
+            {}
+        )
+
+
+        print("STAGE DATA >>>")
+        print(stage)
+
+
+        sleep_duration = round(
+            stage.get(
+                "total_in_bed_time_milli",
+                0
+            ) / 3600000,
+            2
+        )
+
+
+        sleep_performance = stage.get(
+            "sleep_performance_percentage",
+            0
+        )
+
+
+        sleep_efficiency = stage.get(
+            "sleep_efficiency_percentage",
+            0
+        )
+
+
+        sleep_cycles = stage.get(
+            "sleep_cycle_count",
+            0
+        )
+
+
+        sleep_needed = round(
+            stage.get(
+                "sleep_needed",
                 {}
-            )
-
-
-            stage = (
-                score.get("stage_summary")
-                or latest_sleep.get("stage_summary")
-                or {}
-            )
-
-
-            print("STAGE DATA >>>")
-            print(stage)
-
-
-            sleep_duration = round(
-                stage.get(
-                    "total_in_bed_time_milli",
-                    0
-                ) / 3600000,
-                2
-            )
-
-
-            sleep_performance = stage.get(
-                "sleep_performance_percentage",
+            ).get(
+                "baseline_milli",
                 0
-            )
+            ) / 3600000,
+            2
+        )
 
 
-            sleep_efficiency = stage.get(
-                "sleep_efficiency_percentage",
+        awake_time = round(
+            stage.get(
+                "total_awake_time_milli",
                 0
-            )
+            ) / 60000,
+            1
+        )
 
 
-            sleep_cycles = stage.get(
-                "sleep_cycle_count",
-                0
-            )
+        if sleep_performance >= 85:
+            sleep_quality = "Excellent"
 
+        elif sleep_performance >= 70:
+            sleep_quality = "Good"
 
-            sleep_needed = round(
-                stage.get(
-                    "sleep_needed",
-                    {}
-                ).get(
-                    "baseline_milli",
-                    0
-                ) / 3600000,
-                2
-            )
+        elif sleep_performance >= 50:
+            sleep_quality = "Fair"
 
-
-            awake_time = round(
-                stage.get(
-                    "total_awake_time_milli",
-                    0
-                ) / 60000,
-                1
-            )
-
-
-            if sleep_performance >= 85:
-
-                sleep_quality = "Excellent"
-
-
-            elif sleep_performance >= 70:
-
-                sleep_quality = "Good"
-
-
-            elif sleep_performance >= 50:
-
-                sleep_quality = "Fair"
-
-
-            else:
-
-                sleep_quality = "Poor"
-
+        else:
+            sleep_quality = "Poor"
 
 
     except Exception as e:
