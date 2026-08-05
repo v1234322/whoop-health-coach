@@ -96,8 +96,8 @@ def trend():
 @app.route("/whoop/auto-report")
 def auto_report():
 
-
     print("######## AUTO REPORT NEW VERSION ########")
+
     try:
 
         data = {
@@ -107,183 +107,235 @@ def auto_report():
             "workout": whoop_get("/activity/workout")
         }
 
-        print("######## NEW CODE LOADED ########")
-        print("RAW SLEEP RESPONSE >>>", data["sleep"])
 
-
-        print("######## TEST AUTO REPORT V2 ########")
-        
-        print("========== AUTO REPORT RAW ==========")
-
-        print("RECOVERY:")
-        print(data["recovery"])
-
-        print("CYCLE:")
-        print(data["cycle"])
-
-        print("SLEEP:")
+        print("RAW SLEEP RESPONSE >>>")
         print(data["sleep"])
 
-        print("SLEEP KEYS:")
-        print(data["sleep"].keys())
 
-        print("SLEEP TYPE:")
-        print(type(data["sleep"]))
-
-        if "records" in data["sleep"]:
-            print("FIRST SLEEP RECORD:")
-            print(data["sleep"]["records"][0])
-        else:
-            print("NO RECORDS FIELD")
-        
-        print("WORKOUT:")
-        print(data["workout"])
-
-        
-        print("====================================")
-        
         convert_utc_to_beijing(data)
 
+
+        # =========================
+        # 数据报告
+        # =========================
 
         report = generate_health_report(data)
 
 
-        metrics = extract_daily_metrics(data)
+        # =========================
+        # 保存每日数据
+        # =========================
 
+        metrics = extract_daily_metrics(data)
 
         save_daily_data(metrics)
 
 
+
+        # =========================
+        # AI 教练
+        # =========================
+
+        ai_prompt = str(metrics)
+
+
+        coach_advice = generate_ai_summary(
+            ai_prompt
+        )
+
+
+
         return f"""
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <title>WHOOP Health Coach</title>
-        </head>
+<html>
 
-        <body>
+<head>
 
-        <h1>🧠 WHOOP 健康教练日报</h1>
+<meta charset="utf-8">
 
-        <hr>
+<title>
+WHOOP Health Coach
+</title>
 
-        <h2>❤️ Recovery</h2>
-
-        <p>
-        恢复评分：
-        <b>{report.get("恢复期",0)}</b>
-        </p>
-
-        <p>
-        HRV：
-        <b>{report.get("心率变异性",0)}</b>
-        </p>
-
-        <p>
-        静息心率：
-        <b>{report.get("休息时间",0)}</b>
-        </p>
+</head>
 
 
-        <hr>
-        
-        <h2>💤 睡眠</h2>
-
-        <p>
-        睡眠时长：
-        <b>{report.get("睡眠",0)} 小时</b>
-        </p>
-
-        <p>
-        睡眠需求：
-        <b>{report.get("所需睡眠时间",0)} 小时</b>
-        </p>
-
-        <p>
-        睡眠表现：
-        <b>{report.get("睡眠表现",0)}%</b>
-        </p>
-
-        <p>
-        睡眠效率：
-        <b>{report.get("睡眠效率",0)}%</b>
-        </p>
-
-        <p>
-        睡眠周期：
-        <b>{report.get("睡眠周期",0)} 次</b>
-        </p>
-
-        <p>
-        睡眠质量：
-        <b>{report.get("睡眠质量","未知")}</b>
-        </p>
+<body>
 
 
-        <hr>
-
-        <h2>🔥 Strain</h2>
-
-        <p>
-        今日训练负荷：
-        <b>{report.get("Strain",0)}</b>
-        </p>
+<h1>
+🧠 WHOOP 健康教练日报
+</h1>
 
 
-        <hr>
-
-        <h2>🧠 AI 教练建议</h2>
-
-        <p>
-        {coach_advice}
-        </p>
+<hr>
 
 
-        </body>
-        </html>
+<h2>
+❤️ Recovery
+</h2>
+
+
+<p>
+恢复评分：
+
+<b>
+{report.get("恢复期",0)}
+</b>
+
+</p>
+
+
+
+<p>
+HRV：
+
+<b>
+{report.get("心率变异性",0)}
+</b>
+
+</p>
+
+
+
+<p>
+静息心率：
+
+<b>
+{report.get("休息时间",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+💤 睡眠
+</h2>
+
+
+
+<p>
+睡眠时长：
+
+<b>
+{report.get("睡眠",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠需求：
+
+<b>
+{report.get("所需睡眠时间",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠表现：
+
+<b>
+{report.get("睡眠表现",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠效率：
+
+<b>
+{report.get("睡眠效率",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠周期：
+
+<b>
+{report.get("睡眠周期",0)}
+次
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🔥 Strain
+</h2>
+
+
+
+<p>
+
+今日训练负荷：
+
+<b>
+{report.get("Strain",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🧠 AI 教练建议
+</h2>
+
+
+
+<p>
+
+{coach_advice}
+
+</p>
+
+
+
+</body>
+
+</html>
+
+"""
+
 
 
     except Exception as e:
 
-        print("AUTO REPORT ERROR:", e)
+        print(
+            "AUTO REPORT ERROR:",
+            e
+        )
 
         return str(e)
 
-WHOOP_CLIENT_ID = os.environ.get(
-    "WHOOP_CLIENT_ID",
-    ""
-).strip()
-
-WHOOP_CLIENT_SECRET = os.environ.get(
-    "WHOOP_CLIENT_SECRET",
-    ""
-).strip()
-
-WHOOP_REFRESH_TOKEN = os.environ.get(
-    "WHOOP_REFRESH_TOKEN",
-    ""
-).strip()
-
-API_SECRET = os.environ.get(
-    "API_SECRET",
-    ""
-).strip()
-
-WHOOP_TOKEN_URL = (
-    "https://api.prod.whoop.com/oauth/oauth2/token"
-)
-
-WHOOP_API_BASE = (
-    "https://api.prod.whoop.com/developer/v2"
-)
-
-ACCESS_TOKEN = None
-
-ACCESS_TOKEN_EXPIRE = 0
-
-TOKEN_LOCK = threading.Lock()
-
-def generate_ai_summary(ai_prompt):
+        def generate_ai_summary(ai_prompt):
 
     """
     调用 DeepSeek 生成 WHOOP 私人教练总结
@@ -291,20 +343,28 @@ def generate_ai_summary(ai_prompt):
 
     try:
 
+
         response = client.chat.completions.create(
+
             model="deepseek-chat",
 
+
             messages=[
-    {
-        "role": "system",
-        "content": """
+
+                {
+                    "role": "system",
+
+                    "content": """
 你是我的WHOOP私人健康教练。
 
 你的任务：
 
-1. 根据最近7天恢复、睡眠、HRV、训练数据分析状态
-2. 判断风险：良好 / 需小心 / 危险
+1. 根据恢复、睡眠、HRV、训练数据分析状态
+2. 判断风险：
+良好 / 需小心 / 危险
+
 3. 给未来1-3天具体行动建议
+
 
 输出要求：
 
@@ -312,25 +372,37 @@ def generate_ai_summary(ai_prompt):
 - 像私人教练一样
 - 先总结，再解释数据
 - 不要编造不存在的数据
+
 """
-    },
-    {
-        "role": "user",
-        "content": ai_prompt
-    }
-],
-temperature=0.4
+                },
+
+
+                {
+                    "role": "user",
+
+                    "content": ai_prompt
+                }
+
+            ],
+
+
+            temperature=0.4
+
         )
+
 
         return response.choices[0].message.content
 
 
+
     except Exception as e:
+
 
         print(
             "AI SUMMARY ERROR:",
             e
         )
+
 
         return "AI教练暂时无法生成建议"
 
