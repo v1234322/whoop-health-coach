@@ -1608,7 +1608,7 @@ def generate_health_report(data):
         "sleep_quality": sleep_quality,
         "sleep_cycles": sleep_cycles,
         "sleep_needed": sleep_needed,
-        "awake_minutes": awake_time，
+        "awake_minutes": awake_time,
 
     }
 
