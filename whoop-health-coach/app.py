@@ -1458,8 +1458,6 @@ def generate_health_report(data):
 
     try:
 
-        sleep = get_sleep_data()
-
         print("RAW SLEEP RESPONSE:")
         print(sleep)
 
