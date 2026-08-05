@@ -1704,6 +1704,8 @@ def generate_health_report(data):
     print(type(strain))
     print(type(sleep_debt))
 
+    print("NEW VERSION LOADED")
+
 
     return f"""
 <div>
