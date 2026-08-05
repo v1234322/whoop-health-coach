@@ -73,27 +73,6 @@ def init_db():
     cursor = conn.cursor()
 
 
-    # 每日数据
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS daily_metrics(
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        date TEXT,
-
-        recovery REAL,
-
-        hrv REAL,
-
-        sleep REAL,
-
-        strain REAL
-
-    )
-    """)
-
-
     # WHOOP TOKEN
 
     cursor.execute("""
