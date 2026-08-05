@@ -1707,158 +1707,158 @@ def generate_health_report(data):
 
     return f"""
 
-<div>
-font-family:Arial;
-padding:20px;
-line-height:1.8;
+    <div>
+    font-family:Arial;
+    padding:20px;
+    line-height:1.8;
 
 
-<h1>
-🏋️ WHOOP 今日健康报告
-</h1>
+    <h1>
+    🏋️ WHOOP 今日健康报告
+    </h1>
 
 
-<h2>
-状态：
-{status}
-</h2>
+    <h2>
+    状态：
+    {status}
+    </h2>
 
 
-<hr>
+    <hr>
 
 
-<h2>❤️ 恢复</h2>
+    <h2>❤️ 恢复</h2>
 
-<p>
-Recovery：
-<b>{recovery_score:.1f}%</b>
-</p>
+    <p>
+    Recovery：
+    <b>{recovery_score:.1f}%</b>
+    </p>
 
-<p>
-HRV：
-<b>{hrv:.1f} ms</b>
-</p>
+    <p>
+    HRV：
+    <b>{hrv:.1f} ms</b>
+    </p>
 
-<p>
-静息心率：
-<b>{resting_hr:.0f} bpm</b>
-</p>
-
-
-<hr>
+    <p>
+    静息心率：
+    <b>{resting_hr:.0f} bpm</b>
+    </p>
 
 
-<h2>💤 睡眠</h2>
-
-<h2>💤 睡眠</h2>
-
-<p>
-睡眠时长：
-<b>{sleep_duration:.2f} 小时</b>
-</p>
-
-<p>
-睡眠需求：
-<b>{sleep_needed:.2f} 小时</b>
-</p>
-
-<p>
-睡眠表现：
-<b>{sleep_performance:.1f}%</b>
-</p>
-
-<p>
-睡眠效率：
-<b>{sleep_efficiency:.1f}%</b>
-</p>
-
-<p>
-睡眠周期：
-<b>{sleep_cycles} 次</b>
-</p>
-
-<p>
-清醒时间：
-<b>{awake_time:.1f} 分钟</b>
-</p>
+    <hr>
 
 
-<hr>
+    <h2>💤 睡眠</h2>
+
+    <h2>💤 睡眠</h2>
+
+    <p>
+    睡眠时长：
+    <b>{sleep_duration:.2f} 小时</b>
+    </p>
+
+    <p>
+    睡眠需求：
+    <b>{sleep_needed:.2f} 小时</b>
+    </p>
+
+    <p>
+    睡眠表现：
+    <b>{sleep_performance:.1f}%</b>
+    </p>
+
+    <p>
+    睡眠效率：
+    <b>{sleep_efficiency:.1f}%</b>
+    </p>
+
+    <p>
+    睡眠周期：
+    <b>{sleep_cycles} 次</b>
+    </p>
+
+    <p>
+    清醒时间：
+    <b>{awake_time:.1f} 分钟</b>
+    </p>
 
 
-<h2>🏃 训练</h2>
-
-<p>
-Strain：
-<b>{strain:.2f}</b>
-</p>
+    <hr>
 
 
-<p>
-平均心率：
-<b>{avg_hr:.0f} bpm</b>
-</p>
+    <h2>🏃 训练</h2>
+
+    <p>
+    Strain：
+    <b>{strain:.2f}</b>
+    </p>
 
 
-<p>
-最大心率：
-<b>{max_hr:.0f} bpm</b>
-</p>
+    <p>
+    平均心率：
+    <b>{avg_hr:.0f} bpm</b>
+    </p>
 
 
-<hr>
+    <p>
+    最大心率：
+    <b>{max_hr:.0f} bpm</b>
+    </p>
 
 
-<h2>📈 趋势分析</h2>
-
-<p>
-Recovery：
-{recovery_trend}
-</p>
-
-<p>
-HRV：
-{hrv_trend}
-</p>
-
-<p>
-7天平均 Recovery：
-{avg_recovery:.1f}%
-</p>
+    <hr>
 
 
-<h2>🤖 训练建议</h2>
+    <h2>📈 趋势分析</h2>
 
-<p>
-{training_advice}
-</p>
+    <p>
+    Recovery：
+    {recovery_trend}
+    </p>
 
+    <p>
+    HRV：
+    {hrv_trend}
+    </p>
 
-<hr>
-
-
-<h2>🧠 AI 教练建议</h2>
-
-<p>
-{coach_advice}
-</p>
-
-
-<hr>
+    <p>
+    7天平均 Recovery：
+    {avg_recovery:.1f}%
+    </p>
 
 
-<h2>📅 未来1-3天</h2>
-
-<p>
-1. 保证充足睡眠恢复<br>
-2. 根据 Recovery 调整训练强度<br>
-3. 避免连续高 Strain
-</p>
+    <h2>🤖 训练建议</h2>
+    
+    <p>
+    {training_advice}
+    </p>
 
 
-</div>
+    <hr>
 
-"""
+
+    <h2>🧠 AI 教练建议</h2>
+
+    <p>
+    {coach_advice}
+    </p>
+
+
+    <hr>
+
+
+    <h2>📅 未来1-3天</h2>
+
+    <p>
+    1. 保证充足睡眠恢复<br>
+    2. 根据 Recovery 调整训练强度<br>
+    3. 避免连续高 Strain
+    </p>
+
+
+    </div>
+    
+    """
 
 def get_whoop_data():
 
