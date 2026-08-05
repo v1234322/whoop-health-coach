@@ -284,6 +284,7 @@ ACCESS_TOKEN_EXPIRE = 0
 TOKEN_LOCK = threading.Lock()
 
 def generate_ai_summary(ai_prompt):
+
     """
     调用 DeepSeek 生成 WHOOP 私人教练总结
     """
@@ -296,8 +297,19 @@ def generate_ai_summary(ai_prompt):
             messages=[
                 {
                     "role": "system",
-                    "content": 你是我的WHOOP私人健康教练。你的任务是根据最近7天恢复、睡眠、HRV、训练数据分析状态，判断风险并给未来1-3天具体行动建议。输出中文简体，像私人教练一样，先总结，再解释数据，不要编造不存在的数据。"
+                    "content": """
+你是我的WHOOP私人健康教练。
 
+任务：
+1. 根据恢复、睡眠、HRV、训练数据分析状态
+2. 判断风险等级
+3. 给未来1-3天行动建议
+
+要求：
+- 中文简体
+- 像私人教练
+- 不编造数据
+"""
                 },
                 {
                     "role": "user",
@@ -307,7 +319,6 @@ def generate_ai_summary(ai_prompt):
 
             temperature=0.4
         )
-
 
         return response.choices[0].message.content
 
