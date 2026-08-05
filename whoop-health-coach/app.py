@@ -19,7 +19,7 @@ import time
 
 from openai import OpenAI
 
-WHOOP_API_BASE = "https://api.prod.whoop.com/developer"
+WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v2"
 
 
 # =========================
