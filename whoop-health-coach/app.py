@@ -186,32 +186,37 @@ def auto_report():
 
 
         <hr>
-
+        
         <h2>💤 睡眠</h2>
 
         <p>
         睡眠时长：
-        <b>{sleep_duration:.2f} 小时</b>
+        <b>{report.get("睡眠",0)} 小时</b>
         </p>
 
         <p>
         睡眠需求：
-        <b>{sleep_needed:.2f} 小时</b>
+        <b>{report.get("所需睡眠时间",0)} 小时</b>
         </p>
 
         <p>
         睡眠表现：
-        <b>{sleep_performance:.1f}%</b>
+        <b>{report.get("睡眠表现",0)}%</b>
         </p>
 
         <p>
         睡眠效率：
-        <b>{sleep_efficiency:.1f}%</b>
+        <b>{report.get("睡眠效率",0)}%</b>
         </p>
 
         <p>
         睡眠周期：
-        <b>{sleep_cycles} 次</b>
+        <b>{report.get("睡眠周期",0)} 次</b>
+        </p>
+
+        <p>
+        睡眠质量：
+        <b>{report.get("睡眠质量","未知")}</b>
         </p>
 
 
@@ -221,7 +226,7 @@ def auto_report():
 
         <p>
         今日训练负荷：
-        <b>{strain}</b>
+        <b>{report.get("Strain",0)}</b>
         </p>
 
 
@@ -236,7 +241,6 @@ def auto_report():
 
         </body>
         </html>
-        """
 
 
     except Exception as e:
