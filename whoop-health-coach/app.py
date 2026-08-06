@@ -621,7 +621,121 @@ def whoop_get(endpoint):
 
 
     return r.json()
-    
+
+
+@app.route("/callback")
+def callback():
+
+    print(
+        "CALLBACK URL:",
+        request.url
+    )
+
+    code = request.args.get("code")
+
+    state = request.args.get("state")
+
+    print(
+        "CODE:",
+        code
+    )
+
+    print(
+        "STATE:",
+        state
+    )
+
+
+    if not code:
+        return "NO CODE"
+
+    payload = {
+
+        "grant_type": "authorization_code",
+
+        "code": code,
+
+        "client_id": WHOOP_CLIENT_ID,
+
+        "client_secret": WHOOP_CLIENT_SECRET,
+
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback"
+
+    }
+
+
+    response = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data=payload,
+
+        headers={
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+        },
+
+        timeout=30
+
+    )
+
+
+    print(
+        "TOKEN RESPONSE:",
+        response.text
+    )
+
+
+    response.raise_for_status()
+
+
+    token_data = response.json()
+
+
+    access_token = token_data.get(
+        "access_token"
+    )
+
+
+    refresh_token = token_data.get(
+        "refresh_token"
+    )
+
+
+    print(
+        "ACCESS TOKEN RECEIVED:",
+        bool(access_token)
+    )
+
+
+    print(
+        "REFRESH TOKEN RECEIVED:",
+        bool(refresh_token)
+    )
+
+
+    if access_token:
+
+        save_access_token_to_db(
+            access_token
+        )
+
+
+    if refresh_token:
+
+        save_refresh_token(
+            refresh_token
+        )
+
+
+    return {
+        "status": "success",
+        "access_token_saved": bool(access_token),
+        "refresh_token_saved": bool(refresh_token)
+    }
+
+
 
 @app.route("/whoop/auto-report")
 def auto_report():
@@ -866,117 +980,6 @@ HRV：
         return str(e)
     
 
-@app.route("/callback")
-def callback():
-
-    print(
-        "CALLBACK URL:",
-        request.url
-    )
-
-    code = request.args.get("code")
-
-    state = request.args.get("state")
-
-    print(
-        "CODE:",
-        code
-    )
-
-    print(
-        "STATE:",
-        state
-    )
-
-
-    if not code:
-        return "NO CODE"
-
-    payload = {
-
-        "grant_type": "authorization_code",
-
-        "code": code,
-
-        "client_id": WHOOP_CLIENT_ID,
-
-        "client_secret": WHOOP_CLIENT_SECRET,
-
-        "redirect_uri":
-        "https://whoop-health-coach.onrender.com/callback"
-
-    }
-
-
-    response = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data=payload,
-
-        headers={
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-        },
-
-        timeout=30
-
-    )
-
-
-    print(
-        "TOKEN RESPONSE:",
-        response.text
-    )
-
-
-    response.raise_for_status()
-
-
-    token_data = response.json()
-
-
-    access_token = token_data.get(
-        "access_token"
-    )
-
-
-    refresh_token = token_data.get(
-        "refresh_token"
-    )
-
-
-    print(
-        "ACCESS TOKEN RECEIVED:",
-        bool(access_token)
-    )
-
-
-    print(
-        "REFRESH TOKEN RECEIVED:",
-        bool(refresh_token)
-    )
-
-
-    if access_token:
-
-        save_access_token_to_db(
-            access_token
-        )
-
-
-    if refresh_token:
-
-        save_refresh_token(
-            refresh_token
-        )
-
-
-    return {
-        "status": "success",
-        "access_token_saved": bool(access_token),
-        "refresh_token_saved": bool(refresh_token)
-    }
 
 @app.route("/")
 def home():
