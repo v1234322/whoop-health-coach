@@ -51,6 +51,13 @@ app.config["JSON_AS_ASCII"] = False
 
 def get_db_connection():
 
+    import os
+
+    print(
+        "DB PATH:",
+        os.path.abspath("whoop.db")
+    )
+
     conn = sqlite3.connect(
         "whoop.db"
     )
