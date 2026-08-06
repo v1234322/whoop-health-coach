@@ -174,6 +174,45 @@ def load_refresh_token():
         raise Exception("NO REFRESH TOKEN")
 
     return token
+
+# ==========================
+# 从数据库读取最新 refresh token
+# ==========================
+
+def load_refresh_token_from_db():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+
+    cur.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        WHERE refresh_token IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    )
+
+
+    result = cur.fetchone()
+
+
+    cur.close()
+
+    conn.close()
+
+
+    if result:
+
+        print("USING DB REFRESH TOKEN")
+
+        return result[0]
+
+
+    return None
     
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
@@ -394,6 +433,10 @@ def refresh_access_token():
 
     refresh_token = load_refresh_token()
 
+    if not refresh_token:
+        refresh_token = load_refresh_token()
+
+    
 
     client_id = os.environ.get(
         "WHOOP_CLIENT_ID"
