@@ -285,29 +285,55 @@ def save_access_token_to_db(token):
 
     conn.close()
 
-
-
 # =========================
-# 保存 Refresh Token 到数据库
+# 获取 Access Token
 # =========================
 
-def save_refresh_token_to_db():
-
-    if not WHOOP_REFRESH_TOKEN:
-
-        print(
-            "NO ENV REFRESH TOKEN"
-        )
-
-        return
-
+def get_access_token():
 
     conn = get_db_connection()
 
-    cursor = conn.cursor()
+    cur = conn.cursor()
 
 
-    cursor.execute(
+    cur.execute(
+        """
+        SELECT access_token
+        FROM tokens
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    )
+
+
+    result = cur.fetchone()
+
+
+    cur.close()
+
+    conn.close()
+
+
+    if result:
+
+        return result[0]
+
+
+    return None
+
+
+# =========================
+# 保存 Refresh Token
+# =========================
+
+def save_refresh_token(token):
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+
+    cur.execute(
         """
         SELECT id
         FROM tokens
@@ -315,66 +341,530 @@ def save_refresh_token_to_db():
         """
     )
 
-    result = cursor.fetchone()
+    result = cur.fetchone()
 
 
-    if result is None:
+    if result:
 
-
-        cursor.execute(
-            """
-            INSERT INTO tokens
-            (
-                refresh_token,
-                expires_at
-            )
-            VALUES
-            (
-                ?,
-                ?
-            )
-            """,
-            (
-                WHOOP_REFRESH_TOKEN,
-                0
-            )
-        )
-
-
-        print(
-            "REFRESH TOKEN SAVED TO DATABASE"
-        )
-
-
-    else:
-
-
-        cursor.execute(
+        cur.execute(
             """
             UPDATE tokens
             SET refresh_token=?
+            WHERE id=?
             """,
             (
-                WHOOP_REFRESH_TOKEN,
+                token,
+                result[0]
             )
         )
 
+    else:
 
-        print(
-            "REFRESH TOKEN UPDATED"
+        cur.execute(
+            """
+            INSERT INTO tokens
+            (
+                refresh_token
+            )
+            VALUES
+            (?)
+            """,
+            (
+                token,
+            )
         )
 
 
     conn.commit()
 
+
+    cur.close()
+
     conn.close()
 
 
+    print(
+        "REFRESH TOKEN SAVED"
+    )
 
-# 启动时保存环境里的 refresh token
-save_refresh_token_to_db()
+
+# =========================
+# 获取 Refresh Token
+# =========================
+
+def load_refresh_token():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
 
 
+    cur.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    )
+
+
+    result = cur.fetchone()
+
+
+    cur.close()
+
+    conn.close()
+
+
+    if result:
+        return result[0]
+
+
+    return None
+
+# =========================
+# 刷新 Access Token
+# =========================
+
+def refresh_access_token():
+
+
+    refresh_token = load_refresh_token()
+
+
+    client_id = os.environ.get(
+        "WHOOP_CLIENT_ID"
+    )
+
+
+    client_secret = os.environ.get(
+        "WHOOP_CLIENT_SECRET"
+    )
+
+
+    print(
+        "CLIENT ID:",
+        bool(client_id)
+    )
+
+    print(
+        "CLIENT SECRET:",
+        bool(client_secret)
+    )
+
+    print(
+        "REFRESH TOKEN:",
+        bool(refresh_token)
+    )
+
+
+    if not refresh_token:
+
+        raise Exception(
+            "NO REFRESH TOKEN"
+        )
+
+
+    payload = {
+
+        "grant_type":
+        "refresh_token",
+
+        "refresh_token":
+        refresh_token,
+
+        "client_id":
+        client_id,
+
+        "client_secret":
+        client_secret
+
+    }
+
+
+    response = requests.post(
+
+        "https://api.prod.whoop.com/oauth/oauth2/token",
+
+        data=payload,
+
+        headers={
+
+            "Content-Type":
+            "application/x-www-form-urlencoded"
+
+        },
+
+        timeout=30
+
+    )
+
+
+    print(
+        "REFRESH STATUS:",
+        response.status_code
+    )
+
+
+    print(
+        "REFRESH RESPONSE:",
+        response.text
+    )
+
+
+    response.raise_for_status()
+
+
+    token_data = response.json()
+
+
+    access_token = token_data.get(
+        "access_token"
+    )
+
+
+    new_refresh_token = token_data.get(
+        "refresh_token"
+    )
+
+
+
+    if new_refresh_token:
+
+        save_refresh_token(
+            new_refresh_token
+        )
+
+        print(
+            "NEW REFRESH TOKEN SAVED"
+        )
+
+    save_access_token_to_db(
+        access_token
+    )
+
+
+    return access_token
+
+
+# =========================
+# WHOOP API 请求函数
+# =========================
+
+def whoop_get(endpoint):
+
+    token = get_access_token()
+
+
+    if not token:
+        raise Exception(
+            "NO ACCESS TOKEN"
+        )
+
+
+    r = requests.get(
+
+        WHOOP_API_BASE + endpoint,
+
+        headers={
+
+            "Authorization":
+            f"Bearer {token}",
+
+            "Accept":
+            "application/json"
+
+        },
+
+        timeout=30
+
+    )
+
+
+    print(
+        "WHOOP STATUS:",
+        r.status_code
+    )
+
+
+    if r.status_code == 401:
+
+        print(
+            "TOKEN EXPIRED, REFRESHING"
+        )
+
+
+        token = refresh_access_token()
+
+
+        r = requests.get(
+
+            WHOOP_API_BASE + endpoint,
+
+            headers={
+
+                "Authorization":
+                f"Bearer {token}",
+
+                "Accept":
+                "application/json"
+
+            },
+
+            timeout=30
+
+        )
+
+
+    r.raise_for_status()
+
+
+    return r.json()
+    
+
+@app.route("/whoop/auto-report")
+def auto_report():
+
+    print("######## AUTO REPORT NEW VERSION ########")
+
+    try:
+
+        data = {
+            "recovery": whoop_get("/recovery"),
+            "cycle": whoop_get("/cycle"),
+            "sleep": whoop_get("/activity/sleep"),
+            "workout": whoop_get("/activity/workout")
+        }
+
+
+        print("RAW SLEEP RESPONSE >>>")
+        print(data["sleep"])
+
+
+        convert_utc_to_beijing(data)
+
+
+        # =========================
+        # 数据报告
+        # =========================
+
+        report = generate_health_report(data)
+
+
+        # =========================
+        # 保存每日数据
+        # =========================
+
+        metrics = extract_daily_metrics(data)
+
+        save_daily_data(metrics)
+
+
+
+        # =========================
+        # AI 教练
+        # =========================
+
+        ai_prompt = str(metrics)
+
+
+        coach_advice = generate_ai_summary(
+            ai_prompt
+        )
+
+
+
+        return f"""
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>
+WHOOP Health Coach
+</title>
+
+</head>
+
+
+<body>
+
+
+<h1>
+🧠 WHOOP 健康教练日报
+</h1>
+
+
+<hr>
+
+
+<h2>
+❤️ Recovery
+</h2>
+
+
+<p>
+恢复评分：
+
+<b>
+{report.get("恢复期",0)}
+</b>
+
+</p>
+
+
+
+<p>
+HRV：
+
+<b>
+{report.get("心率变异性",0)}
+</b>
+
+</p>
+
+
+
+<p>
+静息心率：
+
+<b>
+{report.get("休息时间",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+💤 睡眠
+</h2>
+
+
+
+<p>
+睡眠时长：
+
+<b>
+{report.get("睡眠",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠需求：
+
+<b>
+{report.get("所需睡眠时间",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠表现：
+
+<b>
+{report.get("睡眠表现",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠效率：
+
+<b>
+{report.get("睡眠效率",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠周期：
+
+<b>
+{report.get("睡眠周期",0)}
+次
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🔥 Strain
+</h2>
+
+
+
+<p>
+
+今日训练负荷：
+
+<b>
+{report.get("Strain",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🧠 AI 教练建议
+</h2>
+
+
+
+<p>
+
+{coach_advice}
+
+</p>
+
+
+
+</body>
+
+</html>
+
+"""
+
+
+
+    except Exception as e:
+
+        print(
+            "AUTO REPORT ERROR:",
+            e
+        )
+
+        return str(e)
+    
 
 @app.route("/callback")
 def callback():
@@ -988,71 +1478,6 @@ def whoop_token():
         r.json()
     )
 
-# =========================
-# 保存 Refresh Token
-# =========================
-
-def save_refresh_token(token):
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-
-    cur.execute(
-        """
-        SELECT id
-        FROM tokens
-        LIMIT 1
-        """
-    )
-
-    result = cur.fetchone()
-
-
-    if result:
-
-        cur.execute(
-            """
-            UPDATE tokens
-            SET refresh_token=?
-            WHERE id=?
-            """,
-            (
-                token,
-                result[0]
-            )
-        )
-
-    else:
-
-        cur.execute(
-            """
-            INSERT INTO tokens
-            (
-                refresh_token
-            )
-            VALUES
-            (?)
-            """,
-            (
-                token,
-            )
-        )
-
-
-    conn.commit()
-
-
-    cur.close()
-
-    conn.close()
-
-
-    print(
-        "REFRESH TOKEN SAVED"
-    )
-
 
 # =========================
 # 从数据库读取 Refresh Token
@@ -1091,448 +1516,6 @@ def get_refresh_token_from_db():
     return None
 
 
-
-# =========================
-# 刷新 Access Token
-# =========================
-
-def refresh_access_token():
-
-
-    refresh_token = load_refresh_token()
-
-
-    client_id = os.environ.get(
-        "WHOOP_CLIENT_ID"
-    )
-
-
-    client_secret = os.environ.get(
-        "WHOOP_CLIENT_SECRET"
-    )
-
-
-    print(
-        "CLIENT ID:",
-        bool(client_id)
-    )
-
-    print(
-        "CLIENT SECRET:",
-        bool(client_secret)
-    )
-
-    print(
-        "REFRESH TOKEN:",
-        bool(refresh_token)
-    )
-
-
-    if not refresh_token:
-
-        raise Exception(
-            "NO REFRESH TOKEN"
-        )
-
-
-    payload = {
-
-        "grant_type":
-        "refresh_token",
-
-        "refresh_token":
-        refresh_token,
-
-        "client_id":
-        client_id,
-
-        "client_secret":
-        client_secret
-
-    }
-
-
-    response = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data=payload,
-
-        headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
-        },
-
-        timeout=30
-
-    )
-
-
-    print(
-        "REFRESH STATUS:",
-        response.status_code
-    )
-
-
-    print(
-        "REFRESH RESPONSE:",
-        response.text
-    )
-
-
-    response.raise_for_status()
-
-
-    token_data = response.json()
-
-
-    access_token = token_data.get(
-        "access_token"
-    )
-
-
-    new_refresh_token = token_data.get(
-        "refresh_token"
-    )
-
-
-
-    if new_refresh_token:
-
-        save_refresh_token(
-            new_refresh_token
-        )
-
-        print(
-            "NEW REFRESH TOKEN SAVED"
-        )
-
-    save_access_token_to_db(
-        access_token
-    )
-
-
-    return access_token
-
-
-# =========================
-# WHOOP API 请求函数
-# =========================
-
-def whoop_get(endpoint):
-
-    token = get_access_token()
-
-
-    if not token:
-        raise Exception(
-            "NO ACCESS TOKEN"
-        )
-
-
-    r = requests.get(
-
-        WHOOP_API_BASE + endpoint,
-
-        headers={
-
-            "Authorization":
-            f"Bearer {token}",
-
-            "Accept":
-            "application/json"
-
-        },
-
-        timeout=30
-
-    )
-
-
-    print(
-        "WHOOP STATUS:",
-        r.status_code
-    )
-
-
-    if r.status_code == 401:
-
-        print(
-            "TOKEN EXPIRED, REFRESHING"
-        )
-
-
-        token = refresh_access_token()
-
-
-        r = requests.get(
-
-            WHOOP_API_BASE + endpoint,
-
-            headers={
-
-                "Authorization":
-                f"Bearer {token}",
-
-                "Accept":
-                "application/json"
-
-            },
-
-            timeout=30
-
-        )
-
-
-    r.raise_for_status()
-
-
-    return r.json()
-    
-
-@app.route("/whoop/auto-report")
-def auto_report():
-
-    print("######## AUTO REPORT NEW VERSION ########")
-
-    try:
-
-        data = {
-            "recovery": whoop_get("/recovery"),
-            "cycle": whoop_get("/cycle"),
-            "sleep": whoop_get("/activity/sleep"),
-            "workout": whoop_get("/activity/workout")
-        }
-
-
-        print("RAW SLEEP RESPONSE >>>")
-        print(data["sleep"])
-
-
-        convert_utc_to_beijing(data)
-
-
-        # =========================
-        # 数据报告
-        # =========================
-
-        report = generate_health_report(data)
-
-
-        # =========================
-        # 保存每日数据
-        # =========================
-
-        metrics = extract_daily_metrics(data)
-
-        save_daily_data(metrics)
-
-
-
-        # =========================
-        # AI 教练
-        # =========================
-
-        ai_prompt = str(metrics)
-
-
-        coach_advice = generate_ai_summary(
-            ai_prompt
-        )
-
-
-
-        return f"""
-<html>
-
-<head>
-
-<meta charset="utf-8">
-
-<title>
-WHOOP Health Coach
-</title>
-
-</head>
-
-
-<body>
-
-
-<h1>
-🧠 WHOOP 健康教练日报
-</h1>
-
-
-<hr>
-
-
-<h2>
-❤️ Recovery
-</h2>
-
-
-<p>
-恢复评分：
-
-<b>
-{report.get("恢复期",0)}
-</b>
-
-</p>
-
-
-
-<p>
-HRV：
-
-<b>
-{report.get("心率变异性",0)}
-</b>
-
-</p>
-
-
-
-<p>
-静息心率：
-
-<b>
-{report.get("休息时间",0)}
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-💤 睡眠
-</h2>
-
-
-
-<p>
-睡眠时长：
-
-<b>
-{report.get("睡眠",0)}
-小时
-</b>
-
-</p>
-
-
-
-<p>
-睡眠需求：
-
-<b>
-{report.get("所需睡眠时间",0)}
-小时
-</b>
-
-</p>
-
-
-
-<p>
-睡眠表现：
-
-<b>
-{report.get("睡眠表现",0)}
-%
-</b>
-
-</p>
-
-
-
-<p>
-睡眠效率：
-
-<b>
-{report.get("睡眠效率",0)}
-%
-</b>
-
-</p>
-
-
-
-<p>
-睡眠周期：
-
-<b>
-{report.get("睡眠周期",0)}
-次
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-🔥 Strain
-</h2>
-
-
-
-<p>
-
-今日训练负荷：
-
-<b>
-{report.get("Strain",0)}
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-🧠 AI 教练建议
-</h2>
-
-
-
-<p>
-
-{coach_advice}
-
-</p>
-
-
-
-</body>
-
-</html>
-
-"""
-
-
-
-    except Exception as e:
-
-        print(
-            "AUTO REPORT ERROR:",
-            e
-        )
-
-        return str(e)
 
 def extract_daily_metrics(data):
 
