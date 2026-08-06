@@ -67,6 +67,30 @@ def get_db_connection():
     return conn
 
 
+def ensure_refresh_token():
+
+    env_token = os.getenv(
+        "WHOOP_REFRESH_TOKEN"
+    )
+
+    if not env_token:
+        return
+
+
+    db_token = load_refresh_token()
+
+
+    if not db_token:
+
+        print(
+            "SAVING ENV REFRESH TOKEN TO DB"
+        )
+
+        save_refresh_token(
+            env_token
+        )
+
+
 # =========================
 # 数据库初始化
 # =========================
@@ -311,31 +335,6 @@ def load_refresh_token():
     print("NO REFRESH TOKEN FOUND")
 
     return None
-
-
-
-def ensure_refresh_token():
-
-    env_token = os.getenv(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-    if not env_token:
-        return
-
-
-    db_token = load_refresh_token()
-
-
-    if not db_token:
-
-        print(
-            "SAVING ENV REFRESH TOKEN TO DB"
-        )
-
-        save_refresh_token(
-            env_token
-        )
 
 
 
