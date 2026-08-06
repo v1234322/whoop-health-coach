@@ -386,14 +386,21 @@ def callback():
 
     code = request.args.get("code")
 
+    state = request.args.get("state")
+
     print(
         "CODE:",
         code
     )
 
+    print(
+        "STATE:",
+        state
+    )
+
+
     if not code:
         return "NO CODE"
-
 
     payload = {
 
