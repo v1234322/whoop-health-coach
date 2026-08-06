@@ -496,6 +496,14 @@ def refresh_access_token():
 
     }
 
+    print(
+        "PAYLOAD CHECK:",
+        {
+            "grant_type": payload["grant_type"],
+            "refresh_token_length": len(payload["refresh_token"]),
+            "client_id": payload["client_id"][:6]
+        }
+    )
 
     response = requests.post(
 
