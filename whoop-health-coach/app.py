@@ -391,9 +391,9 @@ def get_access_token():
     return refresh_access_token()
 
 
-# =========================
+# ==========================
 # 保存 Refresh Token
-# =========================
+# ==========================
 
 def save_refresh_token(token):
 
@@ -401,67 +401,84 @@ def save_refresh_token(token):
 
     cur = conn.cursor()
 
+    cur.execute(
+        """
+        INSERT INTO tokens
+        (
+            refresh_token
+        )
+        VALUES
+        (?)
+        """,
+        (token,)
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+    print(
+        "REFRESH TOKEN SAVED"
+    )
+
+
+
+# ==========================
+# 获取 Refresh Token
+# ==========================
+
+def load_refresh_token():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
 
     cur.execute(
         """
-        SELECT id
+        SELECT refresh_token
         FROM tokens
+        WHERE refresh_token IS NOT NULL
+        ORDER BY id DESC
         LIMIT 1
         """
     )
 
     result = cur.fetchone()
 
-
-    if result:
-
-        cur.execute(
-            """
-            UPDATE tokens
-            SET refresh_token=?
-            WHERE id=?
-            """,
-            (
-                token,
-                result[0]
-            )
-        )
-
-    else:
-
-        cur.execute(
-            """
-            INSERT INTO tokens
-            (
-                refresh_token
-            )
-            VALUES
-            (?)
-            """,
-            (
-                token,
-            )
-        )
-
-
-    conn.commit()
-
-
     cur.close()
-
     conn.close()
 
 
-    print(
-    "SAVING REFRESH TOKEN:",
-    token[:10],
-    "...",
-    token[-10:]
+    if result:
+        print(
+            "USING DB REFRESH TOKEN"
+        )
+
+        return result[0]
+
+
+    # 第一次启动
+    env_token = os.environ.get(
+        "WHOOP_REFRESH_TOKEN"
     )
 
-    print(
-        "REFRESH TOKEN SAVED"
-    )
+
+    if env_token:
+
+        print(
+            "USING ENV REFRESH TOKEN FIRST TIME"
+        )
+
+        save_refresh_token(
+            env_token
+        )
+
+        return env_token
+
+
+    return None
 
 # =========================
 # 刷新 Access Token
