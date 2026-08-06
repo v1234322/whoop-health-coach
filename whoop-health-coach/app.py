@@ -569,7 +569,8 @@ def refresh_access_token():
         )
 
         print(
-            "NEW REFRESH TOKEN SAVED"
+            "NEW REFRESH TOKEN SAVED",
+            token[:10]
         )
 
     save_access_token_to_db(
