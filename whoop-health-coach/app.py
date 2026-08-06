@@ -214,6 +214,71 @@ else:
 print("==============================")
 
 
+def save_access_token_to_db(token):
+
+    if not token:
+        print("NO ACCESS TOKEN")
+        return
+
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM tokens
+        LIMIT 1
+        """
+    )
+
+    result = cursor.fetchone()
+
+
+    if result:
+
+        cursor.execute(
+            """
+            UPDATE tokens
+            SET access_token=?
+            WHERE id=?
+            """,
+            (
+                token,
+                result[0]
+            )
+        )
+
+        print("ACCESS TOKEN UPDATED")
+
+
+    else:
+
+        cursor.execute(
+            """
+            INSERT INTO tokens
+            (
+                access_token
+            )
+            VALUES
+            (?)
+            """,
+            (
+                token,
+            )
+        )
+
+        print("ACCESS TOKEN SAVED")
+
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+
+
 # =========================
 # 保存 Access Token 到数据库
 # =========================
@@ -251,39 +316,6 @@ def get_access_token():
     print(
         "NO TOKEN IN DATABASE, REFRESH"
     )
-
-    return refresh_access_token()
-
-# =========================
-# 获取 Access Token
-# =========================
-
-def get_access_token():
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT access_token
-        FROM tokens
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
-
-    result = cur.fetchone()
-
-    cur.close()
-    conn.close()
-
-
-    if result and result[0]:
-        print("USE DATABASE ACCESS TOKEN")
-        return result[0]
-
-
-    print("NO ACCESS TOKEN, REFRESHING")
 
     return refresh_access_token()
 
