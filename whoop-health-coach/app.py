@@ -149,58 +149,6 @@ def init_db():
 
 init_db()
 
-# =========================
-# WHOOP 环境变量
-# =========================
-
-def load_refresh_token():
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        WHERE refresh_token IS NOT NULL
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
-
-    result = cur.fetchone()
-
-
-    cur.close()
-    conn.close()
-
-
-    if result:
-        print(
-            "USING DB REFRESH TOKEN"
-        )
-        return result[0]
-
-
-    # 数据库没有，第一次使用环境变量
-    env_token = os.environ.get(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-
-    if env_token:
-        print(
-            "USING ENV REFRESH TOKEN FIRST TIME"
-        )
-
-        save_refresh_token(
-            env_token
-        )
-
-        return env_token
-
-
-    return None
 
 # ==========================
 # 从数据库读取最新 refresh token
@@ -265,8 +213,6 @@ WHOOP_CLIENT_SECRET = os.environ.get(
 ).strip()
 
 
-WHOOP_REFRESH_TOKEN = load_refresh_token()
-
 
 WHOOP_ACCESS_TOKEN = None
 
@@ -283,6 +229,95 @@ else:
     print("TOKEN LENGTH: 0")
 
 print("==============================")
+
+
+# =========================
+# WHOOP 环境变量
+# =========================
+
+def load_refresh_token():
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        WHERE refresh_token IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 1
+        """
+    )
+
+    result = cur.fetchone()
+
+
+    cur.close()
+    conn.close()
+
+
+    if result:
+        print(
+            "USING DB REFRESH TOKEN"
+        )
+        return result[0]
+
+
+    # 数据库没有，第一次使用环境变量
+    env_token = os.environ.get(
+        "WHOOP_REFRESH_TOKEN"
+    )
+
+
+    if env_token:
+        print(
+            "USING ENV REFRESH TOKEN FIRST TIME"
+        )
+
+        save_refresh_token(
+            env_token
+        )
+
+        return env_token
+
+
+    return None
+
+
+# =========================
+# 保存 refresh token
+# =========================
+
+def save_refresh_token(token):
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO tokens
+        (
+            refresh_token
+        )
+        VALUES
+        (?)
+        """,
+        (
+            token,
+        )
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    print(
+        "REFRESH TOKEN SAVED"
+    )
+
 
 
 def save_access_token_to_db(token):
@@ -391,94 +426,6 @@ def get_access_token():
     return refresh_access_token()
 
 
-# ==========================
-# 保存 Refresh Token
-# ==========================
-
-def save_refresh_token(token):
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        INSERT INTO tokens
-        (
-            refresh_token
-        )
-        VALUES
-        (?)
-        """,
-        (token,)
-    )
-
-    conn.commit()
-
-    cur.close()
-    conn.close()
-
-
-    print(
-        "REFRESH TOKEN SAVED"
-    )
-
-
-
-# ==========================
-# 获取 Refresh Token
-# ==========================
-
-def load_refresh_token():
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        WHERE refresh_token IS NOT NULL
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
-
-    result = cur.fetchone()
-
-    cur.close()
-    conn.close()
-
-
-    if result:
-        print(
-            "USING DB REFRESH TOKEN"
-        )
-
-        return result[0]
-
-
-    # 第一次启动
-    env_token = os.environ.get(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-
-    if env_token:
-
-        print(
-            "USING ENV REFRESH TOKEN FIRST TIME"
-        )
-
-        save_refresh_token(
-            env_token
-        )
-
-        return env_token
-
-
-    return None
 
 # =========================
 # 刷新 Access Token
