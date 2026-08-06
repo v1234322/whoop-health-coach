@@ -433,7 +433,8 @@ def refresh_access_token():
         "client_secret":
         client_secret,
 
-        "scope": "offline"
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback"
 
     }
 
