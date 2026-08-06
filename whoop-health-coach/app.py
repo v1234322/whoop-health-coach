@@ -154,9 +154,21 @@ init_db()
 # =========================
 
 def load_refresh_token():
+
     token = os.getenv("WHOOP_REFRESH_TOKEN")
+
+    print(
+        "LOAD REFRESH TOKEN:",
+        bool(token),
+        "LENGTH:",
+        len(token) if token else 0
+    )
+
     if not token:
-        raise Exception("WHOOP_REFRESH_TOKEN missing")
+        raise Exception(
+            "WHOOP_REFRESH_TOKEN missing"
+        )
+
     return token
     
 WHOOP_CLIENT_ID = os.environ.get(
@@ -181,7 +193,7 @@ WHOOP_CLIENT_SECRET = os.environ.get(
 WHOOP_REFRESH_TOKEN = load_refresh_token()
 
 
-WHOOP_ACCESS_TOKEN = load_refresh_token()
+WHOOP_ACCESS_TOKEN = None
 
 
 print("========== ENV CHECK ==========")
