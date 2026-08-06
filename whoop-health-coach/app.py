@@ -741,6 +741,27 @@ def callback():
 
 
 
+
+@app.route("/clear-token")
+def clear_token():
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM tokens"
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return "TOKEN CLEARED"
+
+
+
+
 @app.route("/whoop/auto-report")
 def auto_report():
 
@@ -1333,29 +1354,21 @@ def whoop_token():
 
         data={
 
+        "grant_type":"authorization_code",
 
-            "grant_type":
-            "authorization_code",
+        "code":code,
+        
+        "client_id":WHOOP_CLIENT_ID,
 
+        "client_secret":WHOOP_CLIENT_SECRET,
 
-            "code":
-            code,
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback",
+        
+        "scope":
+        "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
 
-
-            "client_id":
-            WHOOP_CLIENT_ID,
-
-
-            "client_secret":
-            WHOOP_CLIENT_SECRET,
-
-
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback"
-
-
-        },
-
+        }
 
         headers={
 
