@@ -379,7 +379,17 @@ save_refresh_token_to_db()
 @app.route("/callback")
 def callback():
 
+    print(
+        "CALLBACK URL:",
+        request.url
+    )
+
     code = request.args.get("code")
+
+    print(
+        "CODE:",
+        code
+    )
 
     if not code:
         return "NO CODE"
