@@ -168,56 +168,27 @@ def save_refresh_token(token):
 
     cur.execute(
         """
-        SELECT id
-        FROM tokens
-        LIMIT 1
-        """
+        INSERT INTO tokens
+        (
+            refresh_token
+        )
+        VALUES
+        (?)
+        """,
+        (
+            token,
+        )
     )
-
-    result = cur.fetchone()
-
-
-    if result:
-
-        cur.execute(
-            """
-            UPDATE tokens
-            SET refresh_token=?
-            WHERE id=?
-            """,
-            (
-                token,
-                result[0]
-            )
-        )
-
-        print(
-            "REFRESH TOKEN UPDATED"
-        )
-
-
-    else:
-
-        cur.execute(
-            """
-            INSERT INTO tokens
-            (
-                refresh_token
-            )
-            VALUES
-            (?)
-            """,
-            (
-                token,
-            )
-        )
-
-        print(
-            "REFRESH TOKEN INSERTED"
-        )
 
 
     conn.commit()
+
+
+    print(
+        "REFRESH TOKEN SAVED:",
+        token[:10]
+    )
+
 
     cur.close()
     conn.close()
@@ -570,7 +541,6 @@ def refresh_access_token():
 
         print(
             "NEW REFRESH TOKEN SAVED",
-            token[:10]
         )
 
     save_access_token_to_db(
