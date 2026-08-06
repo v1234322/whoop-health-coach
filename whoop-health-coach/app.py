@@ -1354,21 +1354,22 @@ def whoop_token():
 
         data={
 
-        "grant_type":"authorization_code",
+            "grant_type":"authorization_code",
 
-        "code":code,
+            "code":code,
         
-        "client_id":WHOOP_CLIENT_ID,
+            "client_id":WHOOP_CLIENT_ID,
 
-        "client_secret":WHOOP_CLIENT_SECRET,
+            "client_secret":WHOOP_CLIENT_SECRET,
 
-        "redirect_uri":
-        "https://whoop-health-coach.onrender.com/callback",
+            "redirect_uri":
+            "https://whoop-health-coach.onrender.com/callback",
         
-        "scope":
-        "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
+            "scope":
+            "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
 
-        }
+            }
+    )
 
         headers={
 
