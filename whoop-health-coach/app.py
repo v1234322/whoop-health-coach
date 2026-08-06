@@ -293,6 +293,15 @@ def load_refresh_token():
 
     result = cur.fetchone()
 
+    cur.execute(
+        "SELECT * FROM tokens"
+    )
+
+    print(
+        "ALL TOKENS:",
+        cur.fetchall()
+    )
+
     cur.close()
     conn.close()
 
