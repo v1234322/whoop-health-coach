@@ -67,115 +67,6 @@ def get_db_connection():
     return conn
 
 
-def ensure_refresh_token():
-
-    env_token = os.getenv(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-    if not env_token:
-        return
-
-
-    db_token = load_refresh_token()
-
-
-    if not db_token:
-
-        print(
-            "SAVING ENV REFRESH TOKEN TO DB"
-        )
-
-        save_refresh_token(
-            env_token
-        )
-
-
-# =========================
-# 数据库初始化
-# =========================
-
-def init_db():
-
-    conn = sqlite3.connect(
-        "whoop.db"
-    )
-
-    cursor = conn.cursor()
-
-
-    # =========================
-    # WHOOP TOKEN
-    # =========================
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tokens(
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        access_token TEXT,
-
-        refresh_token TEXT,
-
-        expires_at INTEGER
-
-    )
-    """)
-
-
-    # =========================
-    # 重建 daily_metrics
-    # =========================
-
-    cursor.execute("""
-    DROP TABLE IF EXISTS daily_metrics
-    """)
-
-
-    cursor.execute("""
-    CREATE TABLE daily_metrics (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        report_date TEXT,
-
-        recovery_score REAL,
-
-        hrv REAL,
-
-        resting_heart_rate REAL,
-
-        sleep_score REAL,
-
-        sleep_duration REAL,
-
-        sleep_efficiency REAL,
-
-        deep_sleep_duration REAL,
-
-        rem_sleep_duration REAL,
-
-        cycle_strain REAL,
-
-        workout_data TEXT
-
-    )
-    """)
-
-
-    conn.commit()
-
-    conn.close()
-
-
-    print("DATABASE READY")
-
-
-    ensure_refresh_token()
-    
-init_db()
-
-
 # =========================
 # 保存 refresh token
 # =========================
@@ -297,9 +188,9 @@ else:
 print("==============================")
 
 
-# =========================
-# WHOOP 环境变量
-# =========================
+# ==========================
+# 读取 refresh token
+# ==========================
 
 def load_refresh_token():
 
@@ -337,6 +228,37 @@ def load_refresh_token():
     return None
 
 
+# ==========================
+启动时同步环境变量 token
+# ==========================
+
+
+def ensure_refresh_token():
+
+    env_token = os.getenv(
+        "WHOOP_REFRESH_TOKEN"
+    )
+
+    if not env_token:
+        return
+
+
+    db_token = load_refresh_token()
+
+
+    if not db_token:
+
+        print(
+            "SAVING ENV REFRESH TOKEN TO DB"
+        )
+
+        save_refresh_token(
+            env_token
+        )
+
+# ==========================
+保存 access token
+# ==========================
 
 def save_access_token_to_db(token):
 
@@ -657,6 +579,92 @@ def whoop_get(endpoint):
 
 
     return r.json()
+
+
+
+# =========================
+# 数据库初始化
+# =========================
+
+def init_db():
+
+    conn = sqlite3.connect(
+        "whoop.db"
+    )
+
+    cursor = conn.cursor()
+
+
+    # =========================
+    # WHOOP TOKEN
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tokens(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        access_token TEXT,
+
+        refresh_token TEXT,
+
+        expires_at INTEGER
+
+    )
+    """)
+
+
+    # =========================
+    # 重建 daily_metrics
+    # =========================
+
+    cursor.execute("""
+    DROP TABLE IF EXISTS daily_metrics
+    """)
+
+
+    cursor.execute("""
+    CREATE TABLE daily_metrics (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        report_date TEXT,
+
+        recovery_score REAL,
+
+        hrv REAL,
+
+        resting_heart_rate REAL,
+
+        sleep_score REAL,
+
+        sleep_duration REAL,
+
+        sleep_efficiency REAL,
+
+        deep_sleep_duration REAL,
+
+        rem_sleep_duration REAL,
+
+        cycle_strain REAL,
+
+        workout_data TEXT
+
+    )
+    """)
+
+
+    conn.commit()
+
+    conn.close()
+
+
+    print("DATABASE READY")
+
+
+    ensure_refresh_token()
+    
+init_db()
 
 
 @app.route("/callback")
