@@ -156,34 +156,71 @@ init_db()
 
 def save_refresh_token(token):
 
+    if not token:
+        print("NO REFRESH TOKEN TO SAVE")
+        return
+
+
     conn = get_db_connection()
 
     cur = conn.cursor()
 
+
     cur.execute(
         """
-        INSERT INTO tokens
-        (
-            refresh_token
-        )
-        VALUES
-        (?)
-        """,
-        (
-            token,
-        )
+        SELECT id
+        FROM tokens
+        LIMIT 1
+        """
     )
+
+    result = cur.fetchone()
+
+
+    if result:
+
+        cur.execute(
+            """
+            UPDATE tokens
+            SET refresh_token=?
+            WHERE id=?
+            """,
+            (
+                token,
+                result[0]
+            )
+        )
+
+        print(
+            "REFRESH TOKEN UPDATED"
+        )
+
+
+    else:
+
+        cur.execute(
+            """
+            INSERT INTO tokens
+            (
+                refresh_token
+            )
+            VALUES
+            (?)
+            """,
+            (
+                token,
+            )
+        )
+
+        print(
+            "REFRESH TOKEN INSERTED"
+        )
+
 
     conn.commit()
 
     cur.close()
     conn.close()
-
-    print(
-        "REFRESH TOKEN SAVED"
-    )
-
-
 
 # ==========================
 # 从数据库读取最新 refresh token
