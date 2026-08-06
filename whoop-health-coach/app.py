@@ -1368,8 +1368,7 @@ def whoop_token():
             "scope":
             "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
 
-            }
-    )
+            },
 
         headers={
 
