@@ -153,7 +153,12 @@ init_db()
 # WHOOP 环境变量
 # =========================
 
-
+def load_refresh_token():
+    token = os.getenv("WHOOP_REFRESH_TOKEN")
+    if not token:
+        raise Exception("WHOOP_REFRESH_TOKEN missing")
+    return token
+    
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
     ""
