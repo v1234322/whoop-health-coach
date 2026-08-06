@@ -552,248 +552,6 @@ def trend():
 
 
 
-@app.route("/whoop/auto-report")
-def auto_report():
-
-    print("######## AUTO REPORT NEW VERSION ########")
-
-    try:
-
-        data = {
-            "recovery": whoop_get("/recovery"),
-            "cycle": whoop_get("/cycle"),
-            "sleep": whoop_get("/activity/sleep"),
-            "workout": whoop_get("/activity/workout")
-        }
-
-
-        print("RAW SLEEP RESPONSE >>>")
-        print(data["sleep"])
-
-
-        convert_utc_to_beijing(data)
-
-
-        # =========================
-        # 数据报告
-        # =========================
-
-        report = generate_health_report(data)
-
-
-        # =========================
-        # 保存每日数据
-        # =========================
-
-        metrics = extract_daily_metrics(data)
-
-        save_daily_data(metrics)
-
-
-
-        # =========================
-        # AI 教练
-        # =========================
-
-        ai_prompt = str(metrics)
-
-
-        coach_advice = generate_ai_summary(
-            ai_prompt
-        )
-
-
-
-        return f"""
-<html>
-
-<head>
-
-<meta charset="utf-8">
-
-<title>
-WHOOP Health Coach
-</title>
-
-</head>
-
-
-<body>
-
-
-<h1>
-🧠 WHOOP 健康教练日报
-</h1>
-
-
-<hr>
-
-
-<h2>
-❤️ Recovery
-</h2>
-
-
-<p>
-恢复评分：
-
-<b>
-{report.get("恢复期",0)}
-</b>
-
-</p>
-
-
-
-<p>
-HRV：
-
-<b>
-{report.get("心率变异性",0)}
-</b>
-
-</p>
-
-
-
-<p>
-静息心率：
-
-<b>
-{report.get("休息时间",0)}
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-💤 睡眠
-</h2>
-
-
-
-<p>
-睡眠时长：
-
-<b>
-{report.get("睡眠",0)}
-小时
-</b>
-
-</p>
-
-
-
-<p>
-睡眠需求：
-
-<b>
-{report.get("所需睡眠时间",0)}
-小时
-</b>
-
-</p>
-
-
-
-<p>
-睡眠表现：
-
-<b>
-{report.get("睡眠表现",0)}
-%
-</b>
-
-</p>
-
-
-
-<p>
-睡眠效率：
-
-<b>
-{report.get("睡眠效率",0)}
-%
-</b>
-
-</p>
-
-
-
-<p>
-睡眠周期：
-
-<b>
-{report.get("睡眠周期",0)}
-次
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-🔥 Strain
-</h2>
-
-
-
-<p>
-
-今日训练负荷：
-
-<b>
-{report.get("Strain",0)}
-</b>
-
-</p>
-
-
-
-<hr>
-
-
-
-<h2>
-🧠 AI 教练建议
-</h2>
-
-
-
-<p>
-
-{coach_advice}
-
-</p>
-
-
-
-</body>
-
-</html>
-
-"""
-
-
-
-    except Exception as e:
-
-        print(
-            "AUTO REPORT ERROR:",
-            e
-        )
-
-        return str(e)
-
 def generate_ai_summary(ai_prompt):
 
     """
@@ -1459,6 +1217,322 @@ def refresh_access_token():
     return access_token
 
 
+# =========================
+# WHOOP API 请求函数
+# =========================
+
+def whoop_get(endpoint):
+
+    token = get_access_token()
+
+
+    if not token:
+        raise Exception(
+            "NO ACCESS TOKEN"
+        )
+
+
+    r = requests.get(
+
+        WHOOP_API_BASE + endpoint,
+
+        headers={
+
+            "Authorization":
+            f"Bearer {token}",
+
+            "Accept":
+            "application/json"
+
+        },
+
+        timeout=30
+
+    )
+
+
+    print(
+        "WHOOP STATUS:",
+        r.status_code
+    )
+
+
+    if r.status_code == 401:
+
+        print(
+            "TOKEN EXPIRED, REFRESHING"
+        )
+
+
+        token = refresh_access_token()
+
+
+        r = requests.get(
+
+            WHOOP_API_BASE + endpoint,
+
+            headers={
+
+                "Authorization":
+                f"Bearer {token}",
+
+                "Accept":
+                "application/json"
+
+            },
+
+            timeout=30
+
+        )
+
+
+    r.raise_for_status()
+
+
+    return r.json()
+    
+
+@app.route("/whoop/auto-report")
+def auto_report():
+
+    print("######## AUTO REPORT NEW VERSION ########")
+
+    try:
+
+        data = {
+            "recovery": whoop_get("/recovery"),
+            "cycle": whoop_get("/cycle"),
+            "sleep": whoop_get("/activity/sleep"),
+            "workout": whoop_get("/activity/workout")
+        }
+
+
+        print("RAW SLEEP RESPONSE >>>")
+        print(data["sleep"])
+
+
+        convert_utc_to_beijing(data)
+
+
+        # =========================
+        # 数据报告
+        # =========================
+
+        report = generate_health_report(data)
+
+
+        # =========================
+        # 保存每日数据
+        # =========================
+
+        metrics = extract_daily_metrics(data)
+
+        save_daily_data(metrics)
+
+
+
+        # =========================
+        # AI 教练
+        # =========================
+
+        ai_prompt = str(metrics)
+
+
+        coach_advice = generate_ai_summary(
+            ai_prompt
+        )
+
+
+
+        return f"""
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>
+WHOOP Health Coach
+</title>
+
+</head>
+
+
+<body>
+
+
+<h1>
+🧠 WHOOP 健康教练日报
+</h1>
+
+
+<hr>
+
+
+<h2>
+❤️ Recovery
+</h2>
+
+
+<p>
+恢复评分：
+
+<b>
+{report.get("恢复期",0)}
+</b>
+
+</p>
+
+
+
+<p>
+HRV：
+
+<b>
+{report.get("心率变异性",0)}
+</b>
+
+</p>
+
+
+
+<p>
+静息心率：
+
+<b>
+{report.get("休息时间",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+💤 睡眠
+</h2>
+
+
+
+<p>
+睡眠时长：
+
+<b>
+{report.get("睡眠",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠需求：
+
+<b>
+{report.get("所需睡眠时间",0)}
+小时
+</b>
+
+</p>
+
+
+
+<p>
+睡眠表现：
+
+<b>
+{report.get("睡眠表现",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠效率：
+
+<b>
+{report.get("睡眠效率",0)}
+%
+</b>
+
+</p>
+
+
+
+<p>
+睡眠周期：
+
+<b>
+{report.get("睡眠周期",0)}
+次
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🔥 Strain
+</h2>
+
+
+
+<p>
+
+今日训练负荷：
+
+<b>
+{report.get("Strain",0)}
+</b>
+
+</p>
+
+
+
+<hr>
+
+
+
+<h2>
+🧠 AI 教练建议
+</h2>
+
+
+
+<p>
+
+{coach_advice}
+
+</p>
+
+
+
+</body>
+
+</html>
+
+"""
+
+
+
+    except Exception as e:
+
+        print(
+            "AUTO REPORT ERROR:",
+            e
+        )
+
+        return str(e)
 
 def extract_daily_metrics(data):
 
