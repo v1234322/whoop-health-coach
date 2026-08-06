@@ -402,12 +402,18 @@ def callback():
 
 
     response = requests.post(
+
         "https://api.prod.whoop.com/oauth/oauth2/token",
+
         data=payload,
+
         headers={
             "Content-Type":
             "application/x-www-form-urlencoded"
-        }
+        },
+
+        timeout=30
+
     )
 
 
@@ -417,8 +423,53 @@ def callback():
     )
 
 
-    return response.text
-    
+    response.raise_for_status()
+
+
+    token_data = response.json()
+
+
+    access_token = token_data.get(
+        "access_token"
+    )
+
+
+    refresh_token = token_data.get(
+        "refresh_token"
+    )
+
+
+    print(
+        "ACCESS TOKEN RECEIVED:",
+        bool(access_token)
+    )
+
+
+    print(
+        "REFRESH TOKEN RECEIVED:",
+        bool(refresh_token)
+    )
+
+
+    if access_token:
+
+        save_access_token_to_db(
+            access_token
+        )
+
+
+    if refresh_token:
+
+        save_refresh_token(
+            refresh_token
+        )
+
+
+    return {
+        "status": "success",
+        "access_token_saved": bool(access_token),
+        "refresh_token_saved": bool(refresh_token)
+    }
 
 @app.route("/")
 def home():
@@ -981,6 +1032,7 @@ def check_api_key():
 
 
     return key == API_SECRET
+    
 
 def callback():
 
@@ -1174,23 +1226,44 @@ def save_refresh_token(token):
 
     cur.execute(
         """
-        DELETE FROM tokens
+        SELECT id
+        FROM tokens
+        LIMIT 1
         """
     )
 
+    result = cur.fetchone()
 
-    cur.execute(
-        """
-        INSERT INTO tokens
-        (
-            refresh_token
+
+    if result:
+
+        cur.execute(
+            """
+            UPDATE tokens
+            SET refresh_token=?
+            WHERE id=?
+            """,
+            (
+                token,
+                result[0]
+            )
         )
-        VALUES (?)
-        """,
-        (
-            token,
+
+    else:
+
+        cur.execute(
+            """
+            INSERT INTO tokens
+            (
+                refresh_token
+            )
+            VALUES
+            (?)
+            """,
+            (
+                token,
+            )
         )
-    )
 
 
     conn.commit()
@@ -1204,7 +1277,6 @@ def save_refresh_token(token):
     print(
         "REFRESH TOKEN SAVED"
     )
-
 
 
 # =========================
