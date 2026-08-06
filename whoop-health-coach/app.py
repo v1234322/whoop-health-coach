@@ -202,85 +202,41 @@ print("==============================")
 # 保存 Access Token 到数据库
 # =========================
 
-def save_access_token_to_db(token):
-
-    if not token:
-
-        print(
-            "NO ACCESS TOKEN"
-        )
-
-        return
-
+def get_access_token():
 
     conn = get_db_connection()
+    cur = conn.cursor()
 
-    cursor = conn.cursor()
-
-
-    cursor.execute(
+    cur.execute(
         """
-        SELECT id
+        SELECT access_token
         FROM tokens
+        WHERE access_token IS NOT NULL
+        ORDER BY id DESC
         LIMIT 1
         """
     )
 
-    result = cursor.fetchone()
+    result = cur.fetchone()
 
+    print(
+        "DATABASE ACCESS TOKEN RESULT:",
+        result
+    )
 
-    if result is None:
-
-        cursor.execute(
-            """
-            INSERT INTO tokens
-            (
-                access_token,
-                expires_at
-            )
-            VALUES
-            (
-                ?,
-                ?
-            )
-            """,
-            (
-                token,
-                3600
-            )
-        )
-
-        print(
-            "ACCESS TOKEN SAVED"
-        )
-
-
-        print(
-            "TOKEN VALUE:",
-            token[:10]
-        )
-
-    
-    else:
-
-        cursor.execute(
-            """
-            UPDATE tokens
-            SET access_token=?
-            """,
-            (
-                token,
-            )
-        )
-
-        print(
-            "ACCESS TOKEN UPDATED"
-        )
-
-
-    conn.commit()
-
+    cur.close()
     conn.close()
+
+
+    if result:
+        return result[0]
+
+
+    print(
+        "NO TOKEN IN DATABASE, REFRESH"
+    )
+
+    return refresh_access_token()
 
 # =========================
 # 获取 Access Token
@@ -289,9 +245,7 @@ def save_access_token_to_db(token):
 def get_access_token():
 
     conn = get_db_connection()
-
     cur = conn.cursor()
-
 
     cur.execute(
         """
@@ -302,26 +256,20 @@ def get_access_token():
         """
     )
 
-
     result = cur.fetchone()
 
-    print(
-        "DATABASE ACCESS TOKEN RESULT:",
-        result
-    )
-
-
     cur.close()
-
     conn.close()
 
 
-    if result:
-
+    if result and result[0]:
+        print("USE DATABASE ACCESS TOKEN")
         return result[0]
 
 
-    return None
+    print("NO ACCESS TOKEN, REFRESHING")
+
+    return refresh_access_token()
 
 
 # =========================
@@ -1001,7 +949,7 @@ def home():
 
     <hr>
 
-    <a href=" ">今日报告</a >
+    <a href="/whoop/today">今日报告</a>
     <br><br>
     <a href="/whoop/trend">7天趋势</a >
 
