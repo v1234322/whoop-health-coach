@@ -1324,7 +1324,7 @@ def get_refresh_token_from_db():
 def refresh_access_token():
 
 
-    refresh_token = get_refresh_token_from_db()
+    refresh_token = load_refresh_token()
 
 
     client_id = os.environ.get(
@@ -1434,24 +1434,9 @@ def refresh_access_token():
             "NEW REFRESH TOKEN SAVED"
         )
 
-    else:
-
-        print(
-            "NO NEW REFRESH TOKEN"
-        )
-
-
-
-    if access_token:
-
-        save_access_token_to_db(
-            access_token
-        )
-
-        print(
-            "NEW ACCESS TOKEN SAVED"
-        )
-
+    save_access_token_to_db(
+        access_token
+    )
 
 
     return access_token
