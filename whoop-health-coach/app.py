@@ -436,11 +436,18 @@ def save_refresh_token(token):
 
 def refresh_access_token():
 
-    refresh_token = load_refresh_token()
+    refresh_token = load_refresh_token_from_db()
 
     if not refresh_token:
         refresh_token = load_refresh_token()
 
+
+    print(
+        "USING REFRESH TOKEN:",
+        refresh_token[:10],
+        "...",
+        refresh_token[-10:]
+    )
     
 
     client_id = os.environ.get(
