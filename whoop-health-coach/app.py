@@ -186,29 +186,14 @@ WHOOP_ACCESS_TOKEN = load_refresh_token()
 
 print("========== ENV CHECK ==========")
 
-print(
-    "CLIENT ID:",
-    bool(WHOOP_CLIENT_ID)
-)
+print("CLIENT ID:", bool(os.getenv("WHOOP_CLIENT_ID")))
+print("CLIENT SECRET:", bool(os.getenv("WHOOP_CLIENT_SECRET")))
+print("REFRESH TOKEN:", bool(os.getenv("WHOOP_REFRESH_TOKEN")))
 
-
-print(
-    "CLIENT SECRET:",
-    bool(WHOOP_CLIENT_SECRET)
-)
-
-
-print(
-    "REFRESH TOKEN:",
-    bool(WHOOP_REFRESH_TOKEN)
-)
-
-
-print(
-    "TOKEN LENGTH:",
-    len(WHOOP_REFRESH_TOKEN)
-)
-
+if os.getenv("WHOOP_REFRESH_TOKEN"):
+    print("TOKEN LENGTH:", len(os.getenv("WHOOP_REFRESH_TOKEN")))
+else:
+    print("TOKEN LENGTH: 0")
 
 print("==============================")
 
