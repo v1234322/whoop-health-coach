@@ -150,6 +150,41 @@ def init_db():
 init_db()
 
 
+# =========================
+# 保存 refresh token
+# =========================
+
+def save_refresh_token(token):
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO tokens
+        (
+            refresh_token
+        )
+        VALUES
+        (?)
+        """,
+        (
+            token,
+        )
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    print(
+        "REFRESH TOKEN SAVED"
+    )
+
+
+
 # ==========================
 # 从数据库读取最新 refresh token
 # ==========================
@@ -283,41 +318,6 @@ def load_refresh_token():
 
 
     return None
-
-
-# =========================
-# 保存 refresh token
-# =========================
-
-def save_refresh_token(token):
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        INSERT INTO tokens
-        (
-            refresh_token
-        )
-        VALUES
-        (?)
-        """,
-        (
-            token,
-        )
-    )
-
-    conn.commit()
-
-    cur.close()
-    conn.close()
-
-    print(
-        "REFRESH TOKEN SAVED"
-    )
-
 
 
 def save_access_token_to_db(token):
