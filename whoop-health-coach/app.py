@@ -208,9 +208,88 @@ print("==============================")
 
 
 # =========================
-# 保存 Refresh Token 到数据库
+# 保存 Access Token 到数据库
 # =========================
 
+def save_access_token_to_db(token):
+
+    if not token:
+
+        print(
+            "NO ACCESS TOKEN"
+        )
+
+        return
+
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM tokens
+        LIMIT 1
+        """
+    )
+
+    result = cursor.fetchone()
+
+
+    if result is None:
+
+        cursor.execute(
+            """
+            INSERT INTO tokens
+            (
+                access_token,
+                expires_at
+            )
+            VALUES
+            (
+                ?,
+                ?
+            )
+            """,
+            (
+                token,
+                3600
+            )
+        )
+
+        print(
+            "ACCESS TOKEN SAVED"
+        )
+
+
+    else:
+
+        cursor.execute(
+            """
+            UPDATE tokens
+            SET access_token=?
+            """,
+            (
+                token,
+            )
+        )
+
+        print(
+            "ACCESS TOKEN UPDATED"
+        )
+
+
+    conn.commit()
+
+    conn.close()
+
+
+
+# =========================
+# 保存 Refresh Token 到数据库
+# =========================
 
 def save_refresh_token_to_db():
 
@@ -226,11 +305,11 @@ def save_refresh_token_to_db():
     conn = get_db_connection()
 
     cursor = conn.cursor()
-    
+
 
     cursor.execute(
         """
-        SELECT refresh_token
+        SELECT id
         FROM tokens
         LIMIT 1
         """
@@ -240,6 +319,7 @@ def save_refresh_token_to_db():
 
 
     if result is None:
+
 
         cursor.execute(
             """
@@ -260,14 +340,14 @@ def save_refresh_token_to_db():
             )
         )
 
-        conn.commit()
-
 
         print(
             "REFRESH TOKEN SAVED TO DATABASE"
         )
 
+
     else:
+
 
         cursor.execute(
             """
@@ -279,16 +359,22 @@ def save_refresh_token_to_db():
             )
         )
 
-        conn.commit()
 
         print(
             "REFRESH TOKEN UPDATED"
         )
 
 
+    conn.commit()
+
     conn.close()
 
+
+
+# 启动时保存环境里的 refresh token
 save_refresh_token_to_db()
+
+
 
 @app.route("/callback")
 def callback():
