@@ -202,7 +202,7 @@ def load_refresh_token_from_db():
     print(
         "DB REFRESH TOKEN:",
         result[0][:10] if result else None
-    ）
+    )
 
 
     cur.close()
