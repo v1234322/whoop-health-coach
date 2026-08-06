@@ -156,9 +156,7 @@ init_db()
 def load_refresh_token():
 
     conn = get_db_connection()
-
     cur = conn.cursor()
-
 
     cur.execute(
         """
@@ -170,23 +168,36 @@ def load_refresh_token():
         """
     )
 
-
     result = cur.fetchone()
 
 
-    print(
-        "DB REFRESH TOKEN:",
-        result[0][:10] if result else None
-    )
-
-
     cur.close()
-
     conn.close()
 
 
     if result:
+        print(
+            "USING DB REFRESH TOKEN"
+        )
         return result[0]
+
+
+    # 数据库没有，第一次使用环境变量
+    env_token = os.environ.get(
+        "WHOOP_REFRESH_TOKEN"
+    )
+
+
+    if env_token:
+        print(
+            "USING ENV REFRESH TOKEN FIRST TIME"
+        )
+
+        save_refresh_token(
+            env_token
+        )
+
+        return env_token
 
 
     return None
