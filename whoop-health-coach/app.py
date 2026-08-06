@@ -264,6 +264,12 @@ def save_access_token_to_db(token):
         )
 
 
+        print(
+            "TOKEN VALUE:",
+            token[:10]
+        )
+
+    
     else:
 
         cursor.execute(
@@ -307,6 +313,11 @@ def get_access_token():
 
 
     result = cur.fetchone()
+
+    print(
+        "DATABASE ACCESS TOKEN RESULT:",
+        result
+    )
 
 
     cur.close()
