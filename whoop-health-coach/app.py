@@ -275,47 +275,24 @@ def load_refresh_token():
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute(
-        """
+    cur.execute("""
         SELECT refresh_token
         FROM tokens
         WHERE refresh_token IS NOT NULL
         ORDER BY id DESC
         LIMIT 1
-        """
-    )
+    """)
 
     result = cur.fetchone()
-
 
     cur.close()
     conn.close()
 
-
     if result:
-        print(
-            "USING DB REFRESH TOKEN"
-        )
+        print("USING DB REFRESH TOKEN")
         return result[0]
 
-
-    # 数据库没有，第一次使用环境变量
-    env_token = os.environ.get(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-
-    if env_token:
-        print(
-            "USING ENV REFRESH TOKEN FIRST TIME"
-        )
-
-        save_refresh_token(
-            env_token
-        )
-
-        return env_token
-
+    print("NO REFRESH TOKEN FOUND")
 
     return None
 
@@ -675,10 +652,8 @@ def callback():
 
         "client_id": WHOOP_CLIENT_ID,
 
-        "client_secret": WHOOP_CLIENT_SECRET,
+        "client_secret": WHOOP_CLIENT_SECRET
 
-        "redirect_uri":
-        "https://whoop-health-coach.onrender.com/callback"
 
     }
 
@@ -1322,104 +1297,6 @@ def check_api_key():
 
     return key == API_SECRET
     
-
-def callback():
-
-
-    code = request.args.get(
-        "code"
-    )
-
-
-    if not code:
-
-        return jsonify({
-
-            "error": "NO CODE",
-
-            "params": dict(request.args)
-
-        })
-
-
-    print(
-        "AUTH CODE:",
-        code[:20]
-    )
-
-
-    response = requests.post(
-
-        "https://api.prod.whoop.com/oauth/oauth2/token",
-
-        data={
-
-            "grant_type":
-            "authorization_code",
-
-            "code":
-            code,
-
-            "client_id":
-            WHOOP_CLIENT_ID,
-
-            "client_secret":
-            WHOOP_CLIENT_SECRET,
-
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback"
-
-        }
-
-    )
-
-
-    print(
-        "TOKEN STATUS:",
-        response.status_code
-    )
-
-
-    print(
-        "TOKEN RESPONSE:",
-        response.text
-    )
-
-
-    response.raise_for_status()
-
-
-    token_data = response.json()
-
-
-    access_token = token_data.get(
-        "access_token"
-    )
-
-
-    refresh_token = token_data.get(
-        "refresh_token"
-    )
-
-    print(
-    "REFRESH TOKEN:",
-    refresh_token
-)
-    if refresh_token:
-
-       save_refresh_token(
-          refresh_token
-       )
-
-    return jsonify({
-
-    "status":
-    "WHOOP AUTH SUCCESS",
-
-    "saved_refresh_token":
-    True
-
-})
 
 def whoop_token():
 
