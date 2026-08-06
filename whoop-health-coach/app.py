@@ -1793,58 +1793,54 @@ def save_daily_data(metrics):
 
         # 保存当天数据
         cur.execute(
-            """
-            INSERT INTO daily_metrics
-            (
-                report_date,
-                recovery_score,
-                hrv,
-                resting_heart_rate,
-                sleep_score,
-                sleep_duration,
-                sleep_efficiency,
-                deep_sleep_duration,
-                rem_sleep_duration,
-                cycle_strain,
-                workout_data
-            )
-
-            VALUES
-            (
-                ?,?,?,?,?,?,?,?,?,?,?
-            )
-            """,
-            (
-
-                today,
-
-                metrics.get("recovery_score"),
-
-                metrics.get("hrv"),
-
-                metrics.get("resting_heart_rate"),
-
-                metrics.get("sleep_score"),
-
-                metrics.get("sleep_duration"),
-
-                metrics.get("sleep_efficiency"),
-
-                metrics.get("deep_sleep_duration"),
-
-                metrics.get("rem_sleep_duration"),
-
-                metrics.get("cycle_strain"),
-
-                json.dumps(
-                    metrics.get(
-                        "workout_data",
-                        {}
-                    ),
-                    ensure_ascii=False
-                )
-            )
+        """
+        INSERT INTO daily_metrics
+        (
+            report_date,
+            recovery_score,
+            hrv,
+            resting_heart_rate,
+            sleep_score,
+            sleep_duration,
+            sleep_efficiency,
+            deep_sleep_duration,
+            rem_sleep_duration,
+            cycle_strain,
+            workout_data
         )
+
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+
+        """,
+        (
+            today,
+            metrics.get("recovery_score"),
+            metrics.get("hrv"),
+            metrics.get("resting_heart_rate"),
+            metrics.get("sleep_score"),
+            metrics.get("sleep_duration"),
+            metrics.get("sleep_efficiency"),
+            metrics.get("deep_sleep_duration"),
+            metrics.get("rem_sleep_duration"),
+            metrics.get("cycle_strain"),
+            json.dumps(
+                metrics.get("workout_data", {}),
+                ensure_ascii=False
+            )
+        ))
 
 
         conn.commit()
