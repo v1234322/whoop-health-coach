@@ -229,9 +229,8 @@ def load_refresh_token():
 
 
 # ==========================
-启动时同步环境变量 token
+# 启动时同步环境变量 token
 # ==========================
-
 
 def ensure_refresh_token():
 
@@ -257,7 +256,7 @@ def ensure_refresh_token():
         )
 
 # ==========================
-保存 access token
+# 保存 access token
 # ==========================
 
 def save_access_token_to_db(token):
