@@ -158,15 +158,14 @@ init_db()
 
 def save_refresh_token(token):
 
-    if not token:
-        print("NO REFRESH TOKEN TO SAVE")
-        return
-
-
     conn = get_db_connection()
-
     cur = conn.cursor()
 
+    cur.execute(
+        """
+        DELETE FROM tokens
+        """
+    )
 
     cur.execute(
         """
@@ -182,18 +181,16 @@ def save_refresh_token(token):
         )
     )
 
-
     conn.commit()
-
-
-    print(
-        "REFRESH TOKEN SAVED:",
-        token[:10]
-    )
-
 
     cur.close()
     conn.close()
+
+    print(
+        "REFRESH TOKEN SAVED"
+    )
+
+
 
 # ==========================
 # 从数据库读取最新 refresh token
