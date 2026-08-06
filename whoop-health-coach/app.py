@@ -1776,6 +1776,15 @@ def save_daily_data(metrics):
 
         cur = conn.cursor()
 
+        cur.execute(
+            "PRAGMA table_info(daily_metrics)"
+        )
+
+        print(
+            "DAILY_METRICS COLUMNS:",
+            cur.fetchall()
+        )
+
 
         # 北京时间日期
         today = (
