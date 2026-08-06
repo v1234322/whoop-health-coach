@@ -426,9 +426,15 @@ def save_refresh_token(token):
 
 
     print(
-        "REFRESH TOKEN SAVED"
+    "SAVING REFRESH TOKEN:",
+    token[:10],
+    "...",
+    token[-10:]
     )
 
+    print(
+        "REFRESH TOKEN SAVED"
+    )
 
 # =========================
 # 刷新 Access Token
@@ -436,7 +442,7 @@ def save_refresh_token(token):
 
 def refresh_access_token():
 
-    refresh_token = load_refresh_token_from_db()
+    refresh_token = load_refresh_token()
 
     if not refresh_token:
         refresh_token = load_refresh_token()
