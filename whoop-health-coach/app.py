@@ -1263,7 +1263,7 @@ def refresh_access_token():
 
 def whoop_get(endpoint):
 
-    token = os.environ.get("WHOOP_ACCESS_TOKEN")
+    token = get_access_token()
 
 
     r = requests.get(
