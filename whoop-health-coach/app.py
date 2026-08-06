@@ -1161,6 +1161,10 @@ def whoop_token():
         r.json()
     )
 
+# =========================
+# 保存 Refresh Token
+# =========================
+
 def save_refresh_token(token):
 
     conn = get_db_connection()
@@ -1178,10 +1182,14 @@ def save_refresh_token(token):
     cur.execute(
         """
         INSERT INTO tokens
-        (refresh_token)
-        VALUES (？)
+        (
+            refresh_token
+        )
+        VALUES (?)
         """,
-        (token,)
+        (
+            token,
+        )
     )
 
 
@@ -1194,11 +1202,16 @@ def save_refresh_token(token):
 
 
     print(
-        "NEW REFRESH TOKEN SAVED"
+        "REFRESH TOKEN SAVED"
     )
 
-def load_refresh_token():
 
+
+# =========================
+# 从数据库读取 Refresh Token
+# =========================
+
+def get_refresh_token_from_db():
 
     conn = get_db_connection()
 
@@ -1209,7 +1222,7 @@ def load_refresh_token():
         """
         SELECT refresh_token
         FROM tokens
-        ORDER BY id DESC
+        WHERE refresh_token IS NOT NULL
         LIMIT 1
         """
     )
@@ -1230,19 +1243,22 @@ def load_refresh_token():
 
     return None
 
+
+
+# =========================
+# 刷新 Access Token
+# =========================
+
 def refresh_access_token():
 
 
-    refresh_token = os.environ.get(
-        "WHOOP_REFRESH_TOKEN",
-        ""
-    ).strip()
+    refresh_token = get_refresh_token_from_db()
 
 
     client_id = os.environ.get(
         "WHOOP_CLIENT_ID"
     )
-    
+
 
     client_secret = os.environ.get(
         "WHOOP_CLIENT_SECRET"
@@ -1286,17 +1302,24 @@ def refresh_access_token():
         "client_secret":
         client_secret
 
-
     }
 
 
     response = requests.post(
+
         "https://api.prod.whoop.com/oauth/oauth2/token",
+
         data=payload,
+
         headers={
+
             "Content-Type":
             "application/x-www-form-urlencoded"
-        }
+
+        },
+
+        timeout=30
+
     )
 
 
@@ -1328,15 +1351,15 @@ def refresh_access_token():
     )
 
 
-    if new_refresh_token:
 
-        print(
-            "NEW REFRESH TOKEN RECEIVED:",
-            new_refresh_token[:10]
-        )
+    if new_refresh_token:
 
         save_refresh_token(
             new_refresh_token
+        )
+
+        print(
+            "NEW REFRESH TOKEN SAVED"
         )
 
     else:
@@ -1345,76 +1368,23 @@ def refresh_access_token():
             "NO NEW REFRESH TOKEN"
         )
 
-    return access_token
-
-def whoop_get(endpoint):
-
-    token = get_access_token()
 
 
-    r = requests.get(
+    if access_token:
 
+        save_access_token_to_db(
+            access_token
+        )
 
-        WHOOP_API_BASE + endpoint,
-
-
-        headers={
-
-
-            "Authorization":
-            f"Bearer {token}",
-
-
-            "Accept":
-            "application/json"
-
-        },
-
-
-        timeout=30
-
-    )
-
-
-
-    if r.status_code == 401:
-
-
-        token = refresh_access_token()
-
-
-        r = requests.get(
-
-            WHOOP_API_BASE + endpoint,
-
-            headers={
-
-                "Authorization":
-                f"Bearer {token}"
-
-
-            },
-
-
-            timeout=30
-
+        print(
+            "NEW ACCESS TOKEN SAVED"
         )
 
 
 
-
-    print(
-        "WHOOP STATUS:",
-        r.status_code
-    )
+    return access_token
 
 
-
-    r.raise_for_status()
-
-
-
-    return r.json()
 
 def extract_daily_metrics(data):
 
