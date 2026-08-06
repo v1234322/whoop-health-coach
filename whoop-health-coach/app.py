@@ -1704,6 +1704,14 @@ def save_daily_data(metrics):
 
 
         # 保存当天数据
+
+        print("START INSERT DAILY METRICS")
+
+        print(
+            "VALUES COUNT:",
+            11
+        )
+
         cur.execute(
         """
         INSERT INTO daily_metrics
@@ -1754,9 +1762,7 @@ def save_daily_data(metrics):
             )
         ))
 
-
         conn.commit()
-
 
         print(
             "DAILY METRICS SAVED OK:",
