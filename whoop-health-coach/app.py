@@ -709,6 +709,9 @@ def callback():
 
 
     token_data = response.json()
+    
+
+    print("TOKEN DATA:", token_data)
 
 
     access_token = token_data.get(
