@@ -660,8 +660,10 @@ def callback():
 
         "client_id": WHOOP_CLIENT_ID,
 
-        "client_secret": WHOOP_CLIENT_SECRET
+        "client_secret": WHOOP_CLIENT_SECRET,
 
+            "redirect_uri":
+            "https://whoop-health-coach.onrender.com/callback"
 
     }
 
