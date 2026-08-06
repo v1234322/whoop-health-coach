@@ -173,16 +173,10 @@ WHOOP_CLIENT_SECRET = os.environ.get(
 ).strip()
 
 
-WHOOP_REFRESH_TOKEN = os.environ.get(
-    "WHOOP_REFRESH_TOKEN",
-    ""
-).strip()
+WHOOP_REFRESH_TOKEN = load_refresh_token()
 
 
-WHOOP_ACCESS_TOKEN = os.environ.get(
-    "WHOOP_ACCESS_TOKEN",
-    ""
-).strip()
+WHOOP_ACCESS_TOKEN = load_refresh_token()
 
 
 print("========== ENV CHECK ==========")
