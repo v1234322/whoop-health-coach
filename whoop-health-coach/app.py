@@ -4345,17 +4345,22 @@ href="/whoop/auto-report">
         """
 
 
-if __name__ == "__main__":
+def start_scheduler():
 
-
-    scheduler_thread = threading.Thread(
+    t = threading.Thread(
         target=daily_scheduler,
         daemon=True
     )
 
+    t.start()
 
-    scheduler_thread.start()
+    print("DAILY SCHEDULER STARTED")
 
+
+start_scheduler()
+
+
+if __name__ == "__main__":
 
     app.run(
         host="0.0.0.0",
