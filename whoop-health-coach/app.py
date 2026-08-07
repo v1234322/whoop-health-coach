@@ -387,7 +387,6 @@ def refresh_access_token():
 
     print({
         "grant_type": payload["grant_type"],
-        "scope": payload.get["scope"],
         "client_id_length": len(payload["client_id"]),
         "client_secret_length": len(payload["client_secret"]),
         "refresh_length": len(payload["refresh_token"])
