@@ -890,6 +890,49 @@ def clear_token():
         return f"CLEAR TOKEN ERROR: {e}"
 
 
+def get_latest_sleep():
+
+    try:
+        sleeps = whoop_get("/activity/sleep")
+
+        print("SLEEP COLLECTION:")
+        print(sleeps)
+
+
+        records = sleeps.get("records", [])
+
+        if not records:
+            return {}
+
+
+        sleep_id = records[0]["id"]
+
+
+        print("LATEST SLEEP ID:")
+        print(sleep_id)
+
+
+        detail = whoop_get(
+            f"/activity/sleep/{sleep_id}"
+        )
+
+
+        print("SLEEP DETAIL:")
+        print(detail)
+
+
+        return detail
+
+
+    except Exception as e:
+
+        print(
+            "SLEEP FETCH ERROR:",
+            e
+        )
+
+        return {}
+        
 
 
 @app.route("/whoop/auto-report")
@@ -902,7 +945,7 @@ def auto_report():
         data = {
             "recovery": whoop_get("/recovery"),
             "cycle": whoop_get("/cycle"),
-            "sleep": whoop_get("/activity/sleep"),
+            "sleep": get_latest_sleep(),
             "workout": whoop_get("/activity/workout")
         }
 
