@@ -74,22 +74,19 @@ def get_db_connection():
 def save_refresh_token(token):
 
     conn = get_db_connection()
+
     cur = conn.cursor()
 
     cur.execute(
         """
-        DELETE FROM tokens
-        """
-    )
-
-    cur.execute(
-        """
-        INSERT INTO tokens
-        (
-            refresh_token
+        UPDATE tokens
+        SET refresh_token = ?
+        WHERE id = (
+            SELECT id
+            FROM tokens
+            ORDER BY id DESC
+            LIMIT 1
         )
-        VALUES
-        (?)
         """,
         (
             token,
@@ -106,12 +103,11 @@ def save_refresh_token(token):
 # 从数据库读取最新 refresh token
 # ==========================
 
-def load_refresh_token_from_db():
+def load_refresh_token():
 
     conn = get_db_connection()
 
     cur = conn.cursor()
-
 
     cur.execute(
         """
@@ -123,28 +119,16 @@ def load_refresh_token_from_db():
         """
     )
 
-
-    result = cur.fetchone()
-
-    print(
-        "DB REFRESH TOKEN:",
-        result
-    )
-
+    row = cur.fetchone()
 
     cur.close()
-
     conn.close()
 
-
-    if result:
-
-        print("USING DB REFRESH TOKEN")
-
-        return result[0]
-
+    if row:
+        return row["refresh_token"]
 
     return None
+    
     
 WHOOP_CLIENT_ID = os.environ.get(
     "WHOOP_CLIENT_ID",
@@ -197,14 +181,13 @@ def load_refresh_token():
         """
         SELECT refresh_token
         FROM tokens
-        ORDER BY updated_at DESC
+        WHERE refresh_token IS NOT NULL
+        ORDER BY id DESC
         LIMIT 1
         """
     )
 
-
     row = cur.fetchone()
-
 
     cur.close()
     conn.close()
@@ -213,7 +196,6 @@ def load_refresh_token():
     if row:
 
         return row["refresh_token"]
-
 
     return None
 
@@ -454,6 +436,9 @@ def refresh_access_token():
 
         "client_secret":
         client_secret,
+
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback"
 
     }
 
