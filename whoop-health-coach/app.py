@@ -362,10 +362,7 @@ def get_access_token():
 
 def refresh_access_token():
 
-    refresh_token = (
-        os.getenv("WHOOP_REFRESH_TOKEN")
-        or load_refresh_token()
-    )
+    refresh_token = load_refresh_token()
 
 
     if refresh_token:
@@ -377,12 +374,12 @@ def refresh_access_token():
 
     else:
 
-        refresh_token = os.environ.get(
+        refresh_token = os.getenv(
             "WHOOP_REFRESH_TOKEN"
         )
 
         print(
-            "TOKEN SOURCE: ENV INIT"
+            "TOKEN SOURCE: ENV"
         )
 
 
@@ -392,6 +389,7 @@ def refresh_access_token():
             "NO REFRESH TOKEN"
         )
 
+    
     print(
         "USING REFRESH TOKEN:",
         refresh_token[:10],
@@ -416,13 +414,30 @@ def refresh_access_token():
     )
 
     print(
+        "CLIENT ID VALUE:",
+        client_id
+    )
+
+
+    print(
         "CLIENT SECRET:",
         bool(client_secret)
     )
 
     print(
+        "CLIENT SECRET LENGTH:",
+        len(client_secret)
+    )
+
+
+    print(
         "REFRESH TOKEN:",
         bool(refresh_token)
+    )
+
+    print(
+        "REFRESH TOKEN LENGTH:",
+        len(refresh_token)
     )
 
 
@@ -784,8 +799,8 @@ def callback():
 
         "client_secret": WHOOP_CLIENT_SECRET,
 
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback"
+        "redirect_uri":
+        "https://whoop-health-coach.onrender.com/callback"
 
     }
 
