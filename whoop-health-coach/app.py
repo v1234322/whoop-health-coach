@@ -639,6 +639,23 @@ def init_db():
     )
     """)
 
+    # =========================
+    # tokens 表迁移
+    # =========================
+
+    try:
+
+        cur.execute("""
+        ALTER TABLE tokens
+        ADD COLUMN updated_at TIMESTAMP
+        """)
+
+    except Exception as e:
+
+        print(
+            "TOKENS UPDATED_AT EXISTS"
+        )
+
 
     # =========================
     # 重建 daily_metrics
