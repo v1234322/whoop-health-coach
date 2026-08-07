@@ -2338,87 +2338,42 @@ def get_whoop_data():
 
     try:
 
-        conn = get_db_connection()
+        recovery = whoop_get("/recovery")
 
-        cur = conn.cursor()
+        sleep = whoop_get("/activity/sleep")
 
-
-        cur.execute(
-           """
-           SELECT
-               recovery_score,
-               hrv,
-               resting_heart_rate,
-               sleep_score,
-               sleep_duration,
-               sleep_efficiency,
-               cycle_strain
-           FROM daily_metrics
-           ORDER BY id DESC
-           LIMIT 1
-           """
-       )
+        cycle = whoop_get("/cycle")
 
 
-        row = cur.fetchone()
+        print("API RECOVERY:")
+        print(recovery)
 
 
-        print("DATABASE ROW:", row)
+        print("API SLEEP:")
+        print(sleep)
 
 
-        cur.close()
-
-        conn.close()
-
-
-        if not row:
-
-            return {
-                "recovery": {
-                    "score": 0,
-                    "hrv": 0
-                },
-
-                "sleep": {
-                    "duration": 0,
-                    "performance": 0
-                },
-
-                "workout": {
-                    "strain": 0
-                }
-            }
-
+        print("API CYCLE:")
+        print(cycle)
 
 
         return {
-
-            "recovery": {
-                "score": row[0],
-                "hrv": row[1],
-                "resting_hr": row[2]
-            },
-
-
-            "sleep": {
-                "performance": row[3],
-                "duration": row[4],
-                "efficiency": row[5]
-            },
-
-
-            "workout": {
-                "strain": row[6]
-            }
-
+            "recovery": recovery,
+            "sleep": sleep,
+            "workout": cycle
         }
 
 
     except Exception as e:
 
-        print("GET WHOOP DATA ERROR:", e)
+        print(
+            "GET WHOOP DATA ERROR:",
+            e
+        )
 
         return {}
+
+
 
 def today():
 
