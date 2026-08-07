@@ -463,6 +463,9 @@ def refresh_access_token():
     )
 
 
+    print("FINAL REFRESH PAYLOAD:")
+    print(payload)
+
     response = requests.post(
 
         "https://api.prod.whoop.com/oauth/oauth2/token",
