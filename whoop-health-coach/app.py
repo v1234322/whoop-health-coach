@@ -387,7 +387,7 @@ def refresh_access_token():
 
     print({
         "grant_type": payload["grant_type"],
-        "scope": payload["scope"],
+        "scope": payload.get["scope"],
         "client_id_length": len(payload["client_id"]),
         "client_secret_length": len(payload["client_secret"]),
         "refresh_length": len(payload["refresh_token"])
@@ -402,6 +402,9 @@ def refresh_access_token():
         }
     )
 
+    print("FINAL REFRESH PAYLOAD:")
+    print(payload)
+    
     response = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
         data=payload,
