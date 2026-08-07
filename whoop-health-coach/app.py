@@ -664,7 +664,7 @@ def init_db():
     # 检查 tokens 表真实结构
     # =========================
 
-    cur.execute(
+    cursor.execute(
         "PRAGMA table_info(tokens)"
     )
 
