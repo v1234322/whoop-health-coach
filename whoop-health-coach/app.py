@@ -437,9 +437,6 @@ def refresh_access_token():
         "client_secret":
         WHOOP_CLIENT_SECRET,
 
-        "scope":
-        "offline"
-
     }
 
     print({
