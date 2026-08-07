@@ -30,4 +30,4 @@ jobs:
           WHOOP_REFRESH_TOKEN: ${{ secrets.WHOOP_REFRESH_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: |
-          python whoop-health-coach/app.py
+          python whoop-health-coach/daily_report.py
