@@ -101,11 +101,6 @@ def save_refresh_token(token):
     cur.close()
     conn.close()
 
-    print(
-        "REFRESH TOKEN SAVED"
-    )
-
-
 
 # ==========================
 # 从数据库读取最新 refresh token
@@ -195,35 +190,30 @@ print("==============================")
 def load_refresh_token():
 
     conn = get_db_connection()
+
     cur = conn.cursor()
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT refresh_token
         FROM tokens
-        WHERE refresh_token IS NOT NULL
-        ORDER BY id DESC
+        ORDER BY updated_at DESC
         LIMIT 1
-    """)
-
-    result = cur.fetchone()
-
-    cur.execute(
-        "SELECT * FROM tokens"
+        """
     )
 
-    print(
-        "ALL TOKENS:",
-        cur.fetchall()
-    )
+
+    row = cur.fetchone()
+
 
     cur.close()
     conn.close()
 
-    if result:
-        print("USING DB REFRESH TOKEN")
-        return result[0]
 
-    print("NO REFRESH TOKEN FOUND")
+    if row:
+
+        return row["refresh_token"]
+
 
     return None
 
@@ -372,13 +362,32 @@ def get_access_token():
 
 def refresh_access_token():
 
-    refresh_token = os.environ.get(
-        "WHOOP_REFRESH_TOKEN"
-    )
+    refresh_token = load_refresh_token()
+
+
+    if refresh_token:
+
+        print(
+            "TOKEN SOURCE: DATABASE"
+        )
+
+
+    else:
+
+        refresh_token = os.environ.get(
+            "WHOOP_REFRESH_TOKEN"
+        )
+
+        print(
+            "TOKEN SOURCE: ENV INIT"
+        )
+
 
     if not refresh_token:
-        refresh_token = load_refresh_token()
 
+        raise Exception(
+            "NO REFRESH TOKEN"
+        )
 
     print(
         "USING REFRESH TOKEN:",
