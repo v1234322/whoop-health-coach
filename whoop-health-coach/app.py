@@ -384,7 +384,7 @@ def refresh_access_token():
         "...",
         refresh_token[-10:]
     )
-    
+
 
     client_id = os.environ.get(
         "WHOOP_CLIENT_ID"
@@ -412,13 +412,6 @@ def refresh_access_token():
     )
 
 
-    if not refresh_token:
-
-        raise Exception(
-            "NO REFRESH TOKEN"
-        )
-
-
     payload = {
 
         "grant_type":
@@ -431,14 +424,20 @@ def refresh_access_token():
         client_id,
 
         "client_secret":
-        client_secret,
+        client_secret
 
     }
 
+
     print(
-        "PAYLOAD FULL CHECK:",
-        payload
+        "PAYLOAD CHECK:",
+        {
+            "grant_type": payload["grant_type"],
+            "refresh_token": refresh_token[:10] + "...",
+            "client_id": client_id
+        }
     )
+
 
     response = requests.post(
 
@@ -486,6 +485,12 @@ def refresh_access_token():
     )
 
 
+    if not access_token:
+
+        raise Exception(
+            "NO ACCESS TOKEN RETURNED"
+        )
+
 
     if new_refresh_token:
 
@@ -494,15 +499,22 @@ def refresh_access_token():
         )
 
         print(
-            "NEW REFRESH TOKEN SAVED",
+            "NEW REFRESH TOKEN SAVED"
         )
+
 
     save_access_token_to_db(
         access_token
     )
 
 
+    print(
+        "NEW ACCESS TOKEN SAVED"
+    )
+
+
     return access_token
+
 
 
 # =========================
