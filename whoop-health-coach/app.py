@@ -432,10 +432,10 @@ def refresh_access_token():
         refresh_token,
 
         "client_id":
-        client_id,
+        WHOOP_CLIENT_ID,
 
         "client_secret":
-        client_secret,
+        WHOOP_CLIENT_SECRET,
 
         "redirect_uri":
         "https://whoop-health-coach.onrender.com/callback"
