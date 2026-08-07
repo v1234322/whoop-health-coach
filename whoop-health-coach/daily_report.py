@@ -1,7 +1,7 @@
-from app import generate_report
+import app
 
-print("START DAILY WHOOP REPORT")
+print("DAILY REPORT START")
 
-generate_report()
+print(dir(app))
 
-print("DAILY REPORT FINISHED")
+print("DAILY REPORT END")
