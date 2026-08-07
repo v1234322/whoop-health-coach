@@ -416,7 +416,7 @@ def refresh_access_token():
     print("REFRESH STATUS:", response.status_code)
     print("REFRESH RESPONSE:", response.text)
 
-    if reposen.status_code != 200:
+    if responsen.status_code != 200:
         raise Exception(
             "REFRESH FAILED: " +
     response.text
