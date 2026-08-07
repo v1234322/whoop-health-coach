@@ -645,7 +645,7 @@ def init_db():
 
     try:
 
-        cur.execute("""
+        cursor.execute("""
         ALTER TABLE tokens
         ADD COLUMN updated_at TIMESTAMP
         """)
