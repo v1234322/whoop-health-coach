@@ -673,6 +673,7 @@ def init_db():
         cur.fetchall()
     )
 
+    conn.commit()
 
     # =========================
     # 重建 daily_metrics
