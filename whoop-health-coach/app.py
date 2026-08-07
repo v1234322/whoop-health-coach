@@ -1971,9 +1971,15 @@ def generate_health_report(data):
     # WHOOP API 返回 records
     recovery = (
         recovery_raw.get("records",[{}])[0]
-        if isinstance(recovery_raw, dict)
-        else {}
+        if isinstance(recovery_raw, dict):
+
+           recovery = (
+               recovery_raw.get("records", [{}])[0]
     )
+
+        else:
+            recovery = {}
+            
 
     sleep = (
         sleep_raw.get("records",[{}])[0]
@@ -2119,43 +2125,6 @@ def generate_health_report(data):
             e
         )
 
-        strain = float(
-            workout.get("score",{}).get("strain",0)
-            or 0
-        )
-
-
-        print("FIXED VALUES")
-        print("Recovery:", recovery_score)
-        print("HRV:", hrv)
-        print("Rest HR:", resting_hr)
-
-        print("Sleep:", sleep_duration)
-        print("Sleep performance:", sleep_performance)
-        print("Sleep efficiency:", sleep_efficiency)
-        print("Sleep quality:", sleep_quality)
-        print("Sleep cycles:", sleep_cycles)
-        print("Sleep needed:", sleep_needed)
-        print("Awake minutes:", awake_time)
-
-        print("Strain:", strain)
-
-
-    return {
-        "recovery": recovery_score,
-        "hrv": hrv,
-        "resting_hr": resting_hr,
-
-        "sleep": sleep_duration,
-        "sleep_performance": sleep_performance,
-        "sleep_efficiency": sleep_efficiency,
-        "sleep_quality": sleep_quality,
-        "sleep_cycles": sleep_cycles,
-        "sleep_needed": sleep_needed,
-        "awake_minutes": awake_time,
-
-    }
-
 
     # =========================
     # WHOOP Strain Parser
@@ -2186,18 +2155,39 @@ def generate_health_report(data):
     # =========================
     # 训练信息
     # =========================
-    avg_hr = resting_hr
-    max_hr = resting_hr
-
-    workout_start = "暂无训练记录"
-    workout_end = "暂无训练记录"
-    workout_duration = "暂无数据"
-    workout_type = "训练"
-
-    sport_name = "综合训练"
-
 
     training_advice = "根据 Recovery 调整训练强度"
+
+    print("FINAL REPORT DATA:")
+    print(
+        "Recovery:",
+        recovery_score,
+        "HRV:",
+        hrv,
+        "Rest HR:",
+        resting_hr,
+        "Sleep:",
+        sleep_duration
+    )
+
+
+    return {
+        "recovery": recovery_score,
+        "hrv": hrv,
+        "resting_hr": resting_hr,
+
+        "sleep": sleep_duration,
+        "sleep_performance": sleep_performance,
+        "sleep_efficiency": sleep_efficiency,
+        "sleep_quality": sleep_quality,
+        "sleep_cycles": sleep_cycles,
+        "sleep_needed": sleep_needed,
+        "awake_minutes": awake_time,
+    
+        "strain": strain,
+
+        "training_advice": training_advice
+    }
 
 
     # =========================
