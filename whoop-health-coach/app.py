@@ -670,7 +670,7 @@ def init_db():
 
     print(
         "TOKENS COLUMNS:",
-        cur.fetchall()
+        cursor.fetchall()
     )
 
     conn.commit()
