@@ -652,9 +652,27 @@ def init_db():
 
         print("ADDED UPDATED_AT COLUMN")
 
-    except Exception:
+    except Exception as e:
 
-        print("UPDATED_AT ALREADY EXISTS")
+        print(
+            "UPDATED_AT MIGRATION ERROR:",
+            e
+        )
+
+
+    # =========================
+    # 检查 tokens 表真实结构
+    # =========================
+
+    cur.execute(
+        "PRAGMA table_info(tokens)"
+    )
+
+    print(
+        "TOKENS COLUMNS:",
+        cur.fetchall()
+    )
+
 
     # =========================
     # 重建 daily_metrics
