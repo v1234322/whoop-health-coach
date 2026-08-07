@@ -444,8 +444,6 @@ def whoop_get(endpoint):
 
     token = get_access_token()
 
-    print("USING ACCESS TOKEN:", token[:20])
-
 
     if not token:
         raise Exception(
