@@ -787,19 +787,25 @@ def callback():
 @app.route("/clear-token")
 def clear_token():
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    try:
 
-    cur.execute(
-        "DELETE FROM tokens"
-    )
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    conn.commit()
+        cur.execute(
+            "DELETE FROM tokens"
+        )
 
-    cur.close()
-    conn.close()
+        conn.commit()
 
-    return "TOKEN CLEARED"
+        cur.close()
+        conn.close()
+
+        return "TOKEN CLEARED"
+
+    except Exception as e:
+
+        return f"CLEAR TOKEN ERROR: {e}"
 
 
 
