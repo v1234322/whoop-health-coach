@@ -437,10 +437,15 @@ def refresh_access_token():
         "client_secret":
         WHOOP_CLIENT_SECRET,
 
-        "redirect_uri":
-        "https://whoop-health-coach.onrender.com/callback"
+        "scope":
+        "offline"
 
     }
+
+    print(payload.keys())
+    print(payload.get("scope"))
+    print(len(payload["client_id"]))
+    print(len(payload["client_secret"]))
 
     print(
         "REDIRECT URI:",
