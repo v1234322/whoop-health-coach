@@ -571,6 +571,12 @@ def whoop_get(endpoint):
         r.status_code
     )
 
+    print(
+        "WHOOP RAW RESPONSE:",
+        r.text[:2000]
+    )
+
+    
 
     if r.status_code == 401:
 
