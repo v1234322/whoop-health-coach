@@ -4222,8 +4222,6 @@ def start_scheduler():
     print("DAILY SCHEDULER STARTED")
 
 
-start_scheduler()
-
 
 if __name__ == "__main__":
 
