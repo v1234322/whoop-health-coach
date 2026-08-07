@@ -1968,30 +1968,42 @@ def generate_health_report(data):
     workout_raw = data.get("workout", {})
 
 
+    
+    # ======================
     # WHOOP API 返回 records
-    recovery = (
-        recovery_raw.get("records",[{}])[0]
-        if isinstance(recovery_raw, dict):
+    # ======================
+    
+    if isinstance(recovery_raw, dict):
 
-           recovery = (
-               recovery_raw.get("records", [{}])[0]
-           )
+        recovery = (
+            recovery_raw.get("records", [{}])[0]
+        )
 
-        else:
-            recovery = {}
-            
+    else:
 
-    sleep = (
-        sleep_raw.get("records",[{}])[0]
-        if isinstance(sleep_raw, dict)
-        else {}
-    )
+        recovery = {}
 
-    workout = (
-        workout_raw.get("records",[{}])[0]
-        if isinstance(workout_raw, dict)
-        else {}
-    )
+
+    if isinstance(sleep_raw, dict):
+
+        sleep = (
+            sleep_raw.get("records", [{}])[0]
+        )
+
+    else:
+
+        sleep = {}
+    
+
+    if isinstance(workout_raw, dict):
+
+        workout = (
+            workout_raw.get("records", [{}])[0]
+        )
+
+    else:
+
+        workout = {}
 
 
     score = recovery.get("score", {})
