@@ -1705,6 +1705,7 @@ def extract_daily_metrics(data):
 
 
     return result
+    
 
 def save_daily_data(metrics):
 
@@ -1716,6 +1717,7 @@ def save_daily_data(metrics):
         conn = get_db_connection()
 
         cur = conn.cursor()
+
 
         cur.execute(
             "PRAGMA table_info(daily_metrics)"
@@ -1738,45 +1740,20 @@ def save_daily_data(metrics):
         cur.execute(
             """
             DELETE FROM daily_metrics
-            WHERE report_date = ？
+            WHERE report_date = ?
             """,
-            (today,)
+            (
+                today,
+            )
         )
 
-
-        # 保存当天数据
-
-        print("START INSERT DAILY METRICS")
 
         print(
-            "VALUES COUNT:",
-            11
+            "START INSERT DAILY METRICS"
         )
 
-        cur.execute(
-        """
-        INSERT INTO daily_metrics
-        (
-            report_date,
-            recovery_score,
-            hrv,
-            resting_heart_rate,
-            sleep_score,
-            sleep_duration,
-            sleep_efficiency,
-            deep_sleep_duration,
-            rem_sleep_duration,
-            cycle_strain,
-            workout_data
-        )
 
-        VALUES
-        (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-        )
-
-        """,
-        (
+        values = (
             today,
             metrics.get("recovery_score"),
             metrics.get("hrv"),
@@ -1791,9 +1768,42 @@ def save_daily_data(metrics):
                 metrics.get("workout_data", {}),
                 ensure_ascii=False
             )
-        ))
+        )
+
+
+        print(
+            "VALUES COUNT:",
+            len(values)
+        )
+
+
+        cur.execute(
+            """
+            INSERT INTO daily_metrics
+            (
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_score,
+                sleep_duration,
+                sleep_efficiency,
+                deep_sleep_duration,
+                rem_sleep_duration,
+                cycle_strain,
+                workout_data
+            )
+            VALUES
+            (
+                ?,?,?,?,?,?,?,?,?,?,?
+            )
+            """,
+            values
+        )
+
 
         conn.commit()
+
 
         print(
             "DAILY METRICS SAVED OK:",
