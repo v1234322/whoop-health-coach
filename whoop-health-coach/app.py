@@ -1489,17 +1489,25 @@ def extract_daily_metrics(data):
     result = {}
 
 
-    # =====================
+    # =========================
     # Recovery
-    # =====================
+    # =========================
 
     try:
 
-        recovery_records = (
-            data
-            .get("recovery", {})
-            .get("records", [])
-        )
+        recovery_data = data.get("recovery", [])
+
+        if isinstance(recovery_data, dict):
+
+            recovery_records = recovery_data.get(
+                "records",
+                []
+            )
+
+        else:
+
+            recovery_records = recovery_data
+
 
         recovery = (
             recovery_records[0]
@@ -1507,24 +1515,40 @@ def extract_daily_metrics(data):
             else {}
         )
 
-        score = recovery.get("score") or {}
+
+        score = recovery.get(
+            "score",
+            {}
+        )
+
 
         result["recovery_score"] = score.get(
             "recovery_score"
         )
 
+
         result["hrv"] = score.get(
             "hrv_rmssd_milli"
         )
+
 
         result["resting_heart_rate"] = score.get(
             "resting_heart_rate"
         )
 
+
+        print(
+            "RECOVERY PARSED:",
+            result["recovery_score"],
+            result["hrv"],
+            result["resting_heart_rate"]
+        )
+
+
     except Exception as e:
 
         print(
-            "RECOVERY PARSE ERROR:",
+            "RECOVERY ERROR:",
             e
         )
 
@@ -1539,11 +1563,22 @@ def extract_daily_metrics(data):
 
     try:
 
-        sleep_records = (
-            data
-            .get("sleep", {})
-            .get("records", [])
+        sleep_data = data.get(
+            "sleep",
+            {}
         )
+
+
+        if isinstance(sleep_data, dict):
+
+            sleep_records = sleep_data.get(
+                "records",
+                []
+            )
+
+        else:
+
+            sleep_records = sleep_data
 
         # 优先选择非小睡且已评分的睡眠
         main_sleep = None
@@ -1661,49 +1696,93 @@ def extract_daily_metrics(data):
         result["rem_sleep_duration"] = None
 
 
-    # =====================
+    # =========================
     # Cycle Strain
-    # =====================
+    # =========================
 
     try:
 
-        cycle_records = (
-            data
-            .get("cycle", {})
-            .get("records", [])
+        cycle_data = data.get(
+            "cycle",
+            {}
         )
 
-        cycle = (
-            cycle_records[0]
-            if cycle_records
-            else {}
-        )
+
+        if isinstance(cycle_data, dict):
+
+            cycle = cycle_data
+
+        else:
+
+            cycle = (
+                cycle_data[0]
+                if cycle_data
+                else {}
+            )
+
 
         cycle_score = (
-            cycle.get("score") or {}
+            cycle.get(
+                "score",
+                {}
+            )
         )
 
-        result["cycle_strain"] = (
-            cycle_score.get("strain")
+
+        result["cycle_strain"] = cycle_score.get(
+            "strain"
         )
+
+
+        print(
+            "CYCLE STRAIN:",
+            result["cycle_strain"]
+        )
+
 
     except Exception as e:
 
         print(
-            "CYCLE PARSE ERROR:",
+            "CYCLE ERROR:",
             e
-        )
+    )
 
         result["cycle_strain"] = None
 
-
-    # =====================
+    # =========================
     # Workout
-    # =====================
+    # =========================
 
-    result["workout_data"] = (
-        data.get("workout", {})
-    )
+    try:
+
+        workout_data = data.get(
+            "workout",
+            {}
+        )
+
+
+        if isinstance(workout_data, dict):
+
+            result["workout_data"] = (
+                workout_data.get(
+                    "records",
+                    workout_data
+                )
+            )
+
+        else:
+
+            result["workout_data"] = workout_data
+
+
+    except Exception as e:
+
+        print(
+            "WORKOUT ERROR:",
+            e
+        )
+
+        result["workout_data"] = {}
 
 
     return result
