@@ -372,10 +372,12 @@ def get_access_token():
 
 def refresh_access_token():
 
-    refresh_token = load_refresh_token()
+    refresh_token = os.environ.get(
+        "WHOOP_REFRESH_TOKEN"
+    )
 
     if not refresh_token:
-        raise Exception("NO REFRESH TOKEN")
+        refresh_token = load_refresh_token()
 
 
     print(
