@@ -645,19 +645,28 @@ def init_db():
 
     try:
  
-        cursor.execute("""
-        ALTER TABLE tokens
-        ADD COLUMN updated_at TIMESTAMP
-        """)
-
-        print("ADDED UPDATED_AT COLUMN")
-
-    except Exception as e:
-
-        print(
-            "UPDATED_AT MIGRATION ERROR:",
-            e
+        cursor.execute(
+            "PRAGMA table_info(tokens)"
         )
+
+        columns = [
+            row[1]
+            for row in cursor.fetchall()
+        ]
+
+
+        if "updated_at" not in columns:
+
+            cursor.execute("""
+            ALTER TABLE tokens
+            ADD COLUMN updated_at TIMESTAMP
+            """)
+
+            print("ADDED UPDATED_AT COLUMN")
+
+        else:
+
+            print("UPDATED_AT ALREADY EXISTS")
 
 
     # =========================
