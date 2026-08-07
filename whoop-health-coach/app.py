@@ -362,7 +362,10 @@ def get_access_token():
 
 def refresh_access_token():
 
-    refresh_token = load_refresh_token()
+    refresh_token = (
+        os.getenv("WHOOP_REFRESH_TOKEN")
+        or load_refresh_token()
+    )
 
 
     if refresh_token:
