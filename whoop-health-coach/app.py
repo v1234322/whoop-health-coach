@@ -3092,15 +3092,25 @@ def whoop_week():
         print("WEEK ERROR:", e)
         return "暂无数据"
 
+
 def auto_save_daily():
 
+    print("AUTO SAVE START")
+
     try:
+        
 
         data = get_whoop_data()
+
+        print("WHOOP DATA:")
+        print(data)
 
         metrics = extract_daily_metrics(
             data
         )
+
+        print("METRICS:")
+        print(metrics)
 
         save_daily_data(
             metrics
