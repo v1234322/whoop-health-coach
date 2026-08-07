@@ -431,6 +431,10 @@ def refresh_access_token():
 
     }
 
+    print(
+        "REDIRECT URI:",
+        payload.get("redirect_uri")
+    )
 
     print(
         "PAYLOAD CHECK:",
