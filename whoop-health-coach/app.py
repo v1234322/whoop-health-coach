@@ -346,32 +346,15 @@ def refresh_access_token():
 
     refresh_token = load_refresh_token()
 
-
     if refresh_token:
-
-        print(
-            "TOKEN SOURCE: DATABASE"
-        )
-
-
+        print("TOKEN SOURCE: DATABASE")
     else:
-
-        refresh_token = os.getenv(
-            "WHOOP_REFRESH_TOKEN"
-        )
-
-        print(
-            "TOKEN SOURCE: ENV"
-        )
-
+        refresh_token = os.getenv("WHOOP_REFRESH_TOKEN")
+        print("TOKEN SOURCE: ENV")
 
     if not refresh_token:
+        raise Exception("NO REFRESH TOKEN")
 
-        raise Exception(
-            "NO REFRESH TOKEN"
-        )
-
-    
     print(
         "USING REFRESH TOKEN:",
         refresh_token[:10],
@@ -379,79 +362,37 @@ def refresh_access_token():
         refresh_token[-10:]
     )
 
+    client_id = os.getenv("WHOOP_CLIENT_ID")
+    client_secret = os.getenv("WHOOP_CLIENT_SECRET")
 
-    client_id = os.environ.get(
-        "WHOOP_CLIENT_ID"
-    )
+    if not client_id:
+        raise Exception("WHOOP_CLIENT_ID NOT FOUND")
 
+    if not client_secret:
+        raise Exception("WHOOP_CLIENT_SECRET NOT FOUND")
 
-    client_secret = os.environ.get(
-        "WHOOP_CLIENT_SECRET"
-    )
-
-
-    print(
-        "CLIENT ID:",
-        bool(client_id)
-    )
-
-    print(
-        "CLIENT ID VALUE:",
-        client_id
-    )
-
-
-    print(
-        "CLIENT SECRET:",
-        bool(client_secret)
-    )
-
-    print(
-        "CLIENT SECRET LENGTH:",
-        len(client_secret)
-    )
-
-
-    print(
-        "REFRESH TOKEN:",
-        bool(refresh_token)
-    )
-
-    print(
-        "REFRESH TOKEN LENGTH:",
-        len(refresh_token)
-    )
-
+    print("CLIENT ID:", bool(client_id))
+    print("CLIENT ID VALUE:", client_id)
+    print("CLIENT SECRET:", bool(client_secret))
+    print("CLIENT SECRET LENGTH:", len(client_secret))
+    print("REFRESH TOKEN:", bool(refresh_token))
+    print("REFRESH TOKEN LENGTH:", len(refresh_token))
 
     payload = {
-
-        "grant_type":
-        "refresh_token",
-
-        "refresh_token":
-        refresh_token,
-
-        "client_id":
-        WHOOP_CLIENT_ID,
-
-        "client_secret":
-        WHOOP_CLIENT_SECRET,
-
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "scope": "offline"
     }
 
     print({
         "grant_type": payload["grant_type"],
-        "scope": payload.get("scope"),
+        "scope": payload["scope"],
         "client_id_length": len(payload["client_id"]),
         "client_secret_length": len(payload["client_secret"]),
         "refresh_length": len(payload["refresh_token"])
     })
-
-    
-    print(
-        "REDIRECT URI:",
-        payload.get("redirect_uri")
-    )
 
     print(
         "PAYLOAD CHECK:",
@@ -462,86 +403,36 @@ def refresh_access_token():
         }
     )
 
-
-    print("FINAL REFRESH PAYLOAD:")
-    print(payload)
-
     response = requests.post(
-
         "https://api.prod.whoop.com/oauth/oauth2/token",
-
         data=payload,
-
         headers={
-
-            "Content-Type":
-            "application/x-www-form-urlencoded"
-
+            "Content-Type": "application/x-www-form-urlencoded"
         },
-
         timeout=30
-
     )
 
-
-    print(
-        "REFRESH STATUS:",
-        response.status_code
-    )
-
-
-    print(
-        "REFRESH RESPONSE:",
-        response.text
-    )
-
+    print("REFRESH STATUS:", response.status_code)
+    print("REFRESH RESPONSE:", response.text)
 
     response.raise_for_status()
 
-
     token_data = response.json()
 
-
-    access_token = token_data.get(
-        "access_token"
-    )
-
-
-    new_refresh_token = token_data.get(
-        "refresh_token"
-    )
-
+    access_token = token_data.get("access_token")
+    new_refresh_token = token_data.get("refresh_token")
 
     if not access_token:
-
-        raise Exception(
-            "NO ACCESS TOKEN RETURNED"
-        )
-
+        raise Exception("NO ACCESS TOKEN RETURNED")
 
     if new_refresh_token:
+        save_refresh_token(new_refresh_token)
+        print("NEW REFRESH TOKEN SAVED")
 
-        save_refresh_token(
-            new_refresh_token
-        )
-
-        print(
-            "NEW REFRESH TOKEN SAVED"
-        )
-
-
-    save_access_token_to_db(
-        access_token
-    )
-
-
-    print(
-        "NEW ACCESS TOKEN SAVED"
-    )
-
+    save_access_token_to_db(access_token)
+    print("NEW ACCESS TOKEN SAVED")
 
     return access_token
-
 
 
 # =========================
