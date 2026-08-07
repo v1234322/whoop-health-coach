@@ -650,12 +650,11 @@ def init_db():
         ADD COLUMN updated_at TIMESTAMP
         """)
 
-    except Exception as e:
+        print("ADDED UPDATED_AT COLUMN")
 
-        print(
-            "TOKENS UPDATED_AT EXISTS"
-        )
+    except Exception:
 
+        print("UPDATED_AT ALREADY EXISTS")
 
     # =========================
     # 重建 daily_metrics
