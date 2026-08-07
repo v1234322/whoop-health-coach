@@ -1975,7 +1975,7 @@ def generate_health_report(data):
 
            recovery = (
                recovery_raw.get("records", [{}])[0]
-    )
+           )
 
         else:
             recovery = {}
