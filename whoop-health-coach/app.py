@@ -1145,49 +1145,51 @@ def generate_ai_summary(ai_prompt):
 
     try:
 
-
         response = client.chat.completions.create(
 
             model="deepseek-chat",
 
-
             messages=[
-        
-                 {
+
+                {
                     "role": "system",
 
-                     "content": """
+                    "content": """
 你是我的WHOOP私人健康教练。
 
-你的任务：
+根据用户当天数据：
 
-1. 根据恢复、睡眠、HRV、训练数据分析状态
-2. 判断风险：
-良好 / 需小心 / 危险
-3. 给未来1-3天具体行动建议
+- 恢复状态
+- HRV
+- 睡眠
+- 心率
+- 训练负荷
 
+给出健康建议。
 
-输出要求：
+要求：
 
 - 中文简体
-- 像私人教练一样
-- 先总结，再解释数据
-- 不要编造不存在的数据
+- 控制在300字以内
+- 先总结状态
+- 再给3条行动建议
+- 不要重复数据
+- 不编造数据
 
 """
-                 },
+                },
 
-        
                 {
                     "role": "user",
 
-                    "content": ai_prompt
+                    "content": ai_prompt[:2000]
                 }
-        
+
             ],
 
+            temperature=0.4,
 
-            temperature=0.4
+            max_tokens=500
 
         )
 
@@ -1195,164 +1197,18 @@ def generate_ai_summary(ai_prompt):
         return response.choices[0].message.content
 
 
-
     except Exception as e:
 
 
         print(
             "AI SUMMARY ERROR:",
-             e
+            e
         )
 
 
         return "AI教练暂时无法生成建议"
 
-        # =================================
-        # 创建 daily_metrics 主表
-        # =================================
 
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS daily_metrics (
-
-            id SERIAL PRIMARY KEY,
-
-            report_date TEXT,
-
-            recovery_score FLOAT,
-
-            hrv FLOAT,
-
-            resting_heart_rate FLOAT,
-
-            sleep_score FLOAT,
-
-            sleep_duration FLOAT,
-
-            sleep_efficiency FLOAT,
-
-            deep_sleep_duration FLOAT,
-
-            rem_sleep_duration FLOAT,
-
-            cycle_strain FLOAT,
-
-            workout_data JSONB
-
-        )
-        """)
-
-
-
-        # =================================
-        # 数据库自动迁移
-        # 如果旧表没有字段，自动添加
-        # =================================
-
-
-        migrations = [
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS report_date TEXT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS recovery_score FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS hrv FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS resting_heart_rate FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS sleep_score FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS sleep_duration FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS sleep_efficiency FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS deep_sleep_duration FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS rem_sleep_duration FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS cycle_strain FLOAT
-            """,
-
-            """
-            ALTER TABLE daily_metrics
-            ADD COLUMN IF NOT EXISTS workout_data JSONB
-            """
-        ]
-
-
-        for sql in migrations:
-
-            cur.execute(sql)
-
-
-
-        # =================================
-        # Token 表
-        # =================================
-
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS tokens (
-
-            id SERIAL PRIMARY KEY,
-
-            refresh_token TEXT,
-
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-
-        )
-        """)
-
-
-
-        conn.commit()
-
-
-        cur.close()
-
-        conn.close()
-
-
-        print(
-            "DATABASE INIT OK"
-        )
-
-
-
-    except Exception as e:
-
-
-        print(
-            "DATABASE INIT ERROR:",
-            e
-        )
 
 def privacy():
     return """
