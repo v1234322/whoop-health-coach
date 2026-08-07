@@ -2024,6 +2024,9 @@ def generate_coach_advice(
 
 def generate_health_report(data):
 
+    print("REPORT INPUT DATA:")
+    print(data)
+
     recovery_raw = data.get("recovery", {})
     sleep_raw = data.get("sleep", {})
     workout_raw = data.get("workout", {})
