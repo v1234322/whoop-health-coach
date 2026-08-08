@@ -2195,57 +2195,50 @@ def generate_training_plan(
     strain
 ):
 
+    if recovery >= 67:
 
-    if recovery >=67:
+        return '''
+今日适合训练
 
+推荐：
+- 力量训练45-60分钟
+- Zone2有氧40分钟
 
-        return """
-        ✅ 今日适合训练
-
-        推荐：
-        - 力量训练45-60分钟
-        - Zone2有氧40分钟
-
-        建议目标 Strain:
-        8-12
-        """
+建议目标 Strain:
+8-12
+'''
 
 
+    elif recovery >= 34:
 
-    elif recovery>=34:
+        return '''
+中等恢复状态
 
+推荐：
+- Zone2轻松有氧
+- 技术训练
+- 拉伸恢复
 
-        return """
-        🟡 中等恢复状态
-
-        推荐：
-        - Zone2轻松有氧
-        - 技术训练
-        - 拉伸恢复
-
-
-        建议目标 Strain:
-        5-8
-        """
-
+建议目标 Strain:
+5-8
+'''
 
 
     else:
 
+        return '''
+恢复不足
 
-        return """
-        🔴 恢复不足
-
-        建议：
-        - 休息
-        - 散步
-        - 拉伸
+建议：
+- 休息
+- 散步
+- 拉伸
 
 
-        避免：
-        - HIIT
-        - 大重量训练
-        """
+避免：
+- HIIT
+- 大重量训练
+'''
 
 def generate_week_report(data):
 
@@ -2266,6 +2259,7 @@ def generate_week_report(data):
 
         date = row[0]
         date_text = str(date)
+
         recovery = row[1] or 0
         hrv = row[2] or 0
         resting_hr = row[3] or 0
@@ -2280,10 +2274,10 @@ def generate_week_report(data):
         strain_list.append(float(strain))
 
 
-        daily_html += f"""
+        daily_html += f'''
         <hr>
 
-        <h3>📅 {date_text}</h3>
+        <h3>{date_text}</h3>
 
         Recovery:
         {recovery:.1f}%<br>
@@ -2300,7 +2294,7 @@ def generate_week_report(data):
         Strain:
         {strain:.2f}
 
-        """
+        '''
 
 
     days = len(data)
@@ -2312,113 +2306,149 @@ def generate_week_report(data):
     avg_sleep = sum(sleep_list) / days
     avg_strain = sum(strain_list) / days
 
-    ai_prompt = f"""
-
-    你是我的 WHOOP 私人健康教练。
-
-    请根据下面最近7天数据生成健康报告。
 
 
-    【数据】
-    
-    Recovery平均：
-    {avg_recovery:.1f}%
+    ai_prompt = f'''
+你是我的 WHOOP 私人健康教练。
 
-    HRV平均：
-    {avg_hrv:.1f} ms
-
-    静息心率：
-    {avg_hr:.1f} bpm
-
-    平均睡眠：
-    {avg_sleep:.2f} 小时
-
-    平均 Strain：
-    {avg_strain:.2f}
+请根据下面最近7天数据生成健康报告。
 
 
-    请严格按照以下格式输出：
+数据：
+
+Recovery平均：
+{avg_recovery:.1f}%
+
+HRV平均：
+{avg_hrv:.1f} ms
+
+静息心率：
+{avg_hr:.1f} bpm
+
+平均睡眠：
+{avg_sleep:.2f} 小时
+
+平均 Strain：
+{avg_strain:.2f}
 
 
-    【总体状态】
-
-    判断：
-    🟢 良好
-    🟡 需小心
-    🔴 危险
-
-    用2句话总结。
+请按照以下格式输出：
 
 
-    【恢复分析】
+【总体状态】
 
-    分析：
+判断：
+良好
+需小心
+危险
 
-    - Recovery水平
-    - HRV状态
-    - 静息心率变化
-
-    不要重复输出：
-    Recovery趋势
-    HRV趋势
+用2句话总结。
 
 
-    【睡眠分析】
+【恢复分析】
 
-    分析：
+分析：
 
-    - 睡眠时间是否支持训练
-    - 是否存在睡眠不足风险
-
-
-    【训练建议】
-
-    根据恢复能力和Strain：
-
-    给出：
-
-    - 是否适合训练
-    - 推荐训练类型
-    - 推荐Strain范围
+- Recovery水平
+- HRV状态
+- 静息心率变化
 
 
-    禁止：
+【睡眠分析】
 
-    - 直接建议极限重量
-    - 突然增加训练量
-    - 忽略恢复状态
+分析：
 
-
-    【未来3天行动建议】
-
-    必须输出3条：
-
-    第1天：
-    训练建议 + 睡眠目标
-
-    第2天：
-    恢复建议
-
-    第3天：
-    训练调整建议
+- 睡眠时间是否支持训练
+- 是否存在睡眠不足风险
 
 
-    输出要求：
+【训练建议】
 
-    - 中文简体
-    - 分段输出
-    - 不超过400字
-    - 像私人教练一样给建议
-    - 不输出代码
-    - 不解释WHOOP概念
+根据恢复能力和Strain：
 
-    """
+给出：
+
+- 是否适合训练
+- 推荐训练类型
+- 推荐Strain范围
+
+
+【未来3天行动建议】
+
+必须输出：
+
+第1天：
+训练建议 + 睡眠目标
+
+第2天：
+恢复建议
+
+第3天：
+训练调整建议
+
+
+要求：
+
+- 中文简体
+- 分段输出
+- 不超过400字
+- 像私人教练一样给建议
+- 不输出代码
+- 不解释WHOOP概念
+
+'''
+
 
 
     coach_advice = generate_ai_summary(
         ai_prompt
     )
 
+
+
+    return f'''
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<title>
+WHOOP 7天健康趋势
+</title>
+
+</head>
+
+
+<body>
+
+
+<h1>
+WHOOP 7天健康趋势报告
+</h1>
+
+
+{daily_html}
+
+
+<hr>
+
+
+<h2>
+AI健康教练建议
+</h2>
+
+
+<p>
+{coach_advice}
+</p>
+
+
+</body>
+
+</html>
+
+'''
 
     # =========================
     # 趋势分析
@@ -2658,12 +2688,12 @@ WHOOP 最近7天私人健康报告
 {status}
 </h2>
 
-<h2>📅 每日记录</h2>
+<h2>每日记录</h2>
 
 {daily_html}
 
 
-<h2>📊 平均指标</h2>
+<h2>平均指标</h2>
 
 Recovery:
 <b>{avg_recovery:.1f}%</b><br>
@@ -2682,7 +2712,7 @@ Strain:
 
 
 
-<h2>💤 睡眠债分析</h2>
+<h2>睡眠债分析</h2>
 
 累计睡眠债:
 <b>{sleep_debt:.2f} 小时</b>
@@ -2693,7 +2723,7 @@ Strain:
 
 
 
-<h2>📊 数据趋势</h2>
+<h2>数据趋势</h2>
 
 Recovery趋势：
 {recovery_trend}
@@ -2723,14 +2753,14 @@ Strain风险：
 3. 避免连续高 Strain
 
 
-<h2>🧠 AI 周总结</h2>
+<h2>AI 周总结</h2>
 
 <div style="white-space:pre-line;">
 {ai_summary}
 </div>
 
 
-<h2>🤖 私人教练建议</h2>
+<h2>私人教练建议</h2>
 
 {training_plan}
 
