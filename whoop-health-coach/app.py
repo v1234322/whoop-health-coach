@@ -912,29 +912,31 @@ def auto_report():
 def home():
 
     return """
-    
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <title>WHOOP AI Coach</title>
-    </head>
 
-    <body>
-    <h1>🏋️ WHOOP AI 教练</h1>
+<html>
 
-    <h2>🟢 系统正常</h2>
+<body>
 
-    <p>WHOOP Health Coach is running.</p >
+<h1>
+WHOOP AI Coach
+</h1>
 
-    <hr>
 
-    <a href="/whoop/today">今日报告</a>
-    <br><br>
-    <a href="/whoop/trend">7天趋势</a >
+<h2>
+System Running
+</h2>
 
-    </body>
-    </html>
-    """
+
+<p>
+WHOOP Health Coach is running.
+</p>
+
+
+</body>
+
+</html>
+
+"""
 
 @app.route("/whoop/today")
 def today():
