@@ -689,7 +689,7 @@ def callback():
 
         "client_secret": WHOOP_CLIENT_SECRET,
 
-        "scope": "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
+        "scope": "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline",
 
         "redirect_uri":
         "https://whoop-health-coach.onrender.com/callback"
