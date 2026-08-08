@@ -900,7 +900,7 @@ WHOOP Health Coach
 
 
 <h1>
-🧠 WHOOP 健康教练日报
+WHOOP 健康教练日报
 </h1>
 
 
@@ -908,7 +908,7 @@ WHOOP Health Coach
 
 
 <h2>
-❤️ Recovery
+Recovery
 </h2>
 
 
@@ -1006,7 +1006,7 @@ HRV：
 
 
 <h2>
-🔥 Strain
+Strain
 </h2>
 
 
@@ -1025,7 +1025,7 @@ HRV：
 
 
 <h2>
-🧠 AI 教练建议
+AI 教练建议
 </h2>
 
 
