@@ -368,11 +368,6 @@ def refresh_access_token():
         }
     )
 
-    print("FINAL REFRESH PAYLOAD:")
-    print(payload)
-
-    print("REFRESH PAYLOAD KEYS:")
-    print(payload.keys())
 
     print("TOKEN FROM DB:")
     print(refresh_token)
