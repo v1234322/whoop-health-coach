@@ -374,6 +374,9 @@ def refresh_access_token():
     print("REFRESH PAYLOAD KEYS:")
     print(payload.keys())
 
+    print("TOKEN FROM DB:")
+    print(refresh_token)
+
 
     response = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
