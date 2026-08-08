@@ -369,10 +369,6 @@ def refresh_access_token():
     )
 
 
-    print("TOKEN FROM DB:")
-    print(refresh_token)
-
-
     response = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
         data=payload,
