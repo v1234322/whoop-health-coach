@@ -1399,6 +1399,8 @@ def extract_daily_metrics(data):
             {}
         )
 
+        if not sleep_data and "score" in data:
+            sleep_data = data
 
         if isinstance(sleep_data, dict):
 
@@ -1407,6 +1409,10 @@ def extract_daily_metrics(data):
                 []
             )
 
+        if not sleep_records and sleep_data.get("score"):
+            sleep_records = [sleep_data]
+
+        
         else:
 
             sleep_records = sleep_data
