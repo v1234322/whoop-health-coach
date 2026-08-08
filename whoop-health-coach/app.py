@@ -900,7 +900,7 @@ WHOOP Health Coach
 
 
 <h1>
-WHOOP 健康教练日报
+🧠 WHOOP 健康教练日报
 </h1>
 
 
@@ -908,7 +908,7 @@ WHOOP 健康教练日报
 
 
 <h2>
-Recovery
+❤️ Recovery
 </h2>
 
 
@@ -916,7 +916,7 @@ Recovery
 恢复评分：
 
 <b>
-{report.get("recovery_score",0)}
+{report.get('recovery_score,'0)}
 </b>
 
 </p>
@@ -926,7 +926,7 @@ Recovery
 HRV：
 
 <b>
-{report.get("hrv",0)}
+{report.get('hrv',0)}
 </b>
 
 </p>
@@ -935,7 +935,7 @@ HRV：
 静息心率：
 
 <b>
-{report.get("resting_hr",0)}
+{report.get('resting_hr',0)}
 </b>
 
 </p>
@@ -943,7 +943,7 @@ HRV：
 <hr>
 
 <h2>
-睡眠
+💤睡眠
 </h2>
 
 
@@ -951,7 +951,7 @@ HRV：
 睡眠时长：
 
 <b>
-{report.get("sleep_duration",0)}
+{report.get('sleep_duration',0)}
 小时
 </b>
 
@@ -962,7 +962,7 @@ HRV：
 睡眠需求：
 
 <b>
-{report.get("所需睡眠时间",0)}
+{report.get('所需睡眠时间',0)}
 小时
 </b>
 
@@ -973,7 +973,7 @@ HRV：
 睡眠表现：
 
 <b>
-{report.get("睡眠表现",0)}
+{report.get('睡眠表现',0)}
 %
 </b>
 
@@ -984,7 +984,7 @@ HRV：
 睡眠效率：
 
 <b>
-{report.get("睡眠效率",0)}
+{report.get('睡眠效率',0)}
 %
 </b>
 
@@ -995,7 +995,7 @@ HRV：
 睡眠周期：
 
 <b>
-{report.get("睡眠周期",0)}
+{report.get('睡眠周期',0)}
 次
 </b>
 
@@ -1006,7 +1006,7 @@ HRV：
 
 
 <h2>
-Strain
+🔥 Strain
 </h2>
 
 
@@ -1015,7 +1015,7 @@ Strain
 今日训练负荷：
 
 <b>
-{report.get("cycle_strain",0)}
+{report.get('cycle_strain',0)}
 </b>
 
 </p>
@@ -1025,7 +1025,7 @@ Strain
 
 
 <h2>
-AI 教练建议
+🧠 AI 教练建议
 </h2>
 
 
