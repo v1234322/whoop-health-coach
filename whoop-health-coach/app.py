@@ -81,10 +81,13 @@ def save_refresh_token(token):
         DELETE FROM tokens;
 
         INSERT INTO tokens(refresh_token)
-        VALUES(?)
-        """,
-        (token,)
-    )
+            refresh_token,
+            updated_at
+        )
+        VALUES(
+            ?,
+            CURRENT_TIMESTAMP
+        )
 
     conn.commit()
 
@@ -311,6 +314,21 @@ def get_access_token():
 def refresh_access_token():
 
     refresh_token = load_refresh_token()
+
+    print(
+        "DB REFRESH TOKEN EXISTS:",
+        bool(refresh_token)
+    )
+
+    print(
+        "DB REFRESH TOKEN LENGTH:",
+        len(refresh_token.strip()) if refresh_token else 0
+    )
+
+    print(
+        "DB TOKEN PREVIEW:",
+        refresh_token[:8] + "..." if refresh_token else "NONE"
+    )
 
     print(
         "TOKEN SOURCE CHECK:",
