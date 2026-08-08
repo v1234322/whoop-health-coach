@@ -168,39 +168,6 @@ print("==============================")
 
 
 # ==========================
-# 读取 refresh token
-# ==========================
-
-def load_refresh_token():
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        WHERE refresh_token IS NOT NULL
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
-
-    row = cur.fetchone()
-
-    cur.close()
-    conn.close()
-
-
-    if row:
-
-        return row["refresh_token"]
-
-    return None
-
-
-# ==========================
 # 启动时同步环境变量 token
 # ==========================
 
@@ -380,9 +347,9 @@ def refresh_access_token():
 
     payload = {
         "grant_type": "refresh_token",
-        "refresh_token": refresh_token,
-        "client_id": client_id,
-        "client_secret": client_secret,
+        "refresh_token": refresh_token.strip(),
+        "client_id": client_id.strip(),
+        "client_secret": client_secret.strip(),
     }
 
     print({
@@ -403,7 +370,11 @@ def refresh_access_token():
 
     print("FINAL REFRESH PAYLOAD:")
     print(payload)
-    
+
+    print("REFRESH PAYLOAD KEYS:")
+    print(payload.keys())
+
+
     response = requests.post(
         "https://api.prod.whoop.com/oauth/oauth2/token",
         data=payload,
@@ -1335,43 +1306,6 @@ def whoop_token():
     return jsonify(
         r.json()
     )
-
-
-# =========================
-# 从数据库读取 Refresh Token
-# =========================
-
-def get_refresh_token_from_db():
-
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        WHERE refresh_token IS NOT NULL
-        LIMIT 1
-        """
-    )
-
-
-    result = cur.fetchone()
-
-
-    cur.close()
-
-    conn.close()
-
-
-    if result:
-
-        return result[0]
-
-
-    return None
 
 
 
