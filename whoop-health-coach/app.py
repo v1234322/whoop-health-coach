@@ -383,8 +383,6 @@ def refresh_access_token():
         "refresh_token": refresh_token,
         "client_id": client_id,
         "client_secret": client_secret,
-        "scope": "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline",
-        "redirect_uri": "https://whoop-health-coach.onrender.com/callback"
     }
 
     print({
@@ -690,6 +688,8 @@ def callback():
         "client_id": WHOOP_CLIENT_ID,
 
         "client_secret": WHOOP_CLIENT_SECRET,
+
+        "scope": "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
 
         "redirect_uri":
         "https://whoop-health-coach.onrender.com/callback"
