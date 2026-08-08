@@ -78,8 +78,10 @@ def save_refresh_token(token):
 
     cur.execute(
         """
-        INSERT INTO tokens (refresh_token)
-        VALUES (?)
+        DELETE FROM tokens;
+
+        INSERT INTO tokens(refresh_token)
+        VALUES(?)
         """,
         (token,)
     )
@@ -182,15 +184,14 @@ def ensure_refresh_token():
     db_token = load_refresh_token()
 
 
-    if not db_token:
+    if db_token:
+        refresh_token = db_token
+        print("USING DATABASE TOKEN")
 
-        print(
-            "SAVING ENV REFRESH TOKEN TO DB"
-        )
+    else:
+        refresh_token = os.getenv("WHOOP_REFRESH_TOKEN")
+        print("USING ENV TOKEN")
 
-        save_refresh_token(
-            env_token
-        )
 
 # ==========================
 # 保存 access token
@@ -1266,12 +1267,6 @@ def whoop_token():
             "client_id":WHOOP_CLIENT_ID,
 
             "client_secret":WHOOP_CLIENT_SECRET,
-
-            "redirect_uri":
-            "https://whoop-health-coach.onrender.com/callback",
-        
-            "scope":
-            "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
 
             },
 
