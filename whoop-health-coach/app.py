@@ -900,7 +900,7 @@ WHOOP Health Coach
 
 
 <h1>
-🧠 WHOOP 健康教练日报
+WHOOP 健康教练日报
 </h1>
 
 
