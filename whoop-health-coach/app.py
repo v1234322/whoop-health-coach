@@ -313,8 +313,14 @@ def refresh_access_token():
 
     refresh_token = load_refresh_token()
 
+    print(
+        "TOKEN SOURCE CHECK:",
+        "DATABASE" if refresh_token else "ENV"
+    )
+
     if refresh_token:
         print("TOKEN SOURCE: DATABASE")
+        
     else:
         refresh_token = os.getenv("WHOOP_REFRESH_TOKEN")
         print("TOKEN SOURCE: ENV")
