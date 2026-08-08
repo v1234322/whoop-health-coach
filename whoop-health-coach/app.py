@@ -115,7 +115,7 @@ def load_refresh_token():
     row = cur.fetchone()
 
     print("TOKEN DATABASE CHECK:")
-    print(row)
+    print("DB TOKEN ROW:", row)
 
     cur.close()
     conn.close()
