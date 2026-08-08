@@ -114,12 +114,17 @@ def load_refresh_token():
 
     row = cur.fetchone()
 
+    print("TOKEN DATABASE CHECK:")
+    print(row)
+
     cur.close()
     conn.close()
 
     if row:
+        print("DATABASE REFRESH TOKEN FOUND")
         return row["refresh_token"]
 
+    print("DATABASE REFRESH TOKEN EMPTY")
     return None
     
     
