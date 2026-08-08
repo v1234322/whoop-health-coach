@@ -845,43 +845,25 @@ def auto_report():
         }
 
 
-        print("RAW SLEEP RESPONSE >>>")
-        print(data["sleep"])
-
-
         convert_utc_to_beijing(data)
 
 
-        # =========================
-        # 数据报告
-        # =========================
-
         report = generate_health_report(data)
 
-
-        # =========================
-        # 保存每日数据
-        # =========================
 
         metrics = extract_daily_metrics(data)
 
         save_daily_data(metrics)
 
 
-
-        # =========================
-        # AI 教练
-        # =========================
-
         ai_prompt = str(metrics)
-
 
         coach_advice = generate_ai_summary(
             ai_prompt
         )
 
 
-return f"""
+        return f"""
 <html>
 
 <head>
@@ -889,29 +871,16 @@ return f"""
 <title>WHOOP Health Coach</title>
 </head>
 
+
 <body>
 
-<h1>
-WHOOP 健康教练日报
-</h1>
-
-<hr>
+<h1>WHOOP 健康教练日报</h1>
 
 <h2>Recovery</h2>
 
 <p>
 恢复评分:
-<b>{report.get('recovery_score',0)}</b>
-</p>
-
-<p>
-HRV:
-<b>{report.get('hrv',0)}</b>
-</p>
-
-<p>
-静息心率:
-<b>{report.get('resting_hr',0)}</b>
+{report.get("recovery_score",0)}
 </p>
 
 
@@ -920,6 +889,7 @@ HRV:
 <p>
 {coach_advice}
 </p>
+
 
 </body>
 
@@ -940,7 +910,9 @@ HRV:
 
 @app.route("/")
 def home():
+
     return """
+    
     <html>
     <head>
     <meta charset="UTF-8">
