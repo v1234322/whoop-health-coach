@@ -881,167 +881,50 @@ def auto_report():
         )
 
 
-
-        return f"""
+return f"""
 <html>
 
 <head>
-
 <meta charset="utf-8">
-
-<title>
-WHOOP Health Coach
-</title>
-
+<title>WHOOP Health Coach</title>
 </head>
 
-
 <body>
-
 
 <h1>
 WHOOP 健康教练日报
 </h1>
 
-
 <hr>
 
-
-<h2>
-Recovery
-</h2>
-
+<h2>Recovery</h2>
 
 <p>
-恢复评分：
-
-<b>
-{report.get('recovery_score,'0)}
-</b>
-
-</p>
-
-
-<p>
-HRV：
-
-<b>
-{report.get('hrv',0)}
-</b>
-
+恢复评分:
+<b>{report.get('recovery_score',0)}</b>
 </p>
 
 <p>
-静息心率：
-
-<b>
-{report.get('resting_hr',0)}
-</b>
-
+HRV:
+<b>{report.get('hrv',0)}</b>
 </p>
 
-<hr>
-
-<h2>
-💤睡眠
-</h2>
-
-
 <p>
-睡眠时长：
-
-<b>
-{report.get('sleep_duration',0)}
-小时
-</b>
-
+静息心率:
+<b>{report.get('resting_hr',0)}</b>
 </p>
 
 
-<p>
-睡眠需求：
-
-<b>
-{report.get('所需睡眠时间',0)}
-小时
-</b>
-
-</p>
-
+<h2>AI 教练建议</h2>
 
 <p>
-睡眠表现：
-
-<b>
-{report.get('睡眠表现',0)}
-%
-</b>
-
-</p>
-
-
-<p>
-睡眠效率：
-
-<b>
-{report.get('睡眠效率',0)}
-%
-</b>
-
-</p>
-
-
-<p>
-睡眠周期：
-
-<b>
-{report.get('睡眠周期',0)}
-次
-</b>
-
-</p>
-
-
-<hr>
-
-
-<h2>
-Strain
-</h2>
-
-
-<p>
-
-今日训练负荷：
-
-<b>
-{report.get('cycle_strain',0)}
-</b>
-
-</p>
-
-
-<hr>
-
-
-<h2>
-AI 教练建议
-</h2>
-
-
-<p>
-
 {coach_advice}
-
 </p>
-
 
 </body>
 
 </html>
-
 """
-
 
 
     except Exception as e:
