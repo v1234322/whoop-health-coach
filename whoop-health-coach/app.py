@@ -74,29 +74,22 @@ def get_db_connection():
 def save_refresh_token(token):
 
     conn = get_db_connection()
-
     cur = conn.cursor()
 
     cur.execute(
         """
-        UPDATE tokens
-        SET refresh_token = ?
-        WHERE id = (
-            SELECT id
-            FROM tokens
-            ORDER BY id DESC
-            LIMIT 1
-        )
+        INSERT INTO tokens (refresh_token)
+        VALUES (?)
         """,
-        (
-            token,
-        )
+        (token,)
     )
 
     conn.commit()
 
     cur.close()
     conn.close()
+
+    print("REFRESH TOKEN INSERTED")
 
 
 # ==========================
@@ -1304,7 +1297,6 @@ def whoop_token():
 
     token_data = r.json()
     
-
     new_refresh_token = token_data.get("refresh_token")
 
     if new_refresh_token:
