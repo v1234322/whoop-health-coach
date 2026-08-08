@@ -897,7 +897,7 @@ WHOOP Health Coach
 恢复评分：
 
 <b>
-{report.get("恢复期",0)}
+{report.get("recovery_score",0)}
 </b>
 
 </p>
@@ -908,7 +908,7 @@ WHOOP Health Coach
 HRV：
 
 <b>
-{report.get("心率变异性",0)}
+{report.get("hrv",0)}
 </b>
 
 </p>
@@ -919,7 +919,7 @@ HRV：
 静息心率：
 
 <b>
-{report.get("休息时间",0)}
+{report.get("resting_hr",0)}
 </b>
 
 </p>
@@ -940,7 +940,7 @@ HRV：
 睡眠时长：
 
 <b>
-{report.get("睡眠",0)}
+{report.get("sleep_duration",0)}
 小时
 </b>
 
@@ -1011,7 +1011,7 @@ HRV：
 今日训练负荷：
 
 <b>
-{report.get("Strain",0)}
+{report.get("cycle_strain",0)}
 </b>
 
 </p>
