@@ -1534,6 +1534,9 @@ def extract_daily_metrics(data):
         )
 
 
+        print("RAW CYCLE DATA:")
+        print(cycle_data)
+
         if isinstance(cycle_data, dict):
 
             cycle = cycle_data
