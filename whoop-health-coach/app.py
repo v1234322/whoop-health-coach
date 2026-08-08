@@ -1302,10 +1302,19 @@ def whoop_token():
     )
 
 
+    token_data = r.json()
+    
 
-    return jsonify(
-        r.json()
-    )
+    new_refresh_token = token_data.get("refresh_token")
+
+    if new_refresh_token:
+        save_refresh_token(new_refresh_token)
+        print("REFRESH TOKEN SAVED TO DATABASE")
+    else:
+        print("NO REFRESH TOKEN RETURNED")
+        
+
+    return jsonify(token_data)
 
 
 
