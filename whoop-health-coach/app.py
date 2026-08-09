@@ -2594,15 +2594,15 @@ AI健康教练建议
 
     if high_strain_days >= 3:
 
-        strain_comment = "🔴 多天高 Strain，存在过劳风险"
+        strain_comment = " 多天高 Strain，存在过劳风险"
 
     elif high_strain_days > 0:
 
-        strain_comment = "🟡 有高负荷训练，需要匹配恢复"
+        strain_comment = " 有高负荷训练，需要匹配恢复"
 
     else:
 
-        strain_comment = "🟢 当前训练负荷合理"
+        strain_comment = " 当前训练负荷合理"
 
 
 
@@ -2612,15 +2612,15 @@ AI健康教练建议
 
     if avg_recovery >= 70:
 
-        status = "🟢 良好"
+        status = " 良好"
 
     elif avg_recovery >= 40:
 
-        status = "🟡 需小心"
+        status = " 需小心"
 
     else:
 
-        status = "🔴 危险"
+        status = " 危险"
 
 
 
@@ -3247,19 +3247,17 @@ def trend_report():
 
         if len(risks) == 0:
 
-            risk_level = "🟢 低风险"
+            risk_level = " 低风险"
 
 
         elif len(risks) <= 2:
 
-            risk_level = "🟡 中风险"
+            risk_level = " 中风险"
 
 
         else:
 
-            risk_level = "🔴 高风险"
-
-
+            risk_level = " 高风险"
 
 
 
@@ -3330,7 +3328,7 @@ def trend_report():
 
         if not risk_html:
 
-            risk_html = "✅ 暂未发现明显恢复风险"
+            risk_html = " 暂未发现明显恢复风险"
 
 
 
@@ -3566,7 +3564,7 @@ HRV：
 
 def home():
 
-    status = "🟢 系统正常"
+    status = " 系统正常"
 
     try:
 
@@ -3698,7 +3696,7 @@ def home():
 
 
                 strain_text = (
-                    "🟢 恢复日\n"
+                    " 恢复日\n"
                     "当前训练压力较低，适合增加Zone2有氧或轻力量训练。"
                 )
 
@@ -3707,7 +3705,7 @@ def home():
 
 
                 strain_text = (
-                    "🟡 最佳训练区间\n"
+                    " 最佳训练区间\n"
                     "当前负荷适中，可以完成主要训练。"
                 )
 
@@ -3716,7 +3714,7 @@ def home():
 
 
                 strain_text = (
-                    "🟠 高压力训练\n"
+                    " 高压力训练\n"
                     "注意睡眠和恢复。"
                 )
 
@@ -3725,7 +3723,7 @@ def home():
 
 
                 strain_text = (
-                    "🔴 极高压力\n"
+                    " 极高压力\n"
                     "建议降低训练量。"
                 )
 
