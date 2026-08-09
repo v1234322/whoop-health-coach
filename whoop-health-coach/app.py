@@ -378,110 +378,114 @@ def refresh_access_token():
     refresh_token = load_refresh_token()
 
     print(
-        "DB REFRESH TOKEN EXISTS:",
-        bool(refresh_token)
+        "TOKEN SOURCE:",
+        "DATABASE" if refresh_token else "NONE"
     )
 
-    print(
-        "DB REFRESH TOKEN LENGTH:",
-        len(refresh_token.strip()) if refresh_token else 0
-    )
-
-    print(
-        "DB TOKEN PREVIEW:",
-        refresh_token[:8] + "..." if refresh_token else "NONE"
-    )
-
-    print(
-        "TOKEN SOURCE CHECK:",
-        "DATABASE" if refresh_token else "ENV"
-    )
-
-    if refresh_token:
-        print("TOKEN SOURCE: DATABASE")
-        
-    else:
-        refresh_token = os.getenv("WHOOP_REFRESH_TOKEN")
-        print("TOKEN SOURCE: ENV")
 
     if not refresh_token:
 
-        print(
-            "NO DB TOKEN, TRY ENV"
+        raise Exception(
+            "NO REFRESH TOKEN IN DATABASE"
         )
 
-        refresh_token = os.getenv(
-            "WHOOP_REFRESH_TOKEN"
-        )
 
-    print(
-        "USING REFRESH TOKEN:",
-        refresh_token[:10],
-        "...",
-        refresh_token[-10:]
+    client_id = os.getenv(
+        "WHOOP_CLIENT_ID"
     )
 
-    client_id = os.getenv("WHOOP_CLIENT_ID")
-    client_secret = os.getenv("WHOOP_CLIENT_SECRET")
+    client_secret = os.getenv(
+        "WHOOP_CLIENT_SECRET"
+    )
+
 
     if not client_id:
-        raise Exception("WHOOP_CLIENT_ID NOT FOUND")
+        raise Exception(
+            "WHOOP_CLIENT_ID NOT FOUND"
+        )
+
 
     if not client_secret:
-        raise Exception("WHOOP_CLIENT_SECRET NOT FOUND")
+        raise Exception(
+            "WHOOP_CLIENT_SECRET NOT FOUND"
+        )
 
-    print("CLIENT ID:", bool(client_id))
-    print("CLIENT ID VALUE:", client_id)
-    print("CLIENT SECRET:", bool(client_secret))
-    print("CLIENT SECRET LENGTH:", len(client_secret))
-    print("REFRESH TOKEN:", bool(refresh_token))
-    print("REFRESH TOKEN LENGTH:", len(refresh_token))
 
     payload = {
-        "grant_type": "refresh_token",
-        "refresh_token": refresh_token.strip(),
-        "client_id": client_id.strip(),
-        "client_secret": client_secret.strip(),
+
+        "grant_type":
+        "refresh_token",
+
+        "refresh_token":
+        refresh_token.strip(),
+
+        "client_id":
+        client_id.strip(),
+
+        "client_secret":
+        client_secret.strip()
+
     }
 
-    print({
-        "grant_type": payload["grant_type"],
-        "client_id_length": len(payload["client_id"]),
-        "client_secret_length": len(payload["client_secret"]),
-        "refresh_length": len(payload["refresh_token"])
-    })
 
     print(
-        "PAYLOAD CHECK:",
+        "REFRESH REQUEST:",
         {
-            "grant_type": payload["grant_type"],
-            "refresh_token": refresh_token[:10] + "...",
-            "client_id": client_id
+            "grant_type":
+            payload["grant_type"],
+
+            "client_id":
+            client_id[:6] + "...",
+
+            "refresh_length":
+            len(refresh_token)
         }
     )
 
 
     response = requests.post(
+
         "https://api.prod.whoop.com/oauth/oauth2/token",
+
         data=payload,
+
         headers={
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type":
+            "application/x-www-form-urlencoded"
         },
+
         timeout=30
+
     )
 
-    print("REFRESH STATUS:", response.status_code)
-    print("REFRESH RESPONSE:", response.text)
+
+    print(
+        "REFRESH STATUS:",
+        response.status_code
+    )
+
+    print(
+        "REFRESH RESPONSE:",
+        response.text
+    )
+
 
     if response.status_code != 200:
+
         raise Exception(
-            "REFRESH FAILED: " +
-    response.text
+            "REFRESH FAILED: "
+            + response.text
         )
+
 
     token_data = response.json()
 
-    access_token = token_data.get("access_token")
+
+    access_token = token_data.get(
+        "access_token"
+    )
+
+
     new_refresh_token = token_data.get(
         "refresh_token"
     )
@@ -494,11 +498,18 @@ def refresh_access_token():
         )
 
         print(
-            "NEW REFRESH TOKEN UPDATED"
+            "NEW REFRESH TOKEN SAVED"
         )
 
-    return access_token
 
+    if not access_token:
+
+        raise Exception(
+            "NO ACCESS TOKEN RETURNED"
+        )
+
+
+    return access_token
 
 # =========================
 # WHOOP API 请求函数
@@ -506,13 +517,13 @@ def refresh_access_token():
 
 def whoop_get(endpoint):
 
+
     token = get_access_token()
 
 
     if not token:
-        raise Exception(
-            "NO ACCESS TOKEN"
-        )
+
+        token = refresh_access_token()
 
 
     r = requests.get(
@@ -539,17 +550,12 @@ def whoop_get(endpoint):
         r.status_code
     )
 
-    print(
-        "WHOOP RAW RESPONSE:",
-        r.text[:2000]
-    )
-
-    
 
     if r.status_code == 401:
 
+
         print(
-            "TOKEN EXPIRED, REFRESHING"
+            "ACCESS TOKEN EXPIRED"
         )
 
 
@@ -575,11 +581,16 @@ def whoop_get(endpoint):
         )
 
 
+    print(
+        "WHOOP RESPONSE:",
+        r.text[:1000]
+    )
+
+
     r.raise_for_status()
 
 
     return r.json()
-
 
 
 # =========================
