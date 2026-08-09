@@ -382,7 +382,14 @@ def refresh_access_token():
         print("TOKEN SOURCE: ENV")
 
     if not refresh_token:
-        raise Exception("NO REFRESH TOKEN")
+
+        print(
+            "NO DB TOKEN, TRY ENV"
+        )
+
+        refresh_token = os.getenv(
+            "WHOOP_REFRESH_TOKEN"
+        )
 
     print(
         "USING REFRESH TOKEN:",
@@ -452,7 +459,7 @@ def refresh_access_token():
     token_data = response.json()
 
     access_token = token_data.get("access_token")
-    new_refresh_token = data.get(
+    new_refresh_token = token_data.get(
         "refresh_token"
     )
 
