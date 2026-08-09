@@ -180,10 +180,13 @@ def load_refresh_token():
         """
     )
 
+
     row = cur.fetchone()
+
 
     print("TOKEN DATABASE CHECK:")
     print("DB TOKEN ROW:", row)
+
 
     cur.close()
     conn.close()
@@ -191,18 +194,15 @@ def load_refresh_token():
 
     if row:
 
-        print("DATABASE REFRESH TOKEN FOUND")
+        print(
+            "DATABASE REFRESH TOKEN FOUND"
+        )
 
-        return row["refresh_token"]
-
-
-    print("DATABASE REFRESH TOKEN EMPTY")
-
-    return None
+        return row[0]
 
 
     print(
-        "ENV REFRESH TOKEN EMPTY"
+        "DATABASE REFRESH TOKEN EMPTY"
     )
 
     return None
