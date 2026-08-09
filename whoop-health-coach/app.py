@@ -774,13 +774,24 @@ def callback():
 @app.route("/whoop/login")
 def whoop_login():
 
+    import secrets
+
+    state = secrets.token_urlsafe(16)
+
+
     auth_url = (
         "https://api.prod.whoop.com/oauth/oauth2/auth?"
         f"client_id={WHOOP_CLIENT_ID}"
         "&response_type=code"
         "&scope=read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
         "&redirect_uri=https://whoop-health-coach.onrender.com/callback"
+        f"&state={state}"
     )
+
+
+    print("WHOOP AUTH URL:")
+    print(auth_url)
+
 
     return redirect(auth_url)
     
