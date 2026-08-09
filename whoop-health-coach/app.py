@@ -3735,8 +3735,6 @@ def trend_report():
         )
 
 
-        return f"""
-
 return f"""
 
 <!DOCTYPE html>
