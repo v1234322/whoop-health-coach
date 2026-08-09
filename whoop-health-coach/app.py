@@ -913,6 +913,9 @@ def callback():
         )
 
 
+    return "WHOOP AUTH SUCCESS"
+
+
 @app.route("/whoop/login")
 def whoop_login():
 
