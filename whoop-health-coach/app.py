@@ -753,37 +753,36 @@ def callback():
 
 
     token_data = response.json()
-    
-
-    print("TOKEN DATA:", token_data)
 
 
     access_token = token_data.get(
         "access_token"
     )
 
-
     refresh_token = token_data.get(
         "refresh_token"
     )
 
 
-    print(
-        "ACCESS TOKEN RECEIVED:",
-        bool(access_token)
-    )
+    if refresh_token:
 
+        save_refresh_token(
+            refresh_token
+        )
 
-    print(
-        "REFRESH TOKEN RECEIVED:",
-        bool(refresh_token)
-    )
+        print(
+            "REFRESH TOKEN SAVED"
+        )
 
 
     if access_token:
 
         save_access_token_to_db(
             access_token
+        )
+
+        print(
+            "ACCESS TOKEN SAVED"
         )
 
 
