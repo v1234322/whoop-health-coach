@@ -2051,19 +2051,9 @@ def generate_health_report(data):
         print(sleep)
 
 
-        sleep_records = sleep.get(
-            "records",
-            []
-        )
+        latest_sleep = sleep
 
-
-        if not sleep_records:
-            raise Exception("NO SLEEP RECORD")
-
-
-        latest_sleep = sleep_records[0]
-
-
+        
         print("========= SLEEP STRUCTURE DEBUG =========")
         print("SLEEP KEYS:", latest_sleep.keys())
         print("SLEEP DATA:", latest_sleep)
