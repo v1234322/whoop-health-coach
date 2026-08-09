@@ -1010,7 +1010,10 @@ def generate_ai_summary(ai_prompt):
     "- 再给3条行动建议\n"
     "- 不重复数据\n"
     "- 不编造数据"
-)
+
+    """
+             )
+        },
 
                 {
                     "role": "user",
