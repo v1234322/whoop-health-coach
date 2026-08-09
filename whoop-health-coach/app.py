@@ -80,33 +80,56 @@ def save_refresh_token(token):
 
     cur.execute(
         """
-        DELETE FROM tokens
+        SELECT id
+        FROM tokens
+        LIMIT 1
         """
     )
 
+    row = cur.fetchone()
 
-    cur.execute(
-        """
-        INSERT INTO tokens(
-            refresh_token,
-            updated_at
+
+    if row:
+
+        cur.execute(
+            """
+            UPDATE tokens
+            SET refresh_token=?,
+                updated_at=CURRENT_TIMESTAMP
+            WHERE id=?
+            """,
+            (
+                token,
+                row["id"]
+            )
         )
-        VALUES(
-            ?,
-            CURRENT_TIMESTAMP
+
+        print("REFRESH TOKEN UPDATED")
+
+
+    else:
+
+        cur.execute(
+            """
+            INSERT INTO tokens(
+                refresh_token,
+                updated_at
+            )
+            VALUES(
+                ?,
+                CURRENT_TIMESTAMP
+            )
+            """,
+            (token,)
         )
-        """,
-        (token,)
-    )
+
+        print("REFRESH TOKEN INSERTED")
 
 
     conn.commit()
 
     cur.close()
     conn.close()
-
-
-    print("REFRESH TOKEN INSERTED")
 
 
 # ==========================
