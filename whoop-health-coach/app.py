@@ -348,9 +348,9 @@ def save_access_token_to_db(token):
             cursor.execute(
                 """
                 UPDATE tokens
-                SET access_token = ?,
+                SET access_token = %s,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?
+                WHERE id = %s
                 """,
                 (
                     token,
