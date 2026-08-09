@@ -734,9 +734,7 @@ def whoop_get(endpoint):
 
 def init_db():
 
-    conn = sqlite3.connect(
-        "whoop.db"
-    )
+    conn = get_db_connection()
 
     cursor = conn.cursor()
 
@@ -748,34 +746,30 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tokens(
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
 
         access_token TEXT,
 
         refresh_token TEXT,
 
-        expires_at INTEGER,
+        expires_at BIGINT,
 
-        updated_at TIMESTAMP
+        updated_at TIMESTAMP DEFAULT NOW()
 
     )
     """)
 
    
-    # =========================
-    # 检查 tokens 表真实结构
-    # =========================
-
-    cursor.execute(
-        "PRAGMA table_info(tokens)"
-    )
+    cursor.execute("""
+    SELECT column_name, data_type
+    FROM information_schema.columns
+    WHERE table_name='tokens'
+    """)
 
     print(
         "TOKENS COLUMNS:",
         cursor.fetchall()
     )
-
-    conn.commit()
 
     # =========================
     # 重建 daily_metrics
@@ -784,7 +778,7 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS daily_metrics (
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
 
         report_date TEXT,
 
