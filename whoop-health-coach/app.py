@@ -3735,7 +3735,7 @@ def trend_report():
         )
 
 
-return f"""
+        return f"""
 
 <!DOCTYPE html>
 
@@ -3837,9 +3837,14 @@ return f"""
 
 """
 
-    except Exception as e:
+        except Exception as e:
 
-        return str(e)
+            print(
+                "TREND REPORT ERROR:",
+                e
+            )
+
+            return str(e)
 
 def home():
 
