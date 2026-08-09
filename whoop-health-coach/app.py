@@ -9,13 +9,9 @@ import psycopg2
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, jsonify, request, Response, redirect
+from flask import Flask, jsonify, request, Response
 
 import requests
-
-import threading
-
-import time
 
 from openai import OpenAI
 
@@ -238,25 +234,52 @@ print("==============================")
 
 def ensure_refresh_token():
 
-    env_token = os.getenv(
-        "WHOOP_REFRESH_TOKEN"
-    )
-
-    if not env_token:
-        return
-
-
     db_token = load_refresh_token()
 
 
     if db_token:
-        refresh_token = db_token
-        print("USING DATABASE TOKEN")
 
-    else:
-        refresh_token = os.getenv("WHOOP_REFRESH_TOKEN")
-        print("USING ENV TOKEN")
+        print(
+            "REFRESH TOKEN EXISTS IN DATABASE"
+        )
 
+        return db_token
+
+
+
+    env_token = os.getenv(
+        "WHOOP_REFRESH_TOKEN"
+    )
+
+
+    if env_token:
+
+
+        print(
+            "INITIALIZING REFRESH TOKEN FROM ENV"
+        )
+
+
+        save_refresh_token(
+            env_token
+        )
+
+
+        print(
+            "INITIAL REFRESH TOKEN SAVED"
+        )
+
+
+        return env_token
+
+
+
+    print(
+        "NO REFRESH TOKEN FOUND"
+    )
+
+
+    return None
 
 # ==========================
 # 保存 access token
@@ -290,6 +313,7 @@ def save_access_token_to_db(token):
             """
             UPDATE tokens
             SET access_token=?
+                updated_at=CURRENT_TIMESTAMP
             WHERE id=?
             """,
             (
@@ -308,9 +332,10 @@ def save_access_token_to_db(token):
             INSERT INTO tokens
             (
                 access_token
+                updated_at
             )
             VALUES
-            (?)
+            (?,CURRENT_TIMESTAMP)
             """,
             (
                 token,
@@ -326,48 +351,90 @@ def save_access_token_to_db(token):
     conn.close()
 
 
-
 # =========================
-# 保存 Access Token 到数据库
+# 获取 Access Token
 # =========================
 
 def get_access_token():
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    conn = None
+    cur = None
 
-    cur.execute(
-        """
-        SELECT access_token
-        FROM tokens
-        WHERE access_token IS NOT NULL
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
+    try:
 
-    result = cur.fetchone()
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT access_token
+            FROM tokens
+            WHERE access_token IS NOT NULL
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        print(
+            "DATABASE ACCESS TOKEN RESULT:",
+            row
+        )
+
+
+        if row and row[0]:
+
+            print(
+                "USING DATABASE ACCESS TOKEN"
+            )
+
+            return row[0]
+
+
+
+    except Exception as e:
+
+        print(
+            "GET ACCESS TOKEN DB ERROR:",
+            e
+        )
+
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
+
 
     print(
-        "DATABASE ACCESS TOKEN RESULT:",
-        result
+        "NO ACCESS TOKEN, REFRESHING"
     )
 
-    cur.close()
-    conn.close()
+
+    access_token = refresh_access_token()
 
 
-    if result:
-        return result[0]
+    if access_token:
+
+        save_access_token_to_db(
+            access_token
+        )
 
 
-    print(
-        "NO TOKEN IN DATABASE, REFRESH"
-    )
-
-    return refresh_access_token()
+        print(
+            "ACCESS TOKEN SAVED AFTER REFRESH"
+        )
 
 
+    return access_token
 
 # =========================
 # 刷新 Access Token
@@ -435,7 +502,10 @@ def refresh_access_token():
         client_id.strip(),
 
         "client_secret":
-        client_secret.strip()
+        client_secret.strip(),
+
+        "scope":
+        "offline"
 
     }
 
@@ -521,6 +591,15 @@ def refresh_access_token():
         )
 
 
+    save_access_token_to_db(
+        access_token
+    )
+
+
+    print(
+        "NEW ACCESS TOKEN SAVED"
+    )
+
     return access_token
 
 # =========================
@@ -535,7 +614,9 @@ def whoop_get(endpoint):
 
     if not token:
 
-        token = refresh_access_token()
+        raise Exception(
+            "NO ACCESS TOKEN"
+        )
 
 
     r = requests.get(
@@ -567,7 +648,7 @@ def whoop_get(endpoint):
 
 
         print(
-            "ACCESS TOKEN EXPIRED"
+            "ACCESS TOKEN EXPIRED, REFRESHING"
         )
 
 
@@ -590,6 +671,11 @@ def whoop_get(endpoint):
 
             timeout=30
 
+        )
+
+        print(
+            "WHOOP RETRY STATUS:",
+            r.status_code
         )
 
 
@@ -631,43 +717,14 @@ def init_db():
 
         refresh_token TEXT,
 
-        expires_at INTEGER
+        expires_at INTEGER,
+
+        updated_at TIMESTAMP
 
     )
     """)
 
-    # =========================
-    # tokens 表迁移
-    # =========================
-
-    cursor.execute(
-        "PRAGMA table_info(tokens)"
-    )
-
-    columns = [
-        row[1]
-        for row in cursor.fetchall()
-    ]
-
-
-    if "updated_at" not in columns:
-
-        cursor.execute("""
-        ALTER TABLE tokens
-        ADD COLUMN updated_at TIMESTAMP
-        """)
-
-        print(
-            "ADDED UPDATED_AT COLUMN"
-        )
-
-    else:
-
-        print(
-            "UPDATED_AT ALREADY EXISTS"
-        )
-
-
+   
     # =========================
     # 检查 tokens 表真实结构
     # =========================
@@ -688,12 +745,7 @@ def init_db():
     # =========================
 
     cursor.execute("""
-    DROP TABLE IF EXISTS daily_metrics
-    """)
-
-
-    cursor.execute("""
-    CREATE TABLE daily_metrics (
+    CREATE TABLE IF NOT EXISTS daily_metrics (
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -772,8 +824,6 @@ def callback():
 
         "client_secret": WHOOP_CLIENT_SECRET,
 
-        "scope": "read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline",
-
         "redirect_uri":
         "https://whoop-health-coach.onrender.com/callback"
 
@@ -839,20 +889,6 @@ def callback():
         )
 
 
-    if refresh_token:
-
-        save_refresh_token(
-            refresh_token
-        )
-
-
-    return {
-        "status": "success",
-        "access_token_saved": bool(access_token),
-        "refresh_token_saved": bool(refresh_token)
-    }
-
-
 @app.route("/whoop/login")
 def whoop_login():
 
@@ -905,159 +941,108 @@ def clear_token():
 def get_latest_sleep():
 
     try:
-        sleeps = whoop_get("/activity/sleep")
 
-        print("SLEEP COLLECTION:")
-        print(sleeps)
+        # 1. 获取睡眠列表
+        sleep_list = whoop_get(
+            "/activity/sleep"
+        )
 
 
-        records = sleeps.get("records", [])
+        print(
+            "========== SLEEP LIST =========="
+        )
+
+        print(
+            sleep_list
+        )
+
+
+        records = sleep_list.get(
+            "records",
+            []
+        )
+
 
         if not records:
+
+            print(
+                "NO SLEEP RECORD"
+            )
+
             return {}
 
 
-        sleep_id = records[0]["id"]
+        # 2. 找最新一条非小睡睡眠
+
+        latest_sleep = None
 
 
-        print("LATEST SLEEP ID:")
-        print(sleep_id)
+        for record in records:
+
+            if not record.get(
+                "nap",
+                False
+            ):
+
+                latest_sleep = record
+
+                break
 
 
-        detail = whoop_get(
+        if not latest_sleep:
+
+            latest_sleep = records[0]
+
+
+        sleep_id = latest_sleep.get(
+            "id"
+        )
+
+
+        print(
+            "LATEST SLEEP ID:",
+            sleep_id
+        )
+
+
+        if not sleep_id:
+
+            return latest_sleep
+
+
+
+        # 3. 获取详细睡眠数据
+
+        sleep_detail = whoop_get(
             f"/activity/sleep/{sleep_id}"
         )
 
 
-        print("SLEEP DETAIL:")
-        print(detail)
+        print(
+            "========== SLEEP DETAIL =========="
+        )
+
+        print(
+            sleep_detail
+        )
 
 
-        return detail
+        return sleep_detail
+
 
 
     except Exception as e:
 
+
         print(
-            "SLEEP FETCH ERROR:",
+            "GET SLEEP ERROR:",
             e
         )
+
 
         return {}
         
 
-
-@app.route("/whoop/auto-report")
-def auto_report():
-
-    print("######## AUTO REPORT NEW VERSION ########")
-
-    try:
-
-        data = {
-            "recovery": whoop_get("/recovery"),
-            "cycle": whoop_get("/cycle"),
-            "sleep": get_latest_sleep(),
-            "workout": whoop_get("/activity/workout")
-        }
-
-
-        convert_utc_to_beijing(data)
-
-        print("====== RECOVERY DEBUG ======")
-        print(data["recovery"])
-        print("============================")
-
-
-        report = generate_health_report(data)
-
-
-        metrics = extract_daily_metrics(data)
-
-        save_daily_data(metrics)
-
-
-        ai_prompt = str(metrics)
-
-        coach_advice = generate_ai_summary(
-            ai_prompt
-        )
-
-
-        return f"""
-<html>
-
-<head>
-<meta charset="utf-8">
-<title>WHOOP Health Coach</title>
-</head>
-
-
-<body>
-
-<h1>WHOOP 健康教练日报</h1>
-
-<h2>Recovery</h2>
-
-<p>
-恢复评分:
-{report.get("recovery_score",0)}
-</p>
-
-
-<h2>AI 教练建议</h2>
-
-<p>
-{coach_advice}
-</p>
-
-
-</body>
-
-</html>
-"""
-
-
-    except Exception as e:
-
-        print(
-            "AUTO REPORT ERROR:",
-            e
-        )
-
-        return str(e)
-    
-
-
-@app.route("/")
-def home():
-
-    return """
-
-<html>
-
-<body>
-
-<h1>
-WHOOP AI Coach
-</h1>
-
-
-<h2>
-System Running
-</h2>
-
-
-<p>
-WHOOP Health Coach is running.
-</p>
-
-
-</body>
-
-</html>
-
-"""
 
 @app.route("/whoop/today")
 def today():
@@ -1110,39 +1095,97 @@ def generate_ai_summary(ai_prompt):
                 {
                     "role": "system",
                     "content": """
-你是我的WHOOP私人健康教练。
+你是 WHOOP 私人健康教练。
 
-根据用户当天数据：
+你的任务：
+根据用户提供的 WHOOP 健康数据，
+生成专业、简洁、可执行的健康建议。
 
-- 恢复状态
+分析内容：
+
+💚 Recovery恢复状态
+
+❤️ HRV变化
+
+❤️‍🔥 静息心率
+
+😴 睡眠质量
+
+🔥 Strain训练负荷
+
+
+输出格式：
+
+🟢【今日身体状态】
+
+总结当前恢复情况。
+
+
+💚【恢复分析】
+
+分析：
+- Recovery
 - HRV
-- 睡眠
-- 心率
-- 训练负荷
+- 静息心率
 
-给出健康建议。
 
-要求：
+😴【睡眠分析】
+
+分析：
+- 睡眠时间
+- 睡眠质量
+- 对恢复影响
+
+
+🔥【训练建议】
+
+给出：
+- 是否适合训练
+- 推荐训练强度
+- 推荐训练类型
+
+
+⚠️【风险提醒】
+
+如果存在恢复不足、疲劳累积，
+必须提醒。
+
+
+📅【未来1-3天建议】
+
+第1天：
+训练建议
+
+第2天：
+恢复建议
+
+第3天：
+训练调整
+
+
+规则：
 
 - 中文简体
-- 控制在300字以内
-- 先总结状态
-- 再给3条行动建议
-- 不重复数据
-- 不编造数据
+- 使用emoji
+- 不超过400字
+- 不重复罗列数据
+- 不编造不存在的数据
+- 像私人WHOOP教练
+- 不输出代码
+
 """
                 },
 
                 {
                     "role": "user",
-                    "content": ai_prompt[:2000]
+                    "content": ai_prompt[:3000]
                 }
 
             ],
 
             temperature=0.4,
 
-            max_tokens=500
+            max_tokens=600
 
         )
 
@@ -1157,7 +1200,7 @@ def generate_ai_summary(ai_prompt):
             e
         )
 
-        return "AI教练暂时无法生成建议"
+        return "⚠️ AI教练暂时无法生成建议"
 
 
 
@@ -1695,6 +1738,22 @@ def save_daily_data(metrics):
         )
 
 
+        cur.execute(
+            """
+            SELECT *
+            FROM daily_metrics
+            WHERE report_date=?
+            """,
+            (today,)
+        )
+
+
+        print(
+            "DATABASE ROW:",
+            cur.fetchone()
+        )
+
+
     except Exception as e:
 
         print(
@@ -1764,7 +1823,7 @@ def generate_coach_advice(
     hrv,
     sleep_duration,
     sleep_debt,
-    strain
+    cycle_strain
 ):
 
     recovery_score = float(recovery_score)
@@ -1894,11 +1953,10 @@ def generate_health_report(data):
     workout_raw = data.get("workout", {})
 
 
-    
     # ======================
-    # WHOOP API 返回 records
+    # Recovery Parser
     # ======================
-    
+
     if isinstance(recovery_raw, dict):
 
         recovery = (
@@ -1909,12 +1967,22 @@ def generate_health_report(data):
 
         recovery = {}
 
-
+    
+    # ======================
+    # WHOOP API 返回 records
+    # ======================
+    
     if isinstance(sleep_raw, dict):
 
-        sleep = (
-            sleep_raw.get("records", [{}])[0]
-        )
+        if "score" in sleep_raw:
+
+            sleep = sleep_raw
+
+        else:
+
+            sleep = (
+                sleep_raw.get("records", [{}])[0]
+            )
 
     else:
 
@@ -1997,7 +2065,7 @@ def generate_health_report(data):
 
         sleep_duration = round(
             stage.get(
-                "total_in_bed_time_milli",
+                "total_sleep_time_milli",
                 0
             ) / 3600000,
             2
@@ -2070,23 +2138,67 @@ def generate_health_report(data):
 
     strain = 0.0
 
+
     try:
-        if isinstance(workout, dict):
-    
-            workout_score = workout.get("score", {})
 
-            if isinstance(workout_score, dict):
+        cycle_raw = data.get(
+            "cycle",
+            {}
+        )
 
-                strain_value = workout_score.get(
+
+        if isinstance(cycle_raw, dict):
+
+            cycle_record = (
+                cycle_raw.get(
+                    "records",
+                    [{}]
+                )[0]
+            )
+
+
+            cycle_score = cycle_record.get(
+                "score",
+                {}
+            )
+
+
+            strain = float(
+                cycle_score.get(
                     "strain",
                     0
                 )
+                or 0
+            )
 
-                if strain_value is not None:
-                    strain = float(strain_value)
+
+
+        # 如果cycle没有strain，备用读取workout
+
+        if strain == 0 and isinstance(workout, dict):
+
+            workout_score = workout.get(
+                "score",
+                {}
+            )
+
+
+            strain = float(
+                workout_score.get(
+                    "strain",
+                    0
+                )
+                or 0
+            )
+
 
     except Exception as e:
-        print("STRAIN PARSER ERROR:", e)
+
+        print(
+            "STRAIN PARSER ERROR:",
+            e
+        )
+
         strain = 0.0
 
 
@@ -2110,47 +2222,41 @@ def generate_health_report(data):
 
 
     return {
-        "recovery": recovery_score,
-        "hrv": hrv,
-        "resting_hr": resting_hr,
 
-        "sleep": sleep_duration,
-        "sleep_performance": sleep_performance,
-        "sleep_efficiency": sleep_efficiency,
-        "sleep_quality": sleep_quality,
-        "sleep_cycles": sleep_cycles,
-        "sleep_needed": sleep_needed,
-        "awake_minutes": awake_time,
+        "recovery_score": recovery_score,
+
+        "hrv": hrv,
+
+        "resting_heart_rate": resting_hr,
+
     
-        "strain": strain,
+        "sleep_duration": sleep_duration,
+
+        "sleep_score": sleep_performance,
+
+        "sleep_efficiency": sleep_efficiency,
+
+
+        "deep_sleep_duration": 0,
+
+        "rem_sleep_duration": 0,
+
+
+        "cycle_strain": strain,
+
+
+        "sleep_quality": sleep_quality,
+
+        "sleep_cycles": sleep_cycles,
+
+        "sleep_needed": sleep_needed,
+
+        "awake_minutes": awake_time,
+
 
         "training_advice": training_advice
+
     }
-
-
-    # =========================
-    # AI 教练建议
-    # =========================
-    coach_advice = generate_coach_advice(
-        recovery_score,
-        hrv,
-        sleep_duration,
-        sleep_debt,
-        strain
-    )
-
-    if isinstance(coach_advice, dict):
-        coach_advice = "<br>".join(coach_advice.values())
-
-
-    print("DEBUG TYPES:")
-    print(type(recovery_score))
-    print(type(hrv))
-    print(type(sleep_duration))
-    print(type(strain))
-    print(type(sleep_debt))
-
-    print("NEW VERSION LOADED")
 
 
 def get_whoop_data():
@@ -2376,14 +2482,13 @@ def generate_week_report(data):
 
     for row in data:
 
-        date = row[0]
-        date_text = str(date)
+        date = row["date"]
 
-        recovery = row[1] or 0
-        hrv = row[2] or 0
-        resting_hr = row[3] or 0
-        sleep = row[5] or 0
-        strain = row[7] or 0
+        recovery = row["recovery"] or 0
+        hrv = row["hrv"] or 0
+        resting_hr = row["resting_hr"] or 0
+        sleep = row["sleep"] or 0
+        strain = row["strain"] or 0
 
 
         recovery_list.append(float(recovery))
@@ -2393,130 +2498,204 @@ def generate_week_report(data):
         strain_list.append(float(strain))
 
 
-        daily_html += f'''
+        daily_html += f"""
+
         <hr>
 
-        <h3>{date_text}</h3>
+        <h3>📅 {date}</h3>
 
-        Recovery:
+        💚 Recovery:
         {recovery:.1f}%<br>
 
-        HRV:
+        ❤️ HRV:
         {hrv:.1f} ms<br>
 
-        静息心率:
+        ❤️‍🔥 静息心率:
         {resting_hr:.1f} bpm<br>
 
-        睡眠:
+        😴 睡眠:
         {sleep:.2f} 小时<br>
 
-        Strain:
+        🔥 Strain:
         {strain:.2f}
 
-        '''
+        """
+
 
 
     days = len(data)
 
 
-    avg_recovery = sum(recovery_list) / days
-    avg_hrv = sum(hrv_list) / days
-    avg_hr = sum(hr_list) / days
-    avg_sleep = sum(sleep_list) / days
-    avg_strain = sum(strain_list) / days
+    avg_recovery = (
+        sum(recovery_list)
+        /
+        days
+    )
+
+    avg_hrv = (
+        sum(hrv_list)
+        /
+        days
+    )
+
+    avg_hr = (
+        sum(hr_list)
+        /
+        days
+    )
+
+    avg_sleep = (
+        sum(sleep_list)
+        /
+        days
+    )
+
+    avg_strain = (
+        sum(strain_list)
+        /
+        days
+    )
 
 
+    latest_recovery = recovery_list[-1]
 
-    ai_prompt = f'''
+
+    recovery_change = (
+        latest_recovery
+        -
+        avg_recovery
+    )
+
+
+    ai_prompt = f"""
+
 你是我的 WHOOP 私人健康教练。
 
-请根据下面最近7天数据生成健康报告。
+
+请根据最近7天WHOOP数据生成健康分析。
 
 
-数据：
+📊 数据：
 
-Recovery平均：
+7天平均 Recovery:
 {avg_recovery:.1f}%
 
-HRV平均：
+
+最近一次 Recovery:
+{latest_recovery:.1f}%
+
+
+Recovery趋势变化:
+{recovery_change:+.1f}%
+
+
+平均 HRV:
 {avg_hrv:.1f} ms
 
-静息心率：
+
+平均静息心率:
 {avg_hr:.1f} bpm
 
-平均睡眠：
+
+平均睡眠:
 {avg_sleep:.2f} 小时
 
-平均 Strain：
+
+平均 Strain:
 {avg_strain:.2f}
 
 
-请按照以下格式输出：
+
+请严格按照格式输出：
 
 
-【总体状态】
+
+🟢 【总体状态】
 
 判断：
-良好
-需小心
-危险
+
+🟢 良好
+
+🟡 需要注意
+
+🔴 风险
+
 
 用2句话总结。
 
 
-【恢复分析】
+
+💚 【Recovery恢复分析】
 
 分析：
 
 - Recovery水平
+- 最近趋势
 - HRV状态
-- 静息心率变化
+- 心率恢复情况
 
 
-【睡眠分析】
+
+😴 【睡眠分析】
 
 分析：
 
-- 睡眠时间是否支持训练
-- 是否存在睡眠不足风险
+- 睡眠是否支持训练
+- 是否存在恢复不足风险
+- 给出睡眠目标
 
 
-【训练建议】
 
-根据恢复能力和Strain：
+🔥 【训练建议】
+
+根据：
+
+Recovery
+
+HRV
+
+Strain
+
 
 给出：
 
-- 是否适合训练
-- 推荐训练类型
-- 推荐Strain范围
+🏋️ 是否适合训练
+
+训练类型
+
+建议强度
 
 
-【未来3天行动建议】
 
-必须输出：
+⚠️ 【未来3天行动计划】
+
 
 第1天：
-训练建议 + 睡眠目标
+
+训练建议
+
 
 第2天：
+
 恢复建议
 
+
 第3天：
+
 训练调整建议
+
 
 
 要求：
 
 - 中文简体
-- 分段输出
 - 不超过400字
-- 像私人教练一样给建议
-- 不输出代码
+- 像私人健康教练
 - 不解释WHOOP概念
+- 不输出代码
 
-'''
 
+"""
 
 
     coach_advice = generate_ai_summary(
@@ -2524,50 +2703,21 @@ HRV平均：
     )
 
 
+    return f"""
 
-    return f'''
-<html>
-
-<head>
-
-<meta charset="utf-8">
-
-<title>
-WHOOP 7天健康趋势
-</title>
-
-</head>
-
-
-<body>
-
-
-<h1>
-WHOOP 7天健康趋势报告
-</h1>
-
+<div>
 
 {daily_html}
 
-
 <hr>
 
+<h2>🧠 WHOOP健康教练7天分析</h2>
 
-<h2>
-AI健康教练建议
-</h2>
-
-
-<p>
 {coach_advice}
-</p>
 
+</div>
 
-</body>
-
-</html>
-
-'''
+"""
 
     # =========================
     # 趋势分析
@@ -2931,85 +3081,212 @@ def auto_save_daily():
             e
         )
 
-def daily_scheduler():
-
-    while True:
-
-        try:
-
-            auto_save_daily()
-
-        except Exception as e:
-
-            print(
-                "SCHEDULER ERROR:",
-                e
-            )
-
-
-        time.sleep(86400)
-
-def start_scheduler():
-
-    t = threading.Thread(
-        target=daily_scheduler,
-        daemon=True
-    )
-
-    t.start()
-
-    print("DAILY SCHEDULER STARTED")
-
+@app.route("/whoop/auto-report")
 def auto_report():
 
+    try:
 
-    data = {
-
-      "recovery":
-      whoop_get("/recovery"),
-
-      "cycle":
-      whoop_get("/cycle"),
-
-      "sleep":
-      whoop_get("/activity/sleep"),
-
-      "workout":
-      whoop_get("/activity/workout")
-    }
+        print(
+            "========== AUTO REPORT START =========="
+        )
 
 
-    print("========== WHOOP RAW ==========")
-    print(data)
-    print("==============================")
+        # =========================
+        # 1. 获取 WHOOP 数据
+        # =========================
+
+        data = {
+
+            "recovery":
+            whoop_get("/recovery"),
 
 
-    convert_utc_to_beijing(data)
+            "cycle":
+            whoop_get("/cycle"),
 
 
-    report = generate_health_report(data)
+            "sleep":
+            whoop_get("/activity/sleep"),
 
 
-    metrics = extract_daily_metrics(
-        data
-    )
+            "workout":
+            whoop_get("/activity/workout")
+
+        }
 
 
-    save_daily_data(
-        metrics
-    )
+        print(
+            "========== WHOOP RAW =========="
+        )
+
+        print(data)
 
 
-    return jsonify({
+        print(
+            "=============================="
+        )
 
-        "status":
-        "daily report generated",
+
+        # =========================
+        # 2. 时间转换
+        # =========================
+
+        convert_utc_to_beijing(
+            data
+        )
 
 
-        "report":
-        report
+        # =========================
+        # 3. 提取健康指标
+        # =========================
 
-    })
+        metrics = extract_daily_metrics(
+            data
+        )
+
+
+        print(
+            "DAILY METRICS:",
+            metrics
+        )
+
+
+        # =========================
+        # 4. 保存数据库
+        # =========================
+
+        save_daily_data(
+            metrics
+        )
+
+
+        # =========================
+        # 5. 生成基础报告
+        # =========================
+
+        report = generate_health_report(
+            data
+        )
+
+
+
+        # =========================
+        # 6. AI健康教练
+        # =========================
+
+        ai_prompt = f"""
+
+你是 WHOOP 私人健康教练。
+
+
+今日数据：
+
+💚 Recovery:
+{metrics.get("recovery_score",0)}%
+
+
+❤️ HRV:
+{metrics.get("hrv",0)} ms
+
+
+❤️‍🔥 静息心率:
+{metrics.get("resting_heart_rate",0)} bpm
+
+
+😴 睡眠时间:
+{metrics.get("sleep_duration",0)} 小时
+
+
+🌙 睡眠评分:
+{metrics.get("sleep_score",0)}%
+
+
+🔥 Strain:
+{metrics.get("cycle_strain",0)}
+
+
+
+请生成：
+
+🟢 今日身体状态
+
+💚 Recovery分析
+
+😴 睡眠分析
+
+🔥 训练建议
+
+⚠️ 风险提醒
+
+📅 未来1-3天建议
+
+
+要求：
+
+中文简体
+
+使用emoji
+
+400字以内
+
+不要编造数据
+
+像私人WHOOP教练
+
+"""
+
+
+        coach_advice = generate_ai_summary(
+            ai_prompt
+        )
+
+
+        print(
+            "AI COACH GENERATED"
+        )
+
+
+
+        # =========================
+        # 7. 返回
+        # =========================
+
+        return jsonify({
+
+            "status":
+            "daily report generated",
+
+
+            "report":
+            report,
+
+
+            "coach":
+            coach_advice,
+
+
+            "metrics":
+            metrics
+
+        })
+
+
+    except Exception as e:
+
+
+        print(
+            "AUTO REPORT ERROR:",
+            e
+        )
+
+
+        return jsonify({
+
+            "error":
+            str(e)
+
+        })
+
 
 def trend_report():
 
@@ -3093,17 +3370,17 @@ def trend_report():
 
                 "date": r[0],
 
-                "recovery": r[1],
+                "recovery_score": r[1],
 
                 "hrv": r[2],
 
-                "resting_hr": r[3],
+                "resting_heart_rate": r[3],
 
-                "sleep": r[4],
+                "sleep_duration": r[4],
 
                 "sleep_score": r[5],
 
-                "strain": r[6]
+                "cycle_strain": r[6]
 
             }
 
@@ -3460,139 +3737,76 @@ def trend_report():
 
         return f"""
 
-<!DOCTYPE html>
-
-<html lang="zh-CN">
-
-<head>
-
-
-<meta charset="UTF-8">
-
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-
-<title>
-WHOOP AI Coach Trend
-</title>
-
-
-<style>
-
-
-body {{
-
-font-family:Arial,sans-serif;
-
-background:#f4f5f7;
-
-padding:20px;
-
-}}
-
-
-
-.container {{
-
-max-width:800px;
-
-margin:auto;
-
-}}
-
-
-
-.card {{
-
-background:white;
-
-padding:25px;
-
-border-radius:18px;
-
-margin-bottom:18px;
-
-box-shadow:
-0 3px 12px rgba(0,0,0,.08);
-
-}}
-
-
-
-.value {{
-
-font-size:32px;
-
-font-weight:bold;
-
-}}
-
-
-
-table {{
-
-width:100%;
-
-border-collapse:collapse;
-
-}}
-
-
-
-td,th {{
-
-padding:10px;
-
-border-bottom:1px solid #ddd;
-
-}}
-
-
-
-.button {{
-
-display:block;
-
-background:#111;
-
-color:white;
-
-padding:14px;
-
-border-radius:12px;
-
-text-align:center;
-
-text-decoration:none;
-
-}}
-
-
-
-</style>
-
-
-</head>
-
-
-
-<body>
-
-
-<div class="container">
-
-
-<div class="card">
-
 <h1>
-WHOOP AI Coach
+📈 WHOOP 7天健康趋势
 </h1>
 
 
 <h2>
-最近7天趋势
+🧠 训练准备度
+</h2>
+
+🔥 {readiness}/100
+
+
+<h2>
+💚 平均恢复
+</h2>
+
+Recovery:
+{avg_recovery:.1f}%
+
+
+❤️ HRV:
+
+{avg_hrv:.1f} ms
+
+
+❤️‍🔥 静息心率:
+
+{avg_resting_hr:.1f} bpm
+
+
+😴 平均睡眠:
+
+{avg_sleep:.2f} 小时
+
+
+🌙 睡眠表现:
+
+{avg_sleep_score:.1f}%
+
+
+🔥 平均 Strain:
+
+{avg_strain:.2f}
+
+
+
+<h2>
+⚠️ 风险
+</h2>
+
+{risk_html}
+
+
+
+<h2>
+🏋️ 教练建议
+</h2>
+
+{coach_html}
+
+
+"""
+
+<h1>
+📈 WHOOP AI Coach
+</h1>
+
+
+<h2>
+最近7天健康趋势
 </h2>
 
 
@@ -3605,20 +3819,16 @@ WHOOP AI Coach
 
 </div>
 
-
-
-
-
 <div class="card">
 
 <h3>
-训练准备度 Readiness
+🧠 训练准备度 Readiness
 </h3>
-
+ 
 
 <div class="value">
 
-{readiness}/100
+🧠 {readiness}/100
 
 </div>
 
@@ -3631,50 +3841,47 @@ WHOOP AI Coach
 </div>
 
 
-
-
-
 <div class="card">
 
 <h3>
-平均恢复指标
+💚 平均恢复指标
 </h3>
 
 
 <p>
-Recovery：
-{avg_recovery}%
+💚 Recovery：
+{avg_recovery:.1f}%
 </p>
 
 
 <p>
-HRV：
-{avg_hrv} ms
+❤️ HRV：
+{avg_hrv:.1f} ms
 </p>
 
 
 <p>
-静息心率：
-{avg_resting_hr} bpm
+❤️‍🔥 静息心率：
+{avg_resting_hr:.1f} bpm
 </p>
 
 
 <p>
-睡眠：
-{avg_sleep} 小时
+😴 睡眠：
+{avg_sleep:.2f} 小时
 </p>
 
 
 <p>
-睡眠评分：
-{avg_sleep_score}%
+🌙 睡眠评分：
+{avg_sleep_score:.1f}%
 </p>
 
 
 <p>
-平均
-
-"""
+🔥 平均 Strain：
+{avg_strain:.2f}
+</p>
 
     except Exception as e:
 
@@ -4154,18 +4361,6 @@ href="/whoop/auto-report">
         <p>{str(e)}</p>
 
         """
-
-
-def start_scheduler():
-
-    t = threading.Thread(
-        target=daily_scheduler,
-        daemon=True
-    )
-
-    t.start()
-
-    print("DAILY SCHEDULER STARTED")
 
 
 
