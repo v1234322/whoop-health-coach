@@ -115,33 +115,30 @@ def save_refresh_token(token):
 
 def load_refresh_token():
 
-    conn = get_db_connection()
-
-    cur = conn.cursor()
-
-    cur.execute(
-        """
-        SELECT refresh_token
-        FROM tokens
-        WHERE refresh_token IS NOT NULL
-        ORDER BY id DESC
-        LIMIT 1
-        """
+    token = os.getenv(
+        "WHOOP_REFRESH_TOKEN"
     )
 
-    row = cur.fetchone()
+    print("TOKEN SOURCE CHECK: ENV")
 
-    print("TOKEN DATABASE CHECK:")
-    print("DB TOKEN ROW:", row)
+    if token:
 
-    cur.close()
-    conn.close()
+        print(
+            "ENV REFRESH TOKEN FOUND"
+        )
 
-    if row:
-        print("DATABASE REFRESH TOKEN FOUND")
-        return row["refresh_token"]
+        print(
+            "ENV TOKEN LENGTH:",
+            len(token)
+        )
 
-    print("DATABASE REFRESH TOKEN EMPTY")
+        return token
+
+
+    print(
+        "ENV REFRESH TOKEN EMPTY"
+    )
+
     return None
     
     
@@ -170,15 +167,30 @@ WHOOP_ACCESS_TOKEN = None
 
 print("========== ENV CHECK ==========")
 
-print("CLIENT ID:", bool(os.getenv("WHOOP_CLIENT_ID")))
-print("CLIENT SECRET:", bool(os.getenv("WHOOP_CLIENT_SECRET")))
-print("REFRESH TOKEN:", bool(os.getenv("WHOOP_REFRESH_TOKEN")))
+refresh_env = os.getenv(
+    "WHOOP_REFRESH_TOKEN"
+)
 
-if os.getenv("WHOOP_REFRESH_TOKEN"):
-    print("TOKEN LENGTH:", len(os.getenv("WHOOP_REFRESH_TOKEN")))
+
+print(
+    "REFRESH TOKEN:",
+    bool(refresh_env)
+)
+
+
+if refresh_env:
+
+    print(
+        "TOKEN LENGTH:",
+        len(refresh_env)
+    )
+
 else:
-    print("TOKEN LENGTH: 0")
 
+    print(
+        "TOKEN LENGTH: 0"
+    )
+    
 print("==============================")
 
 
