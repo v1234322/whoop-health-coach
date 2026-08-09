@@ -882,6 +882,10 @@ def auto_report():
 
         convert_utc_to_beijing(data)
 
+        print("====== RECOVERY DEBUG ======")
+        print(data["recovery"])
+        print("============================")
+
 
         report = generate_health_report(data)
 
