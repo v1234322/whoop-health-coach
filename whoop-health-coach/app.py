@@ -990,10 +990,6 @@ def trend():
 
 def generate_ai_summary(ai_prompt):
 
-    """
-    调用 DeepSeek 生成 WHOOP 私人教练总结
-    """
-
     try:
 
         response = client.chat.completions.create(
@@ -1004,31 +1000,32 @@ def generate_ai_summary(ai_prompt):
 
                 {
                     "role": "system",
+                    "content": """
+你是我的WHOOP私人健康教练。
 
-                    "content": (
-    "你是我的WHOOP私人健康教练。\n\n"
-    "根据用户当天数据：\n"
-    "- 恢复状态\n"
-    "- HRV\n"
-    "- 睡眠\n"
-    "- 心率\n"
-    "- 训练负荷\n\n"
-    "给出健康建议。\n\n"
-    "要求：\n"
-    "- 中文简体\n"
-    "- 控制在300字以内\n"
-    "- 先总结状态\n"
-    "- 再给3条行动建议\n"
-    "- 不重复数据\n"
-    "- 不编造数据"
+根据用户当天数据：
 
-    """
-             )
-        },
+- 恢复状态
+- HRV
+- 睡眠
+- 心率
+- 训练负荷
+
+给出健康建议。
+
+要求：
+
+- 中文简体
+- 控制在300字以内
+- 先总结状态
+- 再给3条行动建议
+- 不重复数据
+- 不编造数据
+"""
+                },
 
                 {
                     "role": "user",
-
                     "content": ai_prompt[:2000]
                 }
 
@@ -1046,12 +1043,10 @@ def generate_ai_summary(ai_prompt):
 
     except Exception as e:
 
-
         print(
             "AI SUMMARY ERROR:",
             e
         )
-
 
         return "AI教练暂时无法生成建议"
 
