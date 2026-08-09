@@ -1689,9 +1689,6 @@ def extract_daily_metrics(data):
 
 def save_daily_data(metrics):
 
-    conn = None
-    cur = None
-
     try:
 
         conn = get_db_connection()
@@ -1699,62 +1696,7 @@ def save_daily_data(metrics):
         cur = conn.cursor()
 
 
-        cur.execute(
-            "PRAGMA table_info(daily_metrics)"
-        )
-
-        print(
-            "DAILY_METRICS COLUMNS:",
-            cur.fetchall()
-        )
-
-
-        # 北京时间日期
-        today = (
-            datetime.utcnow()
-            + timedelta(hours=8)
-        ).strftime("%Y-%m-%d")
-
-
-        # 删除当天旧数据
-        cur.execute(
-            """
-            DELETE FROM daily_metrics
-            WHERE report_date = ?
-            """,
-            (
-                today,
-            )
-        )
-
-
-        print(
-            "START INSERT DAILY METRICS"
-        )
-
-
-        values = (
-            today,
-            metrics.get("recovery_score"),
-            metrics.get("hrv"),
-            metrics.get("resting_heart_rate"),
-            metrics.get("sleep_score"),
-            metrics.get("sleep_duration"),
-            metrics.get("sleep_efficiency"),
-            metrics.get("deep_sleep_duration"),
-            metrics.get("rem_sleep_duration"),
-            metrics.get("cycle_strain"),
-            json.dumps(
-                metrics.get("workout_data", {}),
-                ensure_ascii=False
-            )
-        )
-
-
-        print(
-            "VALUES COUNT:",
-            len(values)
-        )
+        today = datetime.utcnow().strftime("%Y-%m-%d")
 
 
         cur.execute(
@@ -1773,12 +1715,25 @@ def save_daily_data(metrics):
                 cycle_strain,
                 workout_data
             )
+
             VALUES
             (
-                ?,?,?,?,?,?,?,?,?,?,?
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             )
             """,
-            values
+            (
+                today,
+                metrics.get("recovery_score",0),
+                metrics.get("hrv",0),
+                metrics.get("resting_heart_rate",0),
+                metrics.get("sleep_score",0),
+                metrics.get("sleep_duration",0),
+                metrics.get("sleep_efficiency",0),
+                metrics.get("deep_sleep_duration",0),
+                metrics.get("rem_sleep_duration",0),
+                metrics.get("cycle_strain",0),
+                str(metrics.get("workout_data",""))
+            )
         )
 
 
@@ -1786,42 +1741,22 @@ def save_daily_data(metrics):
 
 
         print(
-            "DAILY METRICS SAVED OK:",
-            today
+            "AUTO DAILY SAVE OK"
         )
 
 
-        cur.execute(
-            """
-            SELECT *
-            FROM daily_metrics
-            WHERE report_date=?
-            """,
-            (today,)
-        )
-
-
-        print(
-            "DATABASE ROW:",
-            cur.fetchone()
-        )
+        cur.close()
+        conn.close()
 
 
     except Exception as e:
 
         print(
             "SAVE DAILY DATA ERROR:",
-            str(e)
+            e
         )
 
 
-    finally:
-
-        if cur:
-            cur.close()
-
-        if conn:
-            conn.close()
 
 def convert_utc_to_beijing(obj):
 
@@ -2003,6 +1938,18 @@ def generate_health_report(data):
 
     recovery_raw = data.get("recovery", {})
     sleep_raw = data.get("sleep", {})
+
+    print(
+        "SLEEP TYPE:",
+        type(sleep_raw)
+    )
+
+    print(
+        "SLEEP RAW DEBUG:",
+        sleep_raw
+    )
+
+    
     workout_raw = data.get("workout", {})
 
 
