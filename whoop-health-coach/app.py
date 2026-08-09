@@ -78,7 +78,12 @@ def save_refresh_token(token):
 
     cur.execute(
         """
+        DELETE FROM tokens
+        """
+    )
 
+    cur.execute(
+        """
         INSERT INTO tokens(refresh_token)
             refresh_token,
             updated_at
