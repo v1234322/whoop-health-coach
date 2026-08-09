@@ -115,24 +115,39 @@ def save_refresh_token(token):
 
 def load_refresh_token():
 
-    token = os.getenv(
-        "WHOOP_REFRESH_TOKEN"
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT refresh_token
+        FROM tokens
+        WHERE refresh_token IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 1
+        """
     )
 
-    print("TOKEN SOURCE CHECK: ENV")
+    row = cur.fetchone()
 
-    if token:
+    print("TOKEN DATABASE CHECK:")
+    print("DB TOKEN ROW:", row)
 
-        print(
-            "ENV REFRESH TOKEN FOUND"
-        )
+    cur.close()
+    conn.close()
 
-        print(
-            "ENV TOKEN LENGTH:",
-            len(token)
-        )
 
-        return token
+    if row:
+
+        print("DATABASE REFRESH TOKEN FOUND")
+
+        return row["refresh_token"]
+
+
+    print("DATABASE REFRESH TOKEN EMPTY")
+
+    return None
 
 
     print(
@@ -437,17 +452,20 @@ def refresh_access_token():
     token_data = response.json()
 
     access_token = token_data.get("access_token")
-    new_refresh_token = token_data.get("refresh_token")
+    new_refresh_token = data.get(
+        "refresh_token"
+    )
 
-    if not access_token:
-        raise Exception("NO ACCESS TOKEN RETURNED")
 
     if new_refresh_token:
-        save_refresh_token(new_refresh_token)
-        print("NEW REFRESH TOKEN SAVED")
 
-    save_access_token_to_db(access_token)
-    print("NEW ACCESS TOKEN SAVED")
+        save_refresh_token(
+            new_refresh_token
+        )
+
+        print(
+            "NEW REFRESH TOKEN UPDATED"
+        )
 
     return access_token
 
