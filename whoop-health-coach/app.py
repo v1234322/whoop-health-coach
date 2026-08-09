@@ -9,7 +9,7 @@ import psycopg2
 
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, redirect
 
 import requests
 
