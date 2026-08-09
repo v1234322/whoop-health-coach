@@ -504,9 +504,6 @@ def refresh_access_token():
         "client_secret":
         client_secret.strip(),
 
-        "scope":
-        "offline"
-
     }
 
 
