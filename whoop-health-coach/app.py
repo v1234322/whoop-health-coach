@@ -2630,7 +2630,7 @@ AI健康教练建议
 
     if avg_recovery >= 67:
 
-        training_plan = """
+        training_plan = '''
         可以正常训练
 
         推荐：
@@ -2639,11 +2639,11 @@ AI健康教练建议
 
         目标 Strain:
         8-12
-        """
+        '''
 
     elif avg_recovery >= 34:
 
-        training_plan = """
+        training_plan = '''
         建议降低训练量
 
         推荐：
@@ -2653,11 +2653,11 @@ AI健康教练建议
 
         目标 Strain:
         5-8
-        """
+        '''
 
     else:
 
-        training_plan = """
+        training_plan = '''
         建议恢复
 
         避免：
@@ -2665,18 +2665,18 @@ AI健康教练建议
         - 高强度力量
 
         优先睡眠和恢复
-        """
+        '''
 
-    ai_summary = f"""
+    ai_summary = f'''
     {coach_advice}
 
 
     训练建议：
     {training_plan}
-    """
+    '''
 
 
-    return f"""
+    return f'''
 
 <h1>
 WHOOP 最近7天私人健康报告
