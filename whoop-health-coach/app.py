@@ -313,7 +313,6 @@ def save_access_token_to_db(token):
             """
             UPDATE tokens
             SET access_token=?
-                updated_at=CURRENT_TIMESTAMP
             WHERE id=?
             """,
             (
