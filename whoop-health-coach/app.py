@@ -1404,23 +1404,23 @@ def extract_daily_metrics(data):
         )
 
 
-        score = recovery.get(
+        recovery_score_data = recovery.get(
             "score",
             {}
         )
 
 
-        result["recovery_score"] = score.get(
+        result["recovery_score"] = recovery_score_data.get(
             "recovery_score"
         )
 
 
-        result["hrv"] = score.get(
+        result["hrv"] = recovery_score_data.get(
             "hrv_rmssd_milli"
         )
 
 
-        result["resting_heart_rate"] = score.get(
+        result["resting_heart_rate"] = recovery_score_data.get(
             "resting_heart_rate"
         )
 
@@ -2051,14 +2051,13 @@ def generate_health_report(data):
         print(sleep)
 
 
-        if "records" in sleep:
+        latest_sleep = (
+            sleep.get(
+                "records",
+                [{}]
+            )[0]
+        )
 
-            latest_sleep = sleep["records"][0]
-
-        else:
-
-            latest_sleep = sleep
-        
 
         print(
             "LATEST SLEEP TYPE:",
@@ -2077,16 +2076,23 @@ def generate_health_report(data):
         print("=========================================")
 
 
-        score = latest_sleep.get(
+        sleep_score_data = latest_sleep.get(
             "score",
             {}
         )
 
 
-        stage = score.get(
+        stage = sleep_score_data.get(
             "stage_summary",
             {}
         )
+
+        if not isinstance(stage, dict):
+            print(
+                "INVALID STAGE TYPE:",
+                type(stage)
+            )
+            stage = {}
 
 
         print("STAGE DATA >>>")
@@ -2115,13 +2121,13 @@ def generate_health_report(data):
         )
 
 
-        sleep_performance = score.get(
+        sleep_performance = sleep_score_data.get(
             "sleep_performance_percentage",
             0
         )
 
 
-        sleep_efficiency = score.get(
+        sleep_efficiency = sleep_score_data.get(
             "sleep_efficiency_percentage",
             0
         )
