@@ -293,61 +293,89 @@ def save_access_token_to_db(token):
 
 
     conn = get_db_connection()
+
     cursor = conn.cursor()
 
 
-    cursor.execute(
-        """
-        SELECT id
-        FROM tokens
-        LIMIT 1
-        """
-    )
-
-    result = cursor.fetchone()
-
-
-    if result:
+    try:
 
         cursor.execute(
             """
-            UPDATE tokens
-            SET access_token=?
-            WHERE id=?
-            """,
-            (
-                token,
-                result[0]
-            )
-        )
-
-        print("ACCESS TOKEN UPDATED")
-
-
-    else:
-
-        cursor.execute(
+            SELECT id
+            FROM tokens
+            LIMIT 1
             """
-            INSERT INTO tokens
-            (
-                access_token
-                updated_at
-            )
-            VALUES
-            (?,CURRENT_TIMESTAMP)
-            """,
-            (
-                token,
-            )
         )
 
-        print("ACCESS TOKEN SAVED")
+        row = cursor.fetchone()
 
 
-    conn.commit()
+        if row:
 
-    cursor.close()
-    conn.close()
+
+            cursor.execute(
+                """
+                UPDATE tokens
+                SET access_token = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (
+                    token,
+                    row[0]
+                )
+            )
+
+
+            print(
+                "ACCESS TOKEN UPDATED"
+            )
+
+
+        else:
+
+
+            cursor.execute(
+                """
+                INSERT INTO tokens
+                (
+                    access_token,
+                    updated_at
+                )
+                VALUES
+                (
+                    ?,
+                    CURRENT_TIMESTAMP
+                )
+                """,
+                (
+                    token,
+                )
+            )
+
+
+            print(
+                "ACCESS TOKEN SAVED"
+            )
+
+
+        conn.commit()
+
+
+    except Exception as e:
+
+
+        print(
+            "SAVE ACCESS TOKEN ERROR:",
+            e
+        )
+
+
+    finally:
+
+        cursor.close()
+
+        conn.close()
 
 
 # =========================
