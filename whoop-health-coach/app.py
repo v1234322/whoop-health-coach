@@ -771,7 +771,19 @@ def callback():
     }
 
 
+@app.route("/whoop/login")
+def whoop_login():
 
+    auth_url = (
+        "https://api.prod.whoop.com/oauth/oauth2/auth?"
+        f"client_id={WHOOP_CLIENT_ID}"
+        "&response_type=code"
+        "&scope=read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement offline"
+        "&redirect_uri=https://whoop-health-coach.onrender.com/callback"
+    )
+
+    return redirect(auth_url)
+    
 
 @app.route("/clear-token")
 def clear_token():
