@@ -2051,7 +2051,24 @@ def generate_health_report(data):
         print(sleep)
 
 
-        latest_sleep = sleep
+        if "records" in sleep:
+
+            latest_sleep = sleep["records"][0]
+
+        else:
+
+            latest_sleep = sleep
+        
+
+        print(
+            "LATEST SLEEP TYPE:",
+            type(latest_sleep)
+        )
+
+        print(
+            "LATEST SLEEP:",
+            latest_sleep
+        )
 
         
         print("========= SLEEP STRUCTURE DEBUG =========")
