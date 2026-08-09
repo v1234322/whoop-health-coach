@@ -78,7 +78,6 @@ def save_refresh_token(token):
 
     cur.execute(
         """
-        DELETE FROM tokens;
 
         INSERT INTO tokens(refresh_token)
             refresh_token,
@@ -88,6 +87,8 @@ def save_refresh_token(token):
             ?,
             CURRENT_TIMESTAMP
         )
+        """,
+        (token,)
 
     conn.commit()
 
