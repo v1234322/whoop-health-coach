@@ -74,7 +74,9 @@ def get_db_connection():
 def save_refresh_token(token):
 
     conn = get_db_connection()
+
     cur = conn.cursor()
+
 
     cur.execute(
         """
@@ -82,9 +84,10 @@ def save_refresh_token(token):
         """
     )
 
+
     cur.execute(
         """
-        INSERT INTO tokens(refresh_token)
+        INSERT INTO tokens(
             refresh_token,
             updated_at
         )
@@ -94,11 +97,14 @@ def save_refresh_token(token):
         )
         """,
         (token,)
+    )
+
 
     conn.commit()
 
     cur.close()
     conn.close()
+
 
     print("REFRESH TOKEN INSERTED")
 
