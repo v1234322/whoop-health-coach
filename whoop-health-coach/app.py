@@ -3837,14 +3837,15 @@ def trend_report():
 
 """
 
-        except Exception as e:
+    except Exception as e:
 
-            print(
-                "TREND REPORT ERROR:",
-                e
-            )
+        print(
+            "TREND REPORT ERROR:",
+            e
+        )
 
-            return str(e)
+        return str(e)
+        
 
 def home():
 
