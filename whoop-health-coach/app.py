@@ -3737,6 +3737,26 @@ def trend_report():
 
         return f"""
 
+return f"""
+
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+📈 WHOOP AI Coach
+</title>
+
+</head>
+
+
+<body>
+
+
 <h1>
 📈 WHOOP 7天健康趋势
 </h1>
@@ -3746,106 +3766,15 @@ def trend_report():
 🧠 训练准备度
 </h2>
 
+<p>
 🔥 {readiness}/100
+</p>
+
 
 
 <h2>
 💚 平均恢复
 </h2>
-
-Recovery:
-{avg_recovery:.1f}%
-
-
-❤️ HRV:
-
-{avg_hrv:.1f} ms
-
-
-❤️‍🔥 静息心率:
-
-{avg_resting_hr:.1f} bpm
-
-
-😴 平均睡眠:
-
-{avg_sleep:.2f} 小时
-
-
-🌙 睡眠表现:
-
-{avg_sleep_score:.1f}%
-
-
-🔥 平均 Strain:
-
-{avg_strain:.2f}
-
-
-
-<h2>
-⚠️ 风险
-</h2>
-
-{risk_html}
-
-
-
-<h2>
-🏋️ 教练建议
-</h2>
-
-{coach_html}
-
-
-"""
-
-<h1>
-📈 WHOOP AI Coach
-</h1>
-
-
-<h2>
-最近7天健康趋势
-</h2>
-
-
-<p>
-数据天数：
-{len(history)}
-天
-</p>
-
-
-</div>
-
-<div class="card">
-
-<h3>
-🧠 训练准备度 Readiness
-</h3>
- 
-
-<div class="value">
-
-🧠 {readiness}/100
-
-</div>
-
-
-<p>
-综合 Recovery、睡眠、训练压力
-</p>
-
-
-</div>
-
-
-<div class="card">
-
-<h3>
-💚 平均恢复指标
-</h3>
 
 
 <p>
@@ -3867,13 +3796,13 @@ Recovery:
 
 
 <p>
-😴 睡眠：
+😴 平均睡眠：
 {avg_sleep:.2f} 小时
 </p>
 
 
 <p>
-🌙 睡眠评分：
+🌙 睡眠表现：
 {avg_sleep_score:.1f}%
 </p>
 
@@ -3882,6 +3811,33 @@ Recovery:
 🔥 平均 Strain：
 {avg_strain:.2f}
 </p>
+
+
+
+<h2>
+⚠️ 风险
+</h2>
+
+<p>
+{risk_html}
+</p>
+
+
+
+<h2>
+🏋️ 教练建议
+</h2>
+
+<p>
+{coach_html}
+</p>
+
+
+</body>
+
+</html>
+
+"""
 
     except Exception as e:
 
