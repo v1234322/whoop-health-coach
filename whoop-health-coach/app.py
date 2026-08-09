@@ -48,17 +48,30 @@ app.config["JSON_AS_ASCII"] = False
 def get_db_connection():
 
     import os
+    import psycopg2
+
+
+    database_url = os.getenv(
+        "DATABASE_URL"
+    )
+
+
+    if not database_url:
+
+        raise Exception(
+            "DATABASE_URL NOT FOUND"
+        )
+
 
     print(
-        "DB PATH:",
-        os.path.abspath("whoop.db")
+        "POSTGRES DATABASE CONNECTING"
     )
 
-    conn = sqlite3.connect(
-        "whoop.db"
+
+    conn = psycopg2.connect(
+        database_url
     )
 
-    conn.row_factory = sqlite3.Row
 
     return conn
 
