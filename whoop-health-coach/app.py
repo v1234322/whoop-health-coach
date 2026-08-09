@@ -3,8 +3,6 @@ import os
 
 print("WHOOP HEALTH COACH STARTED")
 
-
-import sqlite3
 import psycopg2
 
 from datetime import datetime, timedelta, timezone
@@ -1696,7 +1694,10 @@ def save_daily_data(metrics):
         cur = conn.cursor()
 
 
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        today = (
+            datetime.utcnow()
+            + timedelta(hours=8)
+        ).strftime("%Y-%m-%d")
 
 
         cur.execute(
@@ -1715,7 +1716,6 @@ def save_daily_data(metrics):
                 cycle_strain,
                 workout_data
             )
-
             VALUES
             (
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
@@ -1740,8 +1740,21 @@ def save_daily_data(metrics):
         conn.commit()
 
 
+        print("AUTO DAILY SAVE OK")
+
+
+        cur.execute(
+            """
+            SELECT *
+            FROM daily_metrics
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        )
+
         print(
-            "AUTO DAILY SAVE OK"
+            "LATEST DAILY ROW:",
+            cur.fetchone()
         )
 
 
