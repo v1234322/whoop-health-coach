@@ -2686,7 +2686,7 @@ AI健康教练建议
     '''
 
 
-    return f“”“
+    return f"""
 
 <h1>
 WHOOP 最近7天私人健康报告
@@ -2774,7 +2774,7 @@ Strain风险：
 
 {training_plan}
 
-”“”
+"""
 
 def whoop_week():
     try:
