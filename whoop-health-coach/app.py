@@ -2051,7 +2051,17 @@ def generate_health_report(data):
         print(sleep)
 
 
-        latest_sleep = sleep
+        sleep_records = sleep.get(
+            "records",
+            []
+        )
+
+
+        if not sleep_records:
+            raise Exception("NO SLEEP RECORD")
+
+
+        latest_sleep = sleep_records[0]
 
 
         print("========= SLEEP STRUCTURE DEBUG =========")
@@ -2077,10 +2087,23 @@ def generate_health_report(data):
 
 
         sleep_duration = round(
-            stage.get(
-                "total_sleep_time_milli",
-                0
-            ) / 3600000,
+            (
+                stage.get(
+                    "total_light_sleep_time_milli",
+                    0
+                )
+                +
+                stage.get(
+                    "total_slow_wave_sleep_time_milli",
+                    0
+                )
+                +
+                stage.get(
+                    "total_rem_sleep_time_milli",
+                    0
+                )
+            )
+            / 3600000,
             2
         )
 
