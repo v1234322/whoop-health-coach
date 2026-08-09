@@ -82,6 +82,11 @@ def get_db_connection():
 
 def save_refresh_token(token):
 
+    if not token:
+        print("NO REFRESH TOKEN")
+        return
+
+
     conn = get_db_connection()
 
     cur = conn.cursor()
@@ -103,42 +108,56 @@ def save_refresh_token(token):
         cur.execute(
             """
             UPDATE tokens
-            SET refresh_token=?,
+            SET refresh_token=%s,
                 updated_at=CURRENT_TIMESTAMP
-            WHERE id=?
+            WHERE id=%s
             """,
             (
                 token,
-                row["id"]
+                row[0]
             )
         )
 
-        print("REFRESH TOKEN UPDATED")
+        print(
+            "REFRESH TOKEN UPDATED"
+        )
 
 
     else:
 
         cur.execute(
             """
-            INSERT INTO tokens(
+            INSERT INTO tokens
+            (
                 refresh_token,
                 updated_at
             )
-            VALUES(
-                ?,
+            VALUES
+            (
+                %s,
                 CURRENT_TIMESTAMP
             )
             """,
-            (token,)
+            (
+                token,
+            )
         )
 
-        print("REFRESH TOKEN INSERTED")
+        print(
+            "REFRESH TOKEN INSERTED"
+        )
 
 
     conn.commit()
 
     cur.close()
+
     conn.close()
+
+
+    print(
+        "REFRESH TOKEN SAVED"
+    )
 
 
 # ==========================
