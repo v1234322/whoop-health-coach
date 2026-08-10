@@ -4256,6 +4256,59 @@ def trend_report():
             ]
         )
 
+        # =====================
+        # 趋势总结文字
+        # =====================
+
+        if recovery_change > 5:
+
+            recovery_summary = "⬆️ Recovery 明显提升，身体恢复状态变好"
+
+        elif recovery_change < -5:
+
+            recovery_summary = "⬇️ Recovery 下降，需要关注恢复"
+
+        else:
+
+            recovery_summary = "➡️ Recovery 保持稳定"
+        
+
+        if hrv_change > 5:
+
+            hrv_summary = "HRV 上升，神经恢复状态良好"
+
+        elif hrv_change < -10:
+
+            hrv_summary = "HRV 下降，可能存在疲劳累积"
+
+        else:
+
+            hrv_summary = "HRV 保持稳定"
+
+
+
+        if sleep_change > 5:
+
+            sleep_summary = "睡眠时间增加，恢复条件改善"
+
+        elif sleep_change < -10:
+
+            sleep_summary = "睡眠减少，需要增加休息"
+
+        else:
+
+            sleep_summary = "睡眠保持稳定"
+
+
+
+        trend_summary = (
+            recovery_summary
+            + "<br>"
+            + hrv_summary
+            + "<br>"
+            + sleep_summary
+        )
+
 
         return f"""
 
@@ -4321,8 +4374,7 @@ def trend_report():
 
         </div>
 
-
-
+       
         <div class="card">
 
         <h2>
@@ -4372,7 +4424,21 @@ def trend_report():
 
         </div>
 
+        <div class="card">
 
+        <h2>
+        🧠 趋势分析
+        </h2>
+
+
+        <p>
+
+        {trend_summary}
+
+        </p>
+
+
+        </div>
 
 
         <div class="card">
