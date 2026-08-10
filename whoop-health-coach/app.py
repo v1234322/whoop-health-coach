@@ -1167,7 +1167,15 @@ def today():
 
         report = generate_health_report(data)
 
+
+        # 保存当天数据
+        metrics = extract_daily_metrics(data)
+
+        save_daily_data(metrics)
+
+
         return report
+
 
     except Exception as e:
 
