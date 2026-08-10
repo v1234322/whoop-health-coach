@@ -1466,8 +1466,8 @@ def extract_daily_metrics(data):
                 []
             )
 
-        if not sleep_records and sleep_data.get("score"):
-            sleep_records = [sleep_data]
+            if not sleep_records and sleep_data.get("score"):
+                sleep_records = [sleep_data]
 
         
         else:
