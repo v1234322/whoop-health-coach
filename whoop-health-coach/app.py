@@ -3918,166 +3918,166 @@ def trend_report():
 
         return f"""
 
-return f"""
-<!DOCTYPE html>
 
-<html>
+        <!DOCTYPE html>
 
-<head>
+        <html>
 
-<meta charset="UTF-8">
+        <head>
 
-<title>WHOOP今日健康报告</title>
+        <meta charset="UTF-8">
 
-<style>
+        <title>WHOOP今日健康报告</title>
 
-body {{
-    font-family: Arial, sans-serif;
-    background:#f5f7fa;
-    padding:30px;
-}}
+        <style>
 
-.card {{
-    background:white;
-    border-radius:15px;
-    padding:25px;
-    margin-bottom:20px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}}
+        body {{
+            font-family: Arial, sans-serif;
+            background:#f5f7fa;
+            padding:30px;
+        }}
 
-.title {{
-    font-size:28px;
-    font-weight:bold;
-}}
+        .card {{
+            background:white;
+            border-radius:15px;
+            padding:25px;
+            margin-bottom:20px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+        }}
 
-.metric {{
-    font-size:20px;
-    margin:12px 0;
-}}
+        .title {{
+            font-size:28px;
+           font-weight:bold;
+        }}
 
-.green {{
-    color:#16a34a;
-}}
+        .metric {{
+            font-size:20px;
+            margin:12px 0;
+        }}
 
-.blue {{
-    color:#2563eb;
-}}
+        .green {{
+            color:#16a34a;
+        }}
 
-.orange {{
-    color:#ea580c;
-}}
+        .blue {{
+            color:#2563eb;
+        }}
 
-</style>
+        .orange {{
+            color:#ea580c;
+        }}
 
-</head>
+        </style>
 
+        </head>
 
-<body>
 
+        <body>
 
-<div class="card">
 
-<div class="title">
-🧠 WHOOP 今日健康报告
-</div>
+        <div class="card">
 
-</div>
+        <div class="title">
+        🧠 WHOOP 今日健康报告
+        </div>
 
+        </div>
 
 
-<div class="card">
 
-<h2>🟢 身体恢复</h2>
+        <div class="card">
 
-<div class="metric green">
-💚 Recovery:
-{data["recovery"]["records"][0]["score"]["recovery_score"]}%
-</div>
+        <h2>🟢 身体恢复</h2>
 
+        <div class="metric green">
+        💚 Recovery:
+        {data["recovery"]["records"][0]["score"]["recovery_score"]}%
+        </div>
+        
 
-<div class="metric blue">
-❤️ HRV:
-{data["recovery"]["records"][0]["score"]["hrv_rmssd_milli"]:.1f}
-ms
-</div>
+        <div class="metric blue">
+        ❤️ HRV:
+        {data["recovery"]["records"][0]["score"]["hrv_rmssd_milli"]:.1f}
+        ms
+        </div>
 
 
-<div class="metric orange">
-🔥 静息心率:
-{data["recovery"]["records"][0]["score"]["resting_heart_rate"]}
-bpm
-</div>
+        <div class="metric orange">
+        🔥 静息心率:
+        {data["recovery"]["records"][0]["score"]["resting_heart_rate"]}
+        bpm
+        </div>
 
 
-</div>
+        </div>
 
 
 
 
-<div class="card">
+        <div class="card">
 
-<h2>😴 睡眠分析</h2>
+        <h2>😴 睡眠分析</h2>
 
-<div class="metric">
+        <div class="metric">
 
-睡眠时长:
-{report.get("睡眠时长","")} 小时
+        睡眠时长:
+        {report.get("睡眠时长","")} 小时
 
-</div>
+        </div>
 
 
-<div class="metric">
+        <div class="metric">
 
-睡眠效率:
-{report.get("睡眠效率","")}
+        睡眠效率:
+        {report.get("睡眠效率","")}
 
-</div>
+        </div>
 
 
-<div class="metric">
+        <div class="metric">
 
-深度睡眠:
-{report.get("深度睡眠时长","")}
+        深度睡眠:
+        {report.get("深度睡眠时长","")}
 
-小时
+        小时
 
-</div>
+        </div>
 
 
-<div class="metric">
+        <div class="metric">
 
-REM睡眠:
-{report.get("快速眼动睡眠时长","")}
+        REM睡眠:
+        {report.get("快速眼动睡眠时长","")}
 
-小时
+        小时
 
-</div>
+        </div>
 
 
-</div>
+        </div>
 
 
 
 
-<div class="card">
+        <div class="card">
 
-<h2>🤖 AI健康教练建议</h2>
+        <h2>🤖 AI健康教练建议</h2>
 
-<p>
+        <p>
 
-{report}
+        {report}
 
-</p>
+        </p>
 
-</div>
+        </div>
 
 
 
-</body>
+        </body>
 
-</html>
+        </html>
 
-"""
+        """
 
     except Exception as e:
 
