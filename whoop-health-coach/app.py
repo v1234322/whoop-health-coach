@@ -3685,6 +3685,16 @@ def auto_report():
 
         }
 
+        print(
+            "CYCLE TYPE:",
+            type(data["cycle"])
+        )
+
+        print(
+            "CYCLE VALUE:",
+            data["cycle"]
+        )
+
         print( 
             "SLEEP RECORD COUNT:",
             len(
