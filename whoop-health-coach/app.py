@@ -2198,19 +2198,6 @@ def generate_health_report(data):
         )
 
 
-        print("========= SLEEP STRUCTURE DEBUG =========")
-        print(
-            "SLEEP KEYS:",
-            latest_sleep.keys()
-        )
-
-        print(
-            "SLEEP DATA:",
-            latest_sleep
-        )
-
-        print("=========================================")
-
 
         # =========================
         # SCORE
@@ -2219,12 +2206,6 @@ def generate_health_report(data):
         sleep_score_data = latest_sleep.get(
             "score",
             {}
-        )
-
-
-        print(
-            "SLEEP SCORE TYPE:",
-            type(sleep_score_data)
         )
 
 
@@ -2247,18 +2228,6 @@ def generate_health_report(data):
         stage = sleep_score_data.get(
             "stage_summary",
             {}
-        )
-
-
-        print(
-            "STAGE TYPE:",
-            type(stage)
-        )
-
-
-        print(
-            "STAGE DATA:",
-            stage
         )
 
 
