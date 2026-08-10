@@ -797,7 +797,7 @@ def init_db():
 
         id SERIAL PRIMARY KEY,
 
-        report_date TEXT,
+        report_date TEXT UNIQUE,
 
         recovery_score REAL,
 
@@ -1728,7 +1728,31 @@ def save_daily_data(metrics):
             (
                 %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             )
-            """,
+           ON CONFLICT (report_date)
+
+           DO UPDATE SET
+
+           recovery_score = EXCLUDED.recovery_score,
+
+           hrv = EXCLUDED.hrv,
+
+           resting_heart_rate = EXCLUDED.resting_heart_rate,
+
+           sleep_score = EXCLUDED.sleep_score,
+
+           sleep_duration = EXCLUDED.sleep_duration,
+
+           sleep_efficiency = EXCLUDED.sleep_efficiency,
+
+           deep_sleep_duration = EXCLUDED.deep_sleep_duration,
+
+           rem_sleep_duration = EXCLUDED.rem_sleep_duration,
+
+           cycle_strain = EXCLUDED.cycle_strain,
+
+           workout_data = EXCLUDED.workout_data
+
+           """,
             (
                 today,
                 metrics.get("recovery_score",0),
@@ -1742,7 +1766,7 @@ def save_daily_data(metrics):
                 metrics.get("cycle_strain",0),
                 str(metrics.get("workout_data",""))
             )
-        )
+            )
 
 
         conn.commit()
