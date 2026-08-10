@@ -2061,6 +2061,7 @@ def extract_daily_metrics(data):
         print(
             "EXTRACT RAW DATA:",
             data
+        (
     
         print(
             "EXTRACT CYCLE DATA:",
