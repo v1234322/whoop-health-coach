@@ -1217,7 +1217,7 @@ ms
 <div class="metric">
 
 深度睡眠:
-{report.get("sleep_efficienc",0)}
+{report.get("deep_sleep_duration",0)}
 小时
 
 </div>
@@ -1235,7 +1235,7 @@ REM睡眠:
 <div class="metric">
 
 睡眠评分:
-{report.get("rem_sleep_duration",0)}
+{report.get("sleep_score",0)}
 
 </div>
 
