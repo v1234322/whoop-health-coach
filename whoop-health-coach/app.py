@@ -1159,7 +1159,46 @@ def today():
         save_daily_data(metrics)
 
 
-        return report
+        return f"""
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>WHOOP 今日报告</title>
+</head>
+
+
+<body>
+
+<h1>🧠 WHOOP 今日健康报告</h1>
+
+
+<h2>🟢 Recovery</h2>
+
+<p>
+{data["recovery"]["records"][0]["score"]["recovery_score"]}%
+</p>
+
+
+<h2>❤️ HRV</h2>
+
+<p>
+{data["recovery"]["records"][0]["score"]["hrv_rmssd_milli"]:.1f}
+ms
+</p>
+
+
+<h2>😴 睡眠</h2>
+
+<p>
+{report}
+</p>
+
+
+</body>
+
+</html>
+"""
 
 
     except Exception as e:
@@ -3916,168 +3955,253 @@ def trend_report():
         )
 
 
-        return f"""
+return f"""
 
+<!DOCTYPE html>
 
-        <!DOCTYPE html>
+<html>
 
-        <html>
+<head>
 
-        <head>
+<meta charset="UTF-8">
 
-        <meta charset="UTF-8">
+<title>WHOOP 7天趋势</title>
 
-        <title>WHOOP今日健康报告</title>
 
-        <style>
+<style>
 
-        body {{
-            font-family: Arial, sans-serif;
-            background:#f5f7fa;
-            padding:30px;
-        }}
+body {{
+    font-family:Arial;
+    background:#f5f7fa;
+    padding:30px;
+}}
 
-        .card {{
-            background:white;
-            border-radius:15px;
-            padding:25px;
-            margin-bottom:20px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1);
-        }}
 
-        .title {{
-            font-size:28px;
-           font-weight:bold;
-        }}
+.card {{
 
-        .metric {{
-            font-size:20px;
-            margin:12px 0;
-        }}
+    background:white;
 
-        .green {{
-            color:#16a34a;
-        }}
+    border-radius:15px;
 
-        .blue {{
-            color:#2563eb;
-        }}
+    padding:25px;
 
-        .orange {{
-            color:#ea580c;
-        }}
+    margin-bottom:20px;
 
-        </style>
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
 
-        </head>
+}}
 
 
-        <body>
+.metric {{
 
+    font-size:20px;
 
-        <div class="card">
+    margin:12px;
 
-        <div class="title">
-        🧠 WHOOP 今日健康报告
-        </div>
+}}
 
-        </div>
+</style>
 
 
+</head>
 
-        <div class="card">
 
-        <h2>🟢 身体恢复</h2>
 
-        <div class="metric green">
-        💚 Recovery:
-        {data["recovery"]["records"][0]["score"]["recovery_score"]}%
-        </div>
-        
+<body>
 
-        <div class="metric blue">
-        ❤️ HRV:
-        {data["recovery"]["records"][0]["score"]["hrv_rmssd_milli"]:.1f}
-        ms
-        </div>
 
+<div class="card">
 
-        <div class="metric orange">
-        🔥 静息心率:
-        {data["recovery"]["records"][0]["score"]["resting_heart_rate"]}
-        bpm
-        </div>
+<h1>
+📈 WHOOP 7天趋势分析
+</h1>
 
 
-        </div>
+</div>
 
 
 
+<div class="card">
 
-        <div class="card">
+<h2>
+📊 平均状态
+</h2>
 
-        <h2>😴 睡眠分析</h2>
 
-        <div class="metric">
+<div class="metric">
 
-        睡眠时长:
-        {report.get("睡眠时长","")} 小时
+💚 平均 Recovery:
+{avg_recovery}%
 
-        </div>
+</div>
 
 
-        <div class="metric">
+<div class="metric">
 
-        睡眠效率:
-        {report.get("睡眠效率","")}
+❤️ 平均 HRV:
+{avg_hrv} ms
 
-        </div>
+</div>
 
 
-        <div class="metric">
+<div class="metric">
 
-        深度睡眠:
-        {report.get("深度睡眠时长","")}
+🔥 平均静息心率:
+{avg_resting_hr} bpm
 
-        小时
+</div>
 
-        </div>
 
+<div class="metric">
 
-        <div class="metric">
+😴 平均睡眠:
+{avg_sleep} 小时
 
-        REM睡眠:
-        {report.get("快速眼动睡眠时长","")}
+</div>
 
-        小时
 
-        </div>
+<div class="metric">
 
+🔥 平均 Strain:
+{avg_strain}
 
-        </div>
+</div>
 
 
+</div>
 
 
-        <div class="card">
 
-        <h2>🤖 AI健康教练建议</h2>
 
-        <p>
+<div class="card">
 
-        {report}
 
-        </p>
+<h2>
 
-        </div>
+🧠 训练准备度
 
+</h2>
 
 
-        </body>
+<div class="metric">
 
-        </html>
+{readiness}/100
 
-        """
+</div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2>
+
+⚠️ 风险等级
+
+</h2>
+
+
+<div class="metric">
+
+{risk_level}
+
+</div>
+
+
+<p>
+
+{risk_html}
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2>
+
+🤖 AI健康教练建议
+
+</h2>
+
+
+<p>
+
+{coach_html}
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2>
+
+📅 最近7天记录
+
+</h2>
+
+
+{''.join(
+
+f"""
+
+<hr>
+
+<h3>{item['date']}</h3>
+
+<p>
+Recovery:
+{item['recovery_score']}%
+</p>
+
+<p>
+HRV:
+{item['hrv']} ms
+</p>
+
+
+<p>
+睡眠:
+{item['sleep_duration']} 小时
+</p>
+
+
+<p>
+Strain:
+{item['cycle_strain']}
+</p>
+
+"""
+
+for item in history
+
+)}
+
+
+</div>
+
+
+
+</body>
+
+</html>
+
+"""
 
     except Exception as e:
 
