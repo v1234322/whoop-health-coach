@@ -3718,6 +3718,11 @@ def auto_report():
         )
 
 
+        print(
+            "AFTER TIME CONVERT CYCLE:",
+            data.get("cycle")
+        )
+        
         # =========================
         # 3. 提取健康指标
         # =========================
