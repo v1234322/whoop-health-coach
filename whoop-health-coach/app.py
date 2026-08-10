@@ -1258,6 +1258,17 @@ body {{
     margin:12px 0;
 }}
 
+
+.ai-text {{
+
+    white-space: pre-line;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}}
+
 </style>
 
 </head>
@@ -1389,11 +1400,11 @@ REM睡眠:
 </h2>
 
 
-<p>
+<div class="ai-text">
 
 {ai_summary}
 
-</p>
+</div>
 
 
 </div>
