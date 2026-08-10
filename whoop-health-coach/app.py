@@ -2057,7 +2057,7 @@ def generate_health_report(data):
                 [{}]
             )[0]
         )
-
+    
 
         print(
             "LATEST SLEEP TYPE:",
@@ -2069,12 +2069,24 @@ def generate_health_report(data):
             latest_sleep
         )
 
-        
+
         print("========= SLEEP STRUCTURE DEBUG =========")
-        print("SLEEP KEYS:", latest_sleep.keys())
-        print("SLEEP DATA:", latest_sleep)
+        print(
+            "SLEEP KEYS:",
+            latest_sleep.keys()
+        )
+
+        print(
+            "SLEEP DATA:",
+            latest_sleep
+        )
+
         print("=========================================")
 
+
+        # =========================
+        # SCORE
+        # =========================
 
         sleep_score_data = latest_sleep.get(
             "score",
@@ -2082,21 +2094,56 @@ def generate_health_report(data):
         )
 
 
+        print(
+            "SLEEP SCORE TYPE:",
+            type(sleep_score_data)
+        )
+
+
+        if not isinstance(
+            sleep_score_data,
+            dict
+        ):
+            print(
+                "INVALID SLEEP SCORE:",
+                sleep_score_data
+            )
+
+            sleep_score_data = {}
+
+
+        # =========================
+        # STAGE
+        # =========================
+
         stage = sleep_score_data.get(
             "stage_summary",
             {}
         )
 
-        if not isinstance(stage, dict):
+
+        print(
+            "STAGE TYPE:",
+            type(stage)
+        )
+
+
+        print(
+            "STAGE DATA:",
+            stage
+        )
+
+
+        if not isinstance(
+            stage,
+            dict
+        ):
             print(
-                "INVALID STAGE TYPE:",
-                type(stage)
+                "INVALID STAGE DATA:",
+                stage
             )
+
             stage = {}
-
-
-        print("STAGE DATA >>>")
-        print(stage)
 
 
         sleep_duration = round(
