@@ -1421,33 +1421,94 @@ def trend():
         )
 
 
+        cards = ""
+
+
+        for r in rows:
+
+            cards += f"""
+
+            <div style="
+            background:white;
+            padding:20px;
+            margin:20px;
+            border-radius:15px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            ">
+
+        
+    <h2>
+    📅 {r[0]}
+    </h2>
+
+
+    <p>
+    🟢 Recovery:
+    {r[1]}%
+    </p>
+
+
+    <p>
+    ❤️ HRV:
+    {round(r[2],1) if r[2] else "-"} ms
+    </p>
+
+
+    <p>
+    ❤️ 静息心率:
+    {r[3] if r[3] else "-"} bpm
+    </p>
+
+
+    <p>
+    😴 睡眠:
+    {r[4] if r[4] else "-"} 小时
+    </p>
+
+
+    <p>
+    ⭐ 睡眠评分:
+    {r[5] if r[5] else "-"}
+    </p>
+
+
+    </div>
+
+    """
+
+
+
         return f"""
 
-        <html>
+<html>
 
-        <body>
+<head>
 
-        <h1>
-        📈 WHOOP 7天趋势
-        </h1>
+<meta charset="UTF-8">
 
-
-        {
-            "<br>".join(
-                [
-                    str(r)
-                    for r in rows
-                ]
-            )
-        }
+</head>
 
 
-        </body>
+<body style="
+background:#f5f7fa;
+font-family:Arial;
+padding:30px;
+">
 
-        </html>
 
-        """
+<h1>
+📈 WHOOP 7天趋势
+</h1>
 
+
+{cards}
+
+
+</body>
+
+</html>
+
+"""
 
     except Exception as e:
 
