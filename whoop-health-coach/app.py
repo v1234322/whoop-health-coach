@@ -2054,6 +2054,15 @@ def extract_daily_metrics(data):
         )
 
         print(
+            "EXTRACT DATA KEYS:",
+            data.keys()
+        )
+
+        print(
+            "EXTRACT RAW DATA:",
+            data
+    
+        print(
             "EXTRACT CYCLE DATA:",
             cycle_data
         )
