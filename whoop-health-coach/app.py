@@ -2182,70 +2182,70 @@ def generate_health_report(data):
             sleep_score_data = {}
 
 
-    # =========================
-    # STAGE
-    # =========================
+        # =========================
+        # STAGE
+        # =========================
 
-    stage = sleep_score_data.get(
-        "stage_summary",
-        {}
-    )
-
-
-    if not isinstance(
-        stage,
-        dict
-    ):
-        print(
-            "INVALID STAGE DATA TYPE:",
-            type(stage)
+        stage = sleep_score_data.get(
+            "stage_summary",
+            {}
         )
 
-        stage = {}
 
-
-    deep_sleep_duration = round(
-        (
-            stage.get(
-                "total_slow_wave_sleep_time_milli",
-                0
+        if not isinstance(
+            stage,
+            dict
+        ):
+            print(
+                "INVALID STAGE DATA TYPE:",
+                type(stage)
             )
-        ) / 3600000,
-        2
-    )
+
+            stage = {}
 
 
-    rem_sleep_duration = round(
-        (
-            stage.get(
-                "total_rem_sleep_time_milli",
-                0
-            )
-        ) / 3600000,
-        2
-    )
-
-
-    sleep_duration = round(
-        (
-            stage.get(
-                "total_light_sleep_time_milli",
-                0
-            )
-            +
-            stage.get(
-                "total_slow_wave_sleep_time_milli",
-                0
-            )
-            +
-            stage.get(
-                "total_rem_sleep_time_milli",
-                0
-            )
+        deep_sleep_duration = round(
+            (
+                stage.get(
+                    "total_slow_wave_sleep_time_milli",
+                    0
+                )
+            ) / 3600000,
+            2
         )
-        / 3600000,
-        2
-    )
+
+
+        rem_sleep_duration = round(
+            (
+                stage.get(
+                    "total_rem_sleep_time_milli",
+                    0
+                )
+            ) / 3600000,
+            2
+        )
+
+
+        sleep_duration = round(
+            (
+                stage.get(
+                    "total_light_sleep_time_milli",
+                    0
+                )
+                +
+                stage.get(
+                    "total_slow_wave_sleep_time_milli",
+                    0
+                )
+                +
+                stage.get(
+                    "total_rem_sleep_time_milli",
+                    0
+                )
+            )
+            / 3600000,
+            2
+        )
 
 
         sleep_performance = sleep_score_data.get(
