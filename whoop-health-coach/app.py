@@ -1374,64 +1374,89 @@ def trend():
 
     try:
 
-       data = get_whoop_data()
+        conn = get_db_connection()
+
+        cur = conn.cursor()
 
 
-       metrics = extract_daily_metrics(
-           data
-       )
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 7
+            """
+        )
 
 
-       report = generate_health_report(
-           data
-       )
-
-       ai_prompt = f"""
-
-       Recovery:
-       {metrics.get("recovery_score")}
-
-       HRV:
-       {metrics.get("hrv")}
-
-       Resting Heart Rate:
-       {metrics.get("resting_heart_rate")}
-
-       Sleep Duration:
-       {metrics.get("sleep_duration")}
-
-       Sleep Score:
-       {metrics.get("sleep_score")}
-
-       Sleep Efficiency:
-       {metrics.get("sleep_efficiency")}
-
-       Deep Sleep:
-       {metrics.get("deep_sleep_duration")}
-       
-       REM Sleep:
-       {metrics.get("rem_sleep_duration")}
-       
-       Strain:
-       {metrics.get("cycle_strain")}
-
-       请生成今日健康教练建议。
-
-       """
+        rows = cur.fetchall()
 
 
-       ai_summary = generate_ai_summary(
-           ai_prompt
-       )
+        cur.close()
 
-        return report
+        conn.close()
+
+
+        if not rows:
+
+            return """
+            <h1>
+            暂无历史数据
+            </h1>
+            """
+
+
+        rows = list(
+            reversed(rows)
+        )
+
+
+        return f"""
+
+        <html>
+
+        <body>
+
+        <h1>
+        📈 WHOOP 7天趋势
+        </h1>
+
+
+        {
+            "<br>".join(
+                [
+                    str(r)
+                    for r in rows
+                ]
+            )
+        }
+
+
+        </body>
+
+        </html>
+
+        """
+
 
     except Exception as e:
 
-        print("TREND ERROR:", e)
+        print(
+            "TREND ERROR:",
+            e
+        )
 
         return str(e)
-
 
 
 def generate_ai_summary(ai_prompt):
