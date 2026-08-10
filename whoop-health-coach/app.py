@@ -2058,11 +2058,13 @@ def extract_daily_metrics(data):
             data.keys()
         )
 
+
         print(
             "EXTRACT RAW DATA:",
             data
-        (
-    
+        )
+
+
         print(
             "EXTRACT CYCLE DATA:",
             cycle_data
