@@ -1,0 +1,23 @@
+name: WHOOP Daily Report
+
+on:
+  schedule:
+    # UTC 00:00 = 北京时间 08:00
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+
+
+jobs:
+
+  run-report:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Call WHOOP Auto Report
+
+        run: |
+          curl -X GET \
+          https://whoop-health-coach.onrender.com/whoop/auto-report
