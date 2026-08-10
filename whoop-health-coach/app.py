@@ -2048,6 +2048,10 @@ def extract_daily_metrics(data):
             {}
         )
 
+        print(
+            "EXTRACT CYCLE DATA:",
+            cycle_data
+        )
 
         cycle_records = cycle_data.get(
             "records",
