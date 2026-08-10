@@ -845,11 +845,57 @@ def init_db():
 
     print("DATABASE READY")
 
+    clean_duplicate_daily_metrics()
 
     ensure_refresh_token()
+
+
     
 init_db()
 
+def clean_duplicate_daily_metrics():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute(
+            """
+            DELETE FROM daily_metrics
+            WHERE id NOT IN
+            (
+                SELECT MAX(id)
+                FROM daily_metrics
+                GROUP BY report_date
+            )
+            """
+        )
+
+        deleted = cur.rowcount
+
+        conn.commit()
+
+        print(
+            "DELETE DUPLICATE ROWS:",
+            deleted
+        )
+
+
+    except Exception as e:
+
+        print(
+            "CLEAN ERROR:",
+            e
+        )
+
+
+    finally:
+
+        cur.close()
+        conn.close()
+        
 
 @app.route("/callback")
 def callback():
