@@ -1164,44 +1164,134 @@ def today():
         )
 
         return f"""
+
+<!DOCTYPE html>
+
 <html>
 
 <head>
+
 <meta charset="UTF-8">
-<title>WHOOP 今日报告</title>
+
+<title>WHOOP 今日健康报告</title>
+
+
+<style>
+
+body {{
+    font-family: Arial, sans-serif;
+    background:#f5f7fa;
+    padding:30px;
+}}
+
+
+.card {{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    margin-bottom:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}}
+
+
+.title {{
+    font-size:32px;
+    font-weight:bold;
+}}
+
+
+.number {{
+    font-size:40px;
+    font-weight:bold;
+    color:#16a34a;
+}}
+
+
+.metric {{
+    font-size:22px;
+    margin:12px 0;
+}}
+
+</style>
+
 </head>
 
 
 <body>
 
-<h1>🧠 WHOOP 今日健康报告</h1>
 
+<div class="card">
 
-<h2>🟢 Recovery</h2>
+<div class="title">
 
-<p>
-{data["recovery"]["records"][0]["score"]["recovery_score"]}%
-</p>
+🧠 WHOOP 今日健康报告
 
+</div>
 
-<h2>❤️ HRV</h2>
+</div>
 
-<p>
-{data["recovery"]["records"][0]["score"]["hrv_rmssd_milli"]:.1f}
-ms
-</p>
 
 
 <div class="card">
 
-<h2>😴 睡眠</h2>
+<h2>
+🟢 Recovery
+</h2>
+
+
+<div class="number">
+
+{metrics.get("recovery_score")}%
+
+</div>
+
+
+<p>
+恢复状态优秀
+</p>
+
+</div>
+
+
+
+
+<div class="card">
+
+<h2>
+❤️ HRV
+</h2>
+
+
+<div class="metric">
+
+{metrics.get("hrv"):.1f} ms
+
+</div>
+
+
+<p>
+
+自主神经恢复良好
+
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+<h2>
+😴 睡眠
+</h2>
 
 
 <div class="metric">
 
 睡眠时长:
-{report.get("sleep_duration",0)}
-小时
+{metrics.get("sleep_duration")} 小时
 
 </div>
 
@@ -1209,38 +1299,65 @@ ms
 <div class="metric">
 
 睡眠效率:
-{report.get("sleep_efficiency",0):.1f}%
+{metrics.get("sleep_efficiency"):.1f}%
 
 </div>
+
 
 
 <div class="metric">
 
 深度睡眠:
-{report.get("deep_sleep_duration",0)}
-小时
+{metrics.get("deep_sleep_duration")} 小时
 
 </div>
+
 
 
 <div class="metric">
 
 REM睡眠:
-{report.get("rem_sleep_duration",0)}
-小时
+{metrics.get("rem_sleep_duration")} 小时
 
 </div>
+
 
 
 <div class="metric">
 
 睡眠评分:
-{report.get("sleep_score",0)}
+{metrics.get("sleep_score")}
 
 </div>
 
 
 </div>
+
+
+
+
+<div class="card">
+
+<h2>
+🤖 AI健康教练
+</h2>
+
+
+<p>
+
+{report}
+
+</p>
+
+
+</div>
+
+
+
+</body>
+
+</html>
+
 """
 
 
