@@ -2051,12 +2051,7 @@ def generate_health_report(data):
         print(sleep)
 
 
-        latest_sleep = (
-            sleep.get(
-                "records",
-                [{}]
-            )[0]
-        )
+        latest_sleep = sleep
     
 
         print(
