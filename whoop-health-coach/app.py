@@ -1209,7 +1209,7 @@ ms
 <div class="metric">
 
 睡眠效率:
-{report.get("sleep_efficienc",0)}%
+{report.get("sleep_efficiency",0):.1f}%
 
 </div>
 
