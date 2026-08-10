@@ -867,45 +867,6 @@ def init_db():
     )
     """)
 
-    # =========================
-    # 修复 report_date UNIQUE
-    # =========================
-
-    try:
-
-        cursor.execute("""
-        ALTER TABLE daily_metrics
-        ADD CONSTRAINT daily_metrics_report_date_unique
-        UNIQUE(report_date)
-        """)
-
-        print(
-            "ADDED REPORT_DATE UNIQUE"
-        )
-
-
-    except Exception as e:
-
-        print(
-            "REPORT_DATE UNIQUE EXISTS:",
-            e
-        )
-
-    
-    cursor.execute(
-        """
-        SELECT
-            indexname,
-            indexdef
-        FROM pg_indexes
-        WHERE tablename='daily_metrics'
-        """
-    )
-
-    print(
-        "DAILY INDEXES:",
-        cursor.fetchall()
-    )
 
     conn.commit()
 
