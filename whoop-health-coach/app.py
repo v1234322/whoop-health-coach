@@ -1196,7 +1196,7 @@ ms
 <div class="metric">
 
 睡眠时长:
-{report.get("睡眠时长",0)}
+{report.get("sleep_duration",0)}
 小时
 
 </div>
@@ -1205,7 +1205,7 @@ ms
 <div class="metric">
 
 睡眠效率:
-{report.get("睡眠效率",0)}%
+{report.get("sleep_efficienc",0)}%
 
 </div>
 
@@ -1213,7 +1213,7 @@ ms
 <div class="metric">
 
 深度睡眠:
-{report.get("深度睡眠时长",0)}
+{report.get("sleep_efficienc",0)}
 小时
 
 </div>
@@ -1222,7 +1222,7 @@ ms
 <div class="metric">
 
 REM睡眠:
-{report.get("快速眼动睡眠时长",0)}
+{report.get("rem_sleep_duration",0)}
 小时
 
 </div>
@@ -1231,7 +1231,7 @@ REM睡眠:
 <div class="metric">
 
 睡眠评分:
-{report.get("睡眠评分",0)}
+{report.get("rem_sleep_duration",0)}
 
 </div>
 
