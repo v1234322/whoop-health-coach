@@ -1683,9 +1683,12 @@ def extract_daily_metrics(data):
 
         result["workout_data"] = {}
 
+    print(
+        "FINAL EXTRACT METRICS:",
+        result
+    )
 
     return result
-    
 
 def save_daily_data(metrics):
 
