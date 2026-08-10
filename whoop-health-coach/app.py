@@ -1152,6 +1152,8 @@ def today():
 
         report = generate_health_report(data)
 
+        metrics = extract_daily_metrics(data)
+
         # =========================
         # AI健康教练
         # =========================
