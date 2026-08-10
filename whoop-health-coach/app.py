@@ -1188,16 +1188,55 @@ ms
 </p>
 
 
+<div class="card">
+
 <h2>😴 睡眠</h2>
 
-<p>
-{report}
-</p>
+
+<div class="metric">
+
+睡眠时长:
+{report.get("睡眠时长",0)}
+小时
+
+</div>
 
 
-</body>
+<div class="metric">
 
-</html>
+睡眠效率:
+{report.get("睡眠效率",0)}%
+
+</div>
+
+
+<div class="metric">
+
+深度睡眠:
+{report.get("深度睡眠时长",0)}
+小时
+
+</div>
+
+
+<div class="metric">
+
+REM睡眠:
+{report.get("快速眼动睡眠时长",0)}
+小时
+
+</div>
+
+
+<div class="metric">
+
+睡眠评分:
+{report.get("睡眠评分",0)}
+
+</div>
+
+
+</div>
 """
 
 
