@@ -1152,6 +1152,50 @@ def today():
 
         report = generate_health_report(data)
 
+        # =========================
+        # AI健康教练
+        # =========================
+
+        ai_prompt = f"""
+
+        WHOOP 数据:
+
+        Recovery:
+        {metrics.get("recovery_score")}
+        
+        HRV:
+        {metrics.get("hrv")}
+
+        静息心率:
+        {metrics.get("resting_heart_rate")}
+
+        睡眠:
+        {metrics.get("sleep_duration")}
+
+        睡眠评分:
+        {metrics.get("sleep_score")}
+
+        睡眠效率:
+        {metrics.get("sleep_efficiency")}
+
+        深度睡眠:
+        {metrics.get("deep_sleep_duration")}
+
+        REM:
+        {metrics.get("rem_sleep_duration")}
+
+        Strain:
+        {metrics.get("cycle_strain")}
+
+        请生成今日健康教练建议。
+
+        """
+
+
+        ai_summary = generate_ai_summary(
+            ai_prompt
+        )
+
 
         # 保存当天数据
         metrics = extract_daily_metrics(data)
