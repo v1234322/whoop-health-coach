@@ -2197,8 +2197,8 @@ def generate_health_report(data):
             dict
         ):
             print(
-                "INVALID STAGE DATA:",
-                stage
+                "INVALID STAGE DATA TYPE:",
+                type(stage)
             )
 
             stage = {}
@@ -2362,7 +2362,6 @@ def generate_health_report(data):
 
     training_advice = "根据 Recovery 调整训练强度"
 
-    print("FINAL REPORT DATA:")
     print(
         "Recovery:",
         recovery_score,
@@ -3272,10 +3271,12 @@ def auto_report():
 
         }
 
-
-        print("========== FINAL SLEEP DATA ==========")
-        print(data["sleep"])
-        print("=======================================")
+            print(
+                "SLEEP RECORD COUNT:",
+                len(
+                    data["sleep"].get("records",[])
+                )
+            )
 
 
         print("========== RAW CYCLE DATA ==========")
@@ -3301,8 +3302,13 @@ def auto_report():
 
 
         print(
-            "DAILY METRICS:",
-            metrics
+            "DAILY METRICS SAVING:",
+            {
+                "recovery_score": metrics.get("recovery_score"),
+                "hrv": metrics.get("hrv"),
+                "sleep_duration": metrics.get("sleep_duration"),
+                "cycle_strain": metrics.get("cycle_strain")
+            }
         )
 
 
