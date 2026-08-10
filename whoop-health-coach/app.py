@@ -1607,7 +1607,9 @@ def extract_daily_metrics(data):
 
         if isinstance(cycle_data, dict):
 
-            cycle = cycle_data
+            cycle = (
+                cycle_data.get("records",[{}])[0]
+        )
 
         else:
 
