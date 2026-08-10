@@ -1692,6 +1692,9 @@ def extract_daily_metrics(data):
 
 def save_daily_data(metrics):
 
+    conn = None
+    cur = None
+
     try:
 
         conn = get_db_connection()
@@ -1762,13 +1765,8 @@ def save_daily_data(metrics):
         
         print(
             "LATEST DAILY ROW:",
-            cur.fetchone()
+            latest_row
         )
-
-
-        cur.close()
-        conn.close()
-
 
     except Exception as e:
 
@@ -1777,6 +1775,14 @@ def save_daily_data(metrics):
             e
         )
 
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
 
 def convert_utc_to_beijing(obj):
