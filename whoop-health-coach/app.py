@@ -2034,9 +2034,12 @@ def extract_daily_metrics(data):
         result["rem_sleep_duration"] = None
 
 
-    # =========================
-    # Cycle Strain
-    # =========================
+    # =====================
+    # Cycle
+    # =====================
+    
+    strain = None
+
 
     try:
 
@@ -2046,51 +2049,36 @@ def extract_daily_metrics(data):
         )
 
 
-        print("RAW CYCLE DATA:")
-        print(cycle_data)
-
-        if isinstance(cycle_data, dict):
-
-            cycle = (
-                cycle_data.get("records",[{}])[0]
+        cycle_records = cycle_data.get(
+            "records",
+            []
         )
 
-        else:
 
-            cycle = (
-                cycle_data[0]
-                if cycle_data
-                else {}
+        if cycle_records:
+
+            latest_cycle = cycle_records[0]
+
+
+            strain = (
+                latest_cycle
+                .get("score", {})
+                .get("strain")
             )
-
-
-        cycle_score = (
-            cycle.get(
-                "score",
-                {}
-            )
-        )
-
-
-        result["cycle_strain"] = cycle_score.get(
-            "strain"
-        )
-
-
-        print(
-            "CYCLE STRAIN:",
-            result["cycle_strain"]
-        )
 
 
     except Exception as e:
 
         print(
-            "CYCLE ERROR:",
+            "CYCLE PARSE ERROR:",
             e
-    )
+        )
 
-        result["cycle_strain"] = None
+
+    print(
+        "CYCLE STRAIN:",
+        strain
+    )
 
     # =========================
     # Workout
