@@ -3271,12 +3271,12 @@ def auto_report():
 
         }
 
-            print(
-                "SLEEP RECORD COUNT:",
-                len(
-                    data["sleep"].get("records",[])
-                )
+        print( 
+            "SLEEP RECORD COUNT:",
+            len(
+                data["sleep"].get("records",[])
             )
+        )
 
 
         print("========== RAW CYCLE DATA ==========")
