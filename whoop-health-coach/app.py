@@ -2587,13 +2587,17 @@ def generate_week_report(data):
 
     for row in data:
 
-        date = row["date"]
+        date = row[0]
 
-        recovery = row["recovery"] or 0
-        hrv = row["hrv"] or 0
-        resting_hr = row["resting_hr"] or 0
-        sleep = row["sleep"] or 0
-        strain = row["strain"] or 0
+        recovery = row[1] or 0
+
+        hrv = row[2] or 0
+
+        resting_hr = row[3] or 0
+
+        sleep = row[5] or 0
+
+        strain = row[7] or 0
 
 
         recovery_list.append(float(recovery))
