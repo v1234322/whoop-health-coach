@@ -823,6 +823,21 @@ def init_db():
     """)
 
 
+    cursor.execute(
+        """
+        SELECT
+            indexname,
+            indexdef
+        FROM pg_indexes
+        WHERE tablename='daily_metrics'
+        """
+    )
+
+    print(
+        "DAILY INDEXES:",
+        cursor.fetchall()
+    )
+
     conn.commit()
 
     conn.close()
