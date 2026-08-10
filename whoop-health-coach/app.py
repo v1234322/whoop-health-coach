@@ -3955,253 +3955,253 @@ def trend_report():
         )
 
 
-    return f"""
+        return f"""
 
-    <!DOCTYPE html>
+        <!DOCTYPE html>
 
-    <html>
+        <html>
 
-    <head>
+        <head>
 
-    <meta charset="UTF-8">
+        <meta charset="UTF-8">
 
-    <title>WHOOP 7天趋势</title>
+        <title>WHOOP 7天趋势</title>
 
 
-    <style>
+        <style>
 
-    body {{
-        font-family:Arial;
-        background:#f5f7fa;
-        padding:30px;
-    }}
+        body {{
+            font-family:Arial;
+            background:#f5f7fa;
+            padding:30px;
+        }}
 
 
-    .card {{
+        .card {{
 
-        background:white;
+            background:white;
 
-        border-radius:15px;
+            border-radius:15px;
 
-        padding:25px;
+            padding:25px;
 
-        margin-bottom:20px;
+            margin-bottom:20px;
 
-        box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
 
-    }}
+        }}
 
 
-    .metric {{
+        .metric {{
 
-        font-size:20px;
+            font-size:20px;
+    
+            margin:12px;
 
-        margin:12px;
+        }}
 
-    }}
+        </style>
 
-    </style>
 
+        </head>
 
-    </head>
 
 
+        <body>
 
-    <body>
 
+        <div class="card">
 
-    <div class="card">
+        <h1>
+        📈 WHOOP 7天趋势分析
+        </h1>
 
-    <h1>
-    📈 WHOOP 7天趋势分析
-    </h1>
 
+        </div>
 
-    </div>
 
 
+        <div class="card">
 
-    <div class="card">
+        <h2>
+        📊 平均状态
+        </h2>
 
-    <h2>
-    📊 平均状态
-    </h2>
 
+        <div class="metric">
 
-    <div class="metric">
+        💚 平均 Recovery:
+        {avg_recovery}%
 
-    💚 平均 Recovery:
-    {avg_recovery}%
+        </div>
 
-    </div>
 
+        <div class="metric">
 
-    <div class="metric">
+        ❤️ 平均 HRV:
+        {avg_hrv} ms
 
-    ❤️ 平均 HRV:
-    {avg_hrv} ms
+        </div>
 
-    </div>
 
+        <div class="metric">
 
-    <div class="metric">
+        🔥 平均静息心率:
+        {avg_resting_hr} bpm
 
-    🔥 平均静息心率:
-    {avg_resting_hr} bpm
+        </div>
 
-    </div>
 
+        <div class="metric">
 
-    <div class="metric">
+        😴 平均睡眠:
+        {avg_sleep} 小时
 
-    😴 平均睡眠:
-    {avg_sleep} 小时
+        </div>
 
-    </div>
 
+        <div class="metric">
 
-    <div class="metric">
+        🔥 平均 Strain:
+        {avg_strain}
 
-    🔥 平均 Strain:
-    {avg_strain}
+        </div>
 
-    </div>
 
+        </div>
 
-    </div>
 
 
 
+        <div class="card">
 
-    <div class="card">
 
+        <h2>
 
-    <h2>
+        🧠 训练准备度
 
-    🧠 训练准备度
+        </h2>
 
-    </h2>
 
+        <div class="metric">
 
-    <div class="metric">
+        {readiness}/100
 
-    {readiness}/100
+        </div>
 
-    </div>
 
+        </div>
 
-    </div>
 
 
 
+        <div class="card">
 
-    <div class="card">
 
+        <h2>
 
-    <h2>
+        ⚠️ 风险等级
 
-    ⚠️ 风险等级
+        </h2>
 
-    </h2>
 
+        <div class="metric">
 
-    <div class="metric">
+        {risk_level}
 
-    {risk_level}
+        </div>
 
-    </div>
 
+        <p>
 
-    <p>
+        {risk_html}
 
-    {risk_html}
+        </p>
 
-    </p>
 
+        </div>
 
-    </div>
 
 
 
+        <div class="card">
 
-    <div class="card">
 
+        <h2>
 
-    <h2>
+        🤖 AI健康教练建议
 
-    🤖 AI健康教练建议
+        </h2>
 
-    </h2>
 
+        <p>
 
-    <p>
+        {coach_html}
 
-    {coach_html}
+        </p>
 
-    </p>
 
-
-    </div>
+        </div>
 
 
 
     
-    <div class="card">
+        <div class="card">
 
 
-    <h2>
+        <h2>
 
-    📅 最近7天记录
+        📅 最近7天记录
 
-    </h2>
-
-
-    {''.join(
-
-    f"""
-
-    <hr>
-
-    <h3>{item['date']}</h3>
-
-    <p>
-    Recovery:
-    {item['recovery_score']}%
-    </p>
-
-    <p>
-    HRV:
-    {item['hrv']} ms
-    </p>
+        </h2>
 
 
-    <p>
-    睡眠:
-    {item['sleep_duration']} 小时
-    </p>
+        {''.join(
+
+        f"""
+
+        <hr>
+
+        <h3>{item['date']}</h3>
+
+        <p>
+        Recovery:
+        {item['recovery_score']}%
+        </p>
+
+        <p>
+        HRV:
+        {item['hrv']} ms
+        </p>
 
 
-    <p>
-    Strain:
-    {item['cycle_strain']}
-    </p>
-
-    """
-
-    for item in history
-
-    )}
+        <p>
+        睡眠:
+        {item['sleep_duration']} 小时
+        </p>
 
 
-    </div>
+        <p>
+        Strain:
+        {item['cycle_strain']}
+        </p>
+
+        """
+
+        for item in history
+
+        )}
+
+
+        </div>
 
 
 
-    </body>
+        </body>
 
-    </html>
+        </html>
 
-    """
+        """
 
     except Exception as e:
 
