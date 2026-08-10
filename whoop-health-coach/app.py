@@ -3356,13 +3356,13 @@ def auto_report():
         # 4. 保存数据库
         # =========================
 
-       print("===== BEFORE SAVE DAILY DATA =====")
+        print("===== BEFORE SAVE DAILY DATA =====")
 
-       save_daily_data(
-           metrics
-       )
+        save_daily_data(
+            metrics
+        )
 
-       print("===== AFTER SAVE DAILY DATA =====")
+        print("===== AFTER SAVE DAILY DATA =====")
 
 
         # =========================
