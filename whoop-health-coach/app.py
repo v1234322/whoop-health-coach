@@ -1345,7 +1345,7 @@ REM睡眠:
 
 <p>
 
-{report}
+{ai_summary}
 
 </p>
 
@@ -1374,9 +1374,55 @@ def trend():
 
     try:
 
-        data = get_whoop_week_data()
+       data = get_whoop_data()
 
-        report = generate_week_report(data)
+
+       metrics = extract_daily_metrics(
+           data
+       )
+
+
+       report = generate_health_report(
+           data
+       )
+
+       ai_prompt = f"""
+
+       Recovery:
+       {metrics.get("recovery_score")}
+
+       HRV:
+       {metrics.get("hrv")}
+
+       Resting Heart Rate:
+       {metrics.get("resting_heart_rate")}
+
+       Sleep Duration:
+       {metrics.get("sleep_duration")}
+
+       Sleep Score:
+       {metrics.get("sleep_score")}
+
+       Sleep Efficiency:
+       {metrics.get("sleep_efficiency")}
+
+       Deep Sleep:
+       {metrics.get("deep_sleep_duration")}
+       
+       REM Sleep:
+       {metrics.get("rem_sleep_duration")}
+       
+       Strain:
+       {metrics.get("cycle_strain")}
+
+       请生成今日健康教练建议。
+
+       """
+
+
+       ai_summary = generate_ai_summary(
+           ai_prompt
+       )
 
         return report
 
