@@ -1757,6 +1757,9 @@ def save_daily_data(metrics):
             """
         )
 
+        latest_row = cur.fetchone()
+
+        
         print(
             "LATEST DAILY ROW:",
             cur.fetchone()
