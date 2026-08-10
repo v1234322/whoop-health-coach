@@ -1158,6 +1158,10 @@ def today():
 
         save_daily_data(metrics)
 
+        print(
+            "HTML REPORT OBJECT:",
+            report
+        )
 
         return f"""
 <html>
