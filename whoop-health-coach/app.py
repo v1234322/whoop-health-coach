@@ -1818,6 +1818,11 @@ def whoop_token():
 
 def extract_daily_metrics(data):
 
+    print(
+        "FUNCTION INPUT CYCLE:",
+        data.get("cycle")
+    )
+
     result = {}
 
 
@@ -3676,6 +3681,11 @@ def auto_report():
             whoop_get("/activity/workout")
 
         }
+
+        print(
+            "AUTO REPORT CYCLE:",
+            data["cycle"]
+        )
 
         print(
             "CYCLE TYPE:",
