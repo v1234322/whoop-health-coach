@@ -2382,21 +2382,17 @@ def generate_health_report(data):
 
         "resting_heart_rate": resting_hr,
 
-    
         "sleep_duration": sleep_duration,
 
         "sleep_score": sleep_performance,
 
         "sleep_efficiency": sleep_efficiency,
 
+        "deep_sleep_duration": deep_sleep_duration,
 
-        "deep_sleep_duration": 0,
-
-        "rem_sleep_duration": 0,
-
+        "rem_sleep_duration": rem_sleep_duration,
 
         "cycle_strain": strain,
-
 
         "sleep_quality": sleep_quality,
 
@@ -2406,11 +2402,9 @@ def generate_health_report(data):
 
         "awake_minutes": awake_time,
 
-
         "training_advice": training_advice
 
     }
-
 
 def get_whoop_data():
 
