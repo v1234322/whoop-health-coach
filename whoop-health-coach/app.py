@@ -2474,6 +2474,16 @@ def generate_health_report(data):
     )
 
 
+    print(
+        "SLEEP FINAL CHECK:",
+        sleep_duration,
+        sleep_performance,
+        sleep_efficiency,
+        deep_sleep_duration,
+        rem_sleep_duration
+    )
+
+    
     return {
 
         "recovery_score": recovery_score,
