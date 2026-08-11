@@ -2133,22 +2133,24 @@ background:#fafafa;
 
     background:#fafafa;
 
-    border-radius:14px;
+    border-radius:16px;
 
-    padding:18px;
+    padding:14px 18px;
 
-    margin-bottom:18px;
+    margin-bottom:12px;
 
 }}
 
 
 .ai-item-title {{
 
-    font-size:20px;
+    font-size:28px;
 
     font-weight:bold;
 
-    margin-bottom:12px;
+    margin-bottom:4px;
+
+    color:#111;
 
 }}
 
