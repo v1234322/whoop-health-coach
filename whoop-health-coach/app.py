@@ -3667,20 +3667,6 @@ def auto_report():
 
         }
 
-        print(
-            "AUTO REPORT CYCLE:",
-            data["cycle"]
-        )
-
-        print(
-            "CYCLE TYPE:",
-            type(data["cycle"])
-        )
-
-        print(
-            "CYCLE VALUE:",
-            data["cycle"]
-        )
 
         print( 
             "SLEEP RECORD COUNT:",
@@ -3690,10 +3676,6 @@ def auto_report():
         )
 
 
-        print("========== RAW CYCLE DATA ==========")
-        print(data["cycle"])
-        print("====================================")
-
         # =========================
         # 2. 时间转换
         # =========================
@@ -3702,11 +3684,6 @@ def auto_report():
             data
         )
 
-
-        print(
-            "AFTER TIME CONVERT CYCLE:",
-            data.get("cycle")
-        )
         
         # =========================
         # 3. 提取健康指标
