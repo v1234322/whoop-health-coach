@@ -2937,17 +2937,17 @@ HRV
     )
 
 
-    return response.choices[0].message.content
+        return response.choices[0].message.content
 
 
-except Exception as e:
+    except Exception as e:
 
-    print(
-        "AI SUMMARY ERROR:",
-        e
-    )
+        print(
+            "AI SUMMARY ERROR:",
+            e
+        )
 
-    return "⚠️ AI教练暂时无法生成建议"
+        return "⚠️ AI教练暂时无法生成建议"
 
 
 
