@@ -1562,6 +1562,109 @@ padding:30px;
         return str(e)
 
 
+
+@app.route("/whoop/weekly")
+def weekly():
+
+    try:
+
+        weekly_report = generate_weekly_analysis()
+
+
+        return f"""
+        <!DOCTYPE html>
+
+        <html>
+
+        <head>
+
+        <meta charset="UTF-8">
+
+        <title>
+        WHOOP 7天健康报告
+        </title>
+
+
+        <style>
+
+        body {{
+
+            font-family: Arial, sans-serif;
+
+            background:#f5f7fa;
+
+            padding:30px;
+
+        }}
+
+
+        .card {{
+
+            background:white;
+
+            padding:25px;
+
+            border-radius:15px;
+
+            box-shadow:
+            0 4px 12px rgba(0,0,0,0.1);
+
+            line-height:1.8;
+
+        }}
+
+
+        h1 {{
+
+            font-size:28px;
+
+        }}
+
+
+        </style>
+
+        </head>
+
+
+        <body>
+
+
+        <div class="card">
+
+        <h1>
+        📊 WHOOP 7天健康趋势报告
+        </h1>
+
+
+        <p>
+
+        {weekly_report}
+
+        </p>
+
+
+        </div>
+
+
+        </body>
+
+        </html>
+
+        """
+
+
+    except Exception as e:
+
+
+        print(
+            "WEEKLY PAGE ERROR:",
+            e
+        )
+
+
+        return str(e)
+
+
 def generate_ai_summary(ai_prompt):
 
     try:
@@ -1681,6 +1784,125 @@ def generate_ai_summary(ai_prompt):
         )
 
         return "⚠️ AI教练暂时无法生成建议"
+
+def generate_weekly_analysis():
+
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 7
+            """
+        )
+
+
+        rows = cur.fetchall()
+
+
+        cur.close()
+
+        conn.close()
+
+
+
+        if len(rows) < 3:
+
+            return "历史数据不足3天，暂无法生成可靠趋势分析"
+
+
+
+        prompt = f"""
+
+你是 WHOOP 私人健康教练。
+
+
+以下是用户最近7天 WHOOP 数据：
+
+{rows}
+
+
+请分析：
+
+
+🟢【恢复趋势】
+
+分析 Recovery变化。
+
+
+❤️【HRV趋势】
+
+分析 HRV 是否稳定。
+
+
+😴【睡眠趋势】
+
+分析睡眠时间和质量。
+
+
+🔥【训练负荷】
+
+分析 Strain 是否合理。
+
+
+⚠️【风险提醒】
+
+指出可能的疲劳风险。
+
+
+📅【未来7天建议】
+
+给出训练和恢复建议。
+
+
+要求：
+
+- 中文简体
+- 使用emoji
+- 500字以内
+- 不编造数据
+- 不重复罗列数字
+- 像私人WHOOP教练
+
+
+"""
+
+
+        result = generate_ai_summary(
+            prompt
+        )
+
+
+        return result
+
+
+
+    except Exception as e:
+
+
+        print(
+            "WEEKLY ANALYSIS ERROR:",
+            e
+        )
+
+
+        return "⚠️ 周报告暂时无法生成"
 
 
 
