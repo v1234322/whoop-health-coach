@@ -1962,13 +1962,8 @@ margin-top:8px;
 
 }}
 
-canvas {{
 
-    width:100% !important;
 
-    height:350px !important;
-
-}}
 
 body {{
 
@@ -2016,11 +2011,22 @@ body {{
     box-shadow:
     0 8px 25px rgba(0,0,0,0.08);
 
+    line-height:1.9;
+
     font-size:18px;
 
     width:100%;
 
-    box-sizing:border-box;
+
+}}
+
+.chart-box {{
+
+    width:100%;
+
+    height:400px;
+
+    margin-bottom:40px;
 
 }}
 
@@ -2175,6 +2181,8 @@ h
     <canvas id="recoveryChart"></canvas>
 </div>
 
+<div class="card">
+
 <h2>
 ❤️ HRV趋势
 </h2>
@@ -2183,6 +2191,8 @@ h
     <canvas id="hrvChart"></canvas>
 </div>
 
+<div class="card">
+
 <h2>
 😴 睡眠趋势
 </h2>
@@ -2190,6 +2200,8 @@ h
 <div class="chart-box">
     <canvas id="sleepChart"></canvas>
 </div>
+
+<div class="card">
 
 <h2>
 🔥 Strain趋势
@@ -2200,6 +2212,7 @@ h
 </div>
 
 <div class="section">
+
 
 <h2>
 🤖 AI健康教练建议
