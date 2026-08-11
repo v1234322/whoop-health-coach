@@ -1572,32 +1572,32 @@ def weekly():
 
         weekly_report = weekly_report.replace(
             "🟢【",
-            "<br><br>🟢【"
+            "<br>🟢【"
         )
 
         weekly_report = weekly_report.replace(
             "❤️【",
-            "<br><br>❤️【"
+            "<br>❤️【"
         )
 
         weekly_report = weekly_report.replace(
             "😴【",
-            "<br><br>😴【"
+            "<br>😴【"
         )
 
         weekly_report = weekly_report.replace(
             "🔥【",
-            "<br><br>🔥【"
+            "<br>🔥【"
         )
 
         weekly_report = weekly_report.replace(
             "⚠️【",
-            "<br><br>⚠️【"
+            "<br>⚠️【"
         )
 
         weekly_report = weekly_report.replace(
             "📅【",
-            "<br><br>📅【"
+            "<br>📅【"
         )
 
 
@@ -1719,7 +1719,7 @@ h2 {{
 <div class="section">
 
 <h2>
-🟢 AI健康教练分析
+🤖 AI健康教练建议
 </h2>
 
 <div>
