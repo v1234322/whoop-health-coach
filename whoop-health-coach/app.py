@@ -1798,27 +1798,33 @@ h2 {{
 📈 Recovery趋势
 </h2>
 
-<canvas id="recoveryChart" height="100"></canvas>
+<div class="chart-box">
+    <canvas id="recoveryChart"></canvas>
+</div>
 
 <h2>
 ❤️ HRV趋势
 </h2>
 
-<canvas id="hrvChart" height="100"></canvas>
-
+<div class="chart-box">
+    <canvas id="hrvChart"></canvas>
+</div>
 
 <h2>
 😴 睡眠趋势
 </h2>
 
-<canvas id="sleepChart" height="100"></canvas>
-
+<div class="chart-box">
+    <canvas id="sleepChart"></canvas>
+</div>
 
 <h2>
 🔥 Strain趋势
 </h2>
 
-<canvas id="strainChart" height="100"></canvas>
+<div class="chart-box">
+    <canvas id="strainChart"></canvas>
+</div>
 
 <div class="section">
 
@@ -1861,6 +1867,11 @@ data:{recovery_json}
 
 }}]
 
+}},
+
+options:{{
+    responsive:true,
+    maintainAspectRatio:false
 }}
 
 }}
@@ -1887,6 +1898,11 @@ data:{hrv_json}
 
 }}]
 
+}},
+
+options:{{
+    responsive:true,
+    maintainAspectRatio:false
 }}
 
 }}
@@ -1913,6 +1929,11 @@ data:{sleep_json}
 
 }}]
 
+}},
+
+options:{{
+    responsive:true,
+    maintainAspectRatio:false
 }}
 
 }}
@@ -1939,6 +1960,11 @@ data:{strain_json}
 
 }}]
 
+}},
+
+options:{{
+    responsive:true,
+    maintainAspectRatio:false
 }}
 
 }}
