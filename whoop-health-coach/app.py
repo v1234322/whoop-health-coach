@@ -4027,28 +4027,28 @@ def health():
         )
 
 
-            row = cur.fetchone()
+        row = cur.fetchone()
 
 
-            # =====================
-            # SYSTEM STATUS CHECK
-            # =====================
+        # =====================
+        # SYSTEM STATUS CHECK
+        # =====================
 
-            cur.execute(
-                """
-                SELECT last_success_time
-                FROM system_status
-                LIMIT 1
-                """
-            )
-
-
-            status_row = cur.fetchone()
+        cur.execute(
+             """
+             SELECT last_success_time
+             FROM system_status
+             LIMIT 1
+             """
+         )
 
 
-            cur.close()
+         status_row = cur.fetchone()
 
-            conn.close()
+
+         cur.close()
+
+         conn.close()
 
 
         if row:
