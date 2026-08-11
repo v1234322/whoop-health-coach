@@ -1859,7 +1859,7 @@ def weekly():
             if value <= 18:
                 return "较高训练负荷"
 
-        return "训练负荷过高"
+            return "训练负荷过高"
     
     
         avg_recovery = safe_avg(
