@@ -2448,7 +2448,7 @@ maintainAspectRatio:false
 }}
 
 
-}
+}}
 
 );
 
@@ -2487,7 +2487,7 @@ maintainAspectRatio:false
 }}
 
 
-}
+}}
 
 );
 
