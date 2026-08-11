@@ -1625,8 +1625,16 @@ def weekly():
 
         weekly_report = generate_weekly_analysis()
 
-        weekly_report = weekly_report.replace("\n\n\n", "\n")
-        weekly_report = weekly_report.replace("\n\n", "\n")
+        import re
+
+        weekly_report = generate_weekly_analysis()
+
+        # 压缩AI输出中的多余空行
+        weekly_report = re.sub(
+            r'\n\s*\n+',
+            '\n',
+            weekly_report
+        )
 
         weekly_report = format_weekly_report(weekly_report)
 
@@ -2170,15 +2178,18 @@ margin-bottom:8px;
 
 .section {{
 
-margin-top:15px;
+margin-top:20px;
 
-padding:15px 18px;
+padding:20px;
 
 border-radius:15px;
 
 background:#fafafa;
 
-line-height:1.6;
+height:auto;
+
+min-height:0;
+
 
 }}
 
@@ -2243,6 +2254,12 @@ line-height:1.6;
 
 }}
 
+
+.ai-content br {{
+
+    display:none;
+
+}}
 
 
 .ai-green {{
@@ -2635,15 +2652,9 @@ h
 
 </div>
 
-
 </div>
 
-
 </div>
-
-
-
-
 
 <script>
 
