@@ -1562,6 +1562,65 @@ padding:30px;
         return str(e)
 
 
+def format_weekly_report(report):
+
+    if not report:
+        return "暂无 AI 健康分析"
+
+
+    sections = [
+        "🟢【恢复趋势】",
+        "💚【HRV趋势】",
+        "😴【睡眠趋势】",
+        "🔥【训练负荷】",
+        "⚠️【风险提醒】",
+        "📅【未来7天建议】"
+    ]
+
+
+    formatted = report
+
+
+    for title in sections:
+
+        name = (
+            title
+            .replace("🟢","")
+            .replace("💚","")
+            .replace("😴","")
+            .replace("🔥","")
+            .replace("⚠️","")
+            .replace("📅","")
+            .replace("【","")
+            .replace("】","")
+        )
+
+
+        formatted = formatted.replace(
+            title,
+            f"""
+            </div>
+            <div class="ai-item">
+            <div class="ai-item-title">
+            {name}
+            </div>
+            """
+        )
+
+
+    formatted = formatted.replace(
+        "\n",
+        "<br>"
+    )
+
+
+    if formatted.startswith("</div>"):
+        formatted = formatted[6:]
+
+
+    return formatted
+
+
 
 @app.route("/whoop/weekly")
 def weekly():
@@ -1569,6 +1628,8 @@ def weekly():
     try:
 
         weekly_report = generate_weekly_analysis()
+
+        weekly_report = format_weekly_report(weekly_report)
 
         conn = get_db_connection()
 
@@ -2688,67 +2749,6 @@ def generate_ai_summary(ai_prompt):
         )
 
         return "⚠️ AI教练暂时无法生成建议"
-
-
-
-def format_weekly_report(report):
-
-    if not report:
-        return "暂无 AI 健康分析"
-
-
-    sections = [
-        "🟢【恢复趋势】",
-        "💚【HRV趋势】",
-        "😴【睡眠趋势】",
-        "🔥【训练负荷】",
-        "⚠️【风险提醒】",
-        "📅【未来7天建议】"
-    ]
-
-
-    formatted = report
-
-
-    for title in sections:
-
-        name = (
-            title
-            .replace("🟢","")
-            .replace("💚","")
-            .replace("😴","")
-            .replace("🔥","")
-            .replace("⚠️","")
-            .replace("📅","")
-            .replace("【","")
-            .replace("】","")
-        )
-
-
-        formatted = formatted.replace(
-            title,
-            f"""
-            </div>
-            <div class="ai-item">
-            <div class="ai-item-title">
-            {name}
-            </div>
-            """
-        )
-
-
-    formatted = formatted.replace(
-        "\n",
-        "<br>"
-    )
-
-
-    if formatted.startswith("</div>"):
-        formatted = formatted[6:]
-
-
-    return formatted
-
 
 
 
