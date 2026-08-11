@@ -1476,6 +1476,12 @@ def trend():
     </p>
 
 
+    <p>
+    🔥 Strain:
+    {round(r[6],1) if r[6] is not None else "-"}
+    </p>
+
+    
     </div>
 
     """
