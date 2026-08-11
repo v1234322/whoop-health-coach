@@ -19,5 +19,10 @@ jobs:
       - name: Call WHOOP Auto Report
 
         run: |
-          curl -X GET \
-          https://whoop-health-coach.onrender.com/whoop/auto-report
+          curl --fail \
+               --show-error \
+               --retry 3 \
+               --retry-delay 10 \
+               --retry-all-errors \
+               --max-time 180 \
+               https://whoop-health-coach.onrender.com/whoop/auto-report
