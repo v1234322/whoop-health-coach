@@ -2833,17 +2833,17 @@ maintainAspectRatio:false
 
 def generate_ai_summary(ai_prompt):
 
-try:
+    try:
 
-    response = client.chat.completions.create(
+        response = client.chat.completions.create(
 
-        model="deepseek-chat",
+            model="deepseek-chat",
 
-        messages=[
+            messages=[
 
-            {
-                "role": "system",
-                "content": """
+                {
+                    "role": "system",
+                    "content": """
 
 
 你是 WHOOP 私人健康教练。
