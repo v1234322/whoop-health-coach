@@ -3637,6 +3637,17 @@ def auto_save_daily():
 @app.route("/whoop/auto-report")
 def auto_report():
 
+
+    if not check_api_key():
+
+        return jsonify({
+
+            "error":
+            "unauthorized"
+
+        }),401
+
+
     try:
 
         print(
