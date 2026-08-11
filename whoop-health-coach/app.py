@@ -1,5 +1,6 @@
 import json
 import os
+import hmac
 
 print("WHOOP HEALTH COACH STARTED")
 
@@ -8,6 +9,8 @@ import psycopg2
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, request, Response
+
+from functools import wraps
 
 import requests
 
@@ -37,6 +40,53 @@ app = Flask(__name__)
 app.json.ensure_ascii = False
 
 app.config["JSON_AS_ASCII"] = False
+
+
+def require_chatgpt_api_key(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        expected_key = os.getenv(
+            "CHATGPT_ACTION_API_KEY"
+        )
+
+        if not expected_key:
+
+            return jsonify({
+                "success": False,
+                "error": "ChatGPT API authentication is not configured"
+            }), 503
+
+        authorization = request.headers.get(
+            "Authorization",
+            ""
+        )
+
+        if not authorization.startswith("Bearer "):
+
+            return jsonify({
+                "success": False,
+                "error": "Authorization header is required"
+            }), 401
+
+        provided_key = authorization[
+            len("Bearer "):
+        ].strip()
+
+        if not hmac.compare_digest(
+            provided_key,
+            expected_key
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": "Invalid API key"
+            }), 403
+
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 # =========================
@@ -1641,6 +1691,169 @@ def format_weekly_report(report):
         html_parts.append("</div>")
 
     return "".join(html_parts)
+
+
+@app.route("/api/whoop/today", methods=["GET"])
+@require_chatgpt_api_key
+def api_whoop_today():
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 1
+            """
+        )
+
+        row = cur.fetchone()
+
+        if not row:
+
+            return jsonify({
+                "success": False,
+                "error": "No WHOOP data available"
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "report_date": row[0],
+                "recovery_score": row[1],
+                "hrv_ms": row[2],
+                "resting_heart_rate_bpm": row[3],
+                "sleep_duration_hours": row[4],
+                "sleep_score": row[5],
+                "cycle_strain": row[6]
+            }
+        })
+
+    except Exception as e:
+
+        print(
+            "WHOOP TODAY API ERROR:",
+            e
+        )
+
+        return jsonify({
+            "success": False,
+            "error": "Unable to retrieve WHOOP data"
+        }), 500
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
+
+@app.route("/api/whoop/weekly", methods=["GET"])
+@require_chatgpt_api_key
+def api_whoop_weekly():
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 7
+            """
+        )
+
+        rows = cur.fetchall()
+        rows = list(reversed(rows))
+
+        records = []
+
+        for row in rows:
+
+            records.append({
+                "report_date": row[0],
+                "recovery_score": row[1],
+                "hrv_ms": row[2],
+                "resting_heart_rate_bpm": row[3],
+                "sleep_duration_hours": row[4],
+                "sleep_score": row[5],
+                "cycle_strain": row[6]
+            })
+
+        sleep_valid_days = sum(
+            1
+            for record in records
+            if record["sleep_duration_hours"] is not None
+        )
+
+        if records:
+            start_date = records[0]["report_date"]
+            end_date = records[-1]["report_date"]
+        else:
+            start_date = None
+            end_date = None
+
+        return jsonify({
+            "success": True,
+            "period": {
+                "start_date": start_date,
+                "end_date": end_date,
+                "valid_days": len(records),
+                "sleep_valid_days": sleep_valid_days,
+                "expected_days": 7,
+                "is_complete": len(records) >= 7
+            },
+            "records": records
+        })
+
+    except Exception as e:
+
+        print(
+            "WHOOP WEEKLY API ERROR:",
+            e
+        )
+
+        return jsonify({
+            "success": False,
+            "error": "Unable to retrieve weekly WHOOP data"
+        }), 500
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
 
 @app.route("/whoop/weekly")
