@@ -4005,14 +4005,6 @@ def health():
 
             whoop_token_status = "ERROR"
 
-            
-            print(
-                "TOKEN HEALTH ERROR:",
-                e
-            )
-
-            whoop_token_status = "ERROR"
-            
 
         conn = get_db_connection()
 
@@ -4035,13 +4027,28 @@ def health():
         )
 
 
-        row = cur.fetchone()
+            row = cur.fetchone()
 
 
-        cur.close()
+            # =====================
+            # SYSTEM STATUS CHECK
+            # =====================
 
-        conn.close()
+            cur.execute(
+                """
+                SELECT last_success_time
+                FROM system_status
+                LIMIT 1
+                """
+            )
 
+
+            status_row = cur.fetchone()
+
+
+            cur.close()
+
+            conn.close()
 
 
         if row:
@@ -4057,6 +4064,9 @@ def health():
             
                 "last_report":
                 row[0],
+
+                "last_success_time":
+                status_row[0] if status_row else None,
 
                 "recovery":
                 row[1],
