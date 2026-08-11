@@ -1697,6 +1697,20 @@ def weekly():
             return "red"
 
 
+        def hrv_status(value):
+
+            if value is None:
+                return "gray"
+
+            if value >= 60:
+                return "green"
+
+            if value >= 40:
+                return "orange"
+
+            return "red"
+
+    
         def recovery_label(value):
 
             if value is None:
@@ -1750,6 +1764,21 @@ def weekly():
             hrv_values
         )
 
+        hrv_color = hrv_status(avg_hrv)
+
+
+        if hrv_color == "green":
+            hrv_text = "状态良好"
+
+        elif hrv_color == "orange":
+            hrv_text = "略有下降"
+
+        elif hrv_color == "red":
+            hrv_text = "需要恢复"
+
+        else:
+            hrv_text = "-"
+            
 
         avg_sleep = safe_avg(
             sleep_values
@@ -2035,22 +2064,22 @@ h2 {{
 
 <div class="summary-card">
 
-    <div class="summary-label">
-        🟢 平均 Recovery
-    </div>
+<div class="summary-label">
+🟢 平均 Recovery
+</div>
 
-    <div class="summary-value">
+<div class="summary-value">
 
-        <span class="status-{recovery_color}">
-            {avg_recovery if avg_recovery else "-"}
-        </span>
-        %
+<span class="status-{recovery_color}">
+{avg_recovery if avg_recovery else "-"}
+</span>
+%
 
-    </div>
+</div>
 
-    <div class="status-text">
-        {recovery_text}
-    </div>
+<div class="status-text">
+{recovery_text}
+</div>
 
 </div>
 
@@ -2058,15 +2087,27 @@ h2 {{
 
 <div class="summary-card">
 
-    <div class="summary-label">
-        ❤️ 平均 HRV
-    </div>
+<div class="summary-label">
+❤️ 平均 HRV
+</div>
 
-    <div class="summary-value">
+<div class="summary-value">
 
-        {avg_hrv if avg_hrv else "-"} ms
+<span class="status-{hrv_color}">
 
-    </div>
+{avg_hrv if avg_hrv else "-"}
+
+</span>
+
+ms
+
+<div class="status-text">
+
+{hrv_text}
+
+</div>
+
+</div>
 
 </div>
 
@@ -2074,22 +2115,22 @@ h2 {{
 
 <div class="summary-card">
 
-    <div class="summary-label">
-        😴 平均睡眠
-    </div>
+<div class="summary-label">
+😴 平均睡眠
+</div>
 
-    <div class="summary-value">
+<div class="summary-value">
 
-        <span class="status-{sleep_color}">
-            {avg_sleep if avg_sleep else "-"}
-        </span>
-        h
+<span class="status-{sleep_color}">
+{avg_sleep if avg_sleep else "-"}
+</span>
+h
 
-    </div>
+</div>
 
-    <div class="status-text">
-        {sleep_text}
-    </div>
+<div class="status-text">
+{sleep_text}
+</div>
 
 </div>
 
@@ -2097,21 +2138,21 @@ h2 {{
 
 <div class="summary-card">
 
-    <div class="summary-label">
-        🔥 平均 Strain
-    </div>
+<div class="summary-label">
+🔥 平均 Strain
+</div>
 
-    <div class="summary-value">
+<div class="summary-value">
 
-        <span class="status-{strain_color}">
-            {avg_strain if avg_strain else "-"}
-        </span>
+<span class="status-{strain_color}">
+{avg_strain if avg_strain else "-"}
+</span>
 
-    </div>
+</div>
 
-    <div class="status-text">
-        {strain_text}
-    </div>
+<div class="status-text">
+{strain_text}
+</div>
 
 </div>
 
