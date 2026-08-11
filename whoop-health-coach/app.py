@@ -1571,7 +1571,7 @@ def weekly():
         weekly_report = generate_weekly_analysis()
 
 
-    return f"""
+        return f"""
 
 <!DOCTYPE html>
 
