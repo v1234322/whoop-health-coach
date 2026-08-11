@@ -1635,6 +1635,16 @@ def weekly():
             for r in rows
         ]
 
+        dates_json = json.dumps(dates)
+
+        recovery_json = json.dumps(recovery_values)
+
+        hrv_json = json.dumps(hrv_values)
+
+        sleep_json = json.dumps(sleep_values)
+
+        strain_json = json.dumps(strain_values)
+
 
         
         weekly_report = weekly_report.replace(
@@ -1830,6 +1840,114 @@ h2 {{
 
 
 </div>
+
+<script>
+
+
+new Chart(
+document.getElementById("recoveryChart"),
+{
+
+type:"line",
+
+data:{
+
+labels:{dates_json},
+
+datasets:[{
+
+label:"Recovery",
+
+data:{recovery_json}
+
+}]
+
+}
+
+}
+
+);
+
+
+
+new Chart(
+document.getElementById("hrvChart"),
+{
+
+type:"line",
+
+data:{
+
+labels:{dates_json},
+
+datasets:[{
+
+label:"HRV",
+
+data:{hrv_json}
+
+}]
+
+}
+
+}
+
+);
+
+
+
+new Chart(
+document.getElementById("sleepChart"),
+{
+
+type:"bar",
+
+data:{
+
+labels:{dates_json},
+
+datasets:[{
+
+label:"Sleep Hours",
+
+data:{sleep_json}
+
+}]
+
+}
+
+}
+
+);
+
+
+
+new Chart(
+document.getElementById("strainChart"),
+{
+
+type:"bar",
+
+data:{
+
+labels:{dates_json},
+
+datasets:[{
+
+label:"Strain",
+
+data:{strain_json}
+
+}]
+
+}
+
+}
+
+);
+
+
+</script>
 
 
 </body>
