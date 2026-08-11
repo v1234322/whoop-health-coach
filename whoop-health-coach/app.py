@@ -2096,6 +2096,8 @@ def extract_daily_metrics(data):
         strain
     )
 
+    result["cycle_strain"] = strain
+    
     # =========================
     # Workout
     # =========================
