@@ -1569,19 +1569,19 @@ def format_weekly_report(report):
 
 
     sections = [
-        "🟢【恢复趋势】",
-        "💚【HRV趋势】",
-        "😴【睡眠趋势】",
-        "🔥【训练负荷】",
-        "⚠️【风险提醒】",
-        "📅【未来7天建议】"
+        ("🟢【恢复趋势】","ai-green"),
+        ("💚【HRV趋势】","ai-heart"),
+        ("😴【睡眠趋势】","ai-sleep"),
+        ("🔥【训练负荷】","ai-fire"),
+        ("⚠️【风险提醒】","ai-warning"),
+        ("📅【未来7天建议】","ai-plan")
     ]
 
 
     formatted = report
 
 
-    for title in sections:
+    for title, css in sections:
 
         name = (
             title
@@ -1595,9 +1595,11 @@ def format_weekly_report(report):
             f"""
             </div>
             <div class="ai-item">
-            <div class="ai-item-title">
-            {name}
+
+            <div class="ai-item-title {css}">
+            {title}
             </div>
+
             """
         )
 
@@ -1707,6 +1709,39 @@ def weekly():
                 1
             )
 
+        def calculate_health_score(
+            recovery,
+            hrv,
+            sleep,
+            strain
+        ):
+
+            score = 0
+
+
+            if recovery:
+                score += min(recovery,100)*0.4
+
+
+            if hrv:
+                score += min(hrv/70*100,100)*0.2
+
+
+            if sleep:
+                score += min(sleep/8*100,100)*0.25
+
+
+            if strain:
+                if strain <=14:
+                    score += 15
+                elif strain <=18:
+                    score += 10
+                else:
+                    score += 5
+
+
+            return round(score)
+            
 
         def recovery_status(value):
 
@@ -1818,6 +1853,37 @@ def weekly():
         avg_hrv = safe_avg(
             hrv_values
         )
+
+
+        # 综合健康评分
+
+        health_score = 0
+
+
+        # Recovery 权重40%
+        if avg_recovery is not None:
+            health_score += avg_recovery * 0.4
+
+
+        # HRV 权重30%
+        if avg_hrv is not None:
+            health_score += min(avg_hrv,100) * 0.3
+
+
+        # 睡眠权重20%
+        if avg_sleep is not None:
+            sleep_score = min(avg_sleep / 8 * 100, 100)
+            health_score += sleep_score * 0.2
+
+
+        # Strain权重10%
+        if avg_strain is not None:
+            strain_score = max(0,100-avg_strain*5)
+            health_score += strain_score * 0.1
+
+
+        health_score = round(health_score)
+
 
         hrv_color = hrv_status(avg_hrv)
 
@@ -2090,70 +2156,176 @@ font-size:22px;
 }}
 
 
+.section h2 {{
+
+font-size:18px;
+
+margin-bottom:8px;
+
+}}
+
 
 .section {{
 
-margin-top:20px;
+margin-top:15px;
 
-padding:18px;
+padding:15px 18px;
 
 border-radius:15px;
 
 background:#fafafa;
 
+line-height:1.6;
+
 }}
+
 
 .ai-box {{
 
-    background:#ffffff;
+background:#ffffff;
 
-    border-radius:18px;
+border-radius:18px;
 
-    padding:25px;
+padding:25px;
 
-    line-height:1.9;
+line-height:1.9;
 
-    font-size:17px;
+font-size:17px;
 
 }}
 
 
 .ai-title {{
 
-    font-size:24px;
+font-size:24px;
 
-    font-weight:bold;
+font-weight:bold;
 
-    margin-bottom:25px;
+margin-bottom:25px;
 
 }}
 
 
 .ai-item {{
 
-    background:#fafafa;
+background:#fafafa;
 
-    border-radius:16px;
+border-radius:16px;
 
-    padding:14px 18px;
+padding:14px 18px;
 
-    margin-bottom:12px;
+margin-bottom:12px;
 
 }}
 
 
 .ai-item-title {{
 
-    font-size:28px;
+font-size:28px;
 
-    font-weight:bold;
+font-weight:bold;
 
-    margin-bottom:4px;
+margin-bottom:4px;
 
-    color:#111;
+color:#111;
 
 }}
 
+
+.ai-content {{
+
+font-size:16px;
+
+line-height:1.6;
+
+}}
+
+
+
+.ai-green {{
+
+color:#16a34a;
+
+}}
+
+.ai-heart {{
+
+color:#dc2626;
+
+}}
+
+.ai-sleep {{
+
+color:#f59e0b;
+
+}}
+
+.ai-fire {{
+
+color:#ea580c;
+
+}}
+
+.ai-warning {{
+
+color:#dc2626;
+
+}}
+
+.ai-plan {{
+
+color:#2563eb;
+
+}}
+
+
+.health-score-card {{
+
+background:white;
+
+border-radius:20px;
+
+padding:25px;
+
+margin-bottom:25px;
+
+text-align:center;
+
+box-shadow:
+0 8px 25px rgba(0,0,0,0.08);
+
+}}
+
+
+.health-score-title {{
+
+font-size:20px;
+
+font-weight:700;
+
+}}
+
+
+.health-score-value {{
+
+font-size:48px;
+
+font-weight:bold;
+
+color:#16a34a;
+
+margin:15px 0;
+
+}}
+
+
+.health-score-text {{
+
+font-size:16px;
+
+color:#666;
+
+}}
 
 
 
@@ -2181,6 +2353,30 @@ background:#fafafa;
 
 
 <!-- SUMMARY -->
+
+<div class="health-score-card">
+
+<div class="health-score-title">
+
+🧠 综合健康评分
+
+</div>
+
+
+<div class="health-score-value">
+
+{health_score}
+
+</div>
+
+
+<div class="health-score-text">
+
+今日整体状态
+
+</div>
+
+</div>
 
 
 <div class="summary-grid">
