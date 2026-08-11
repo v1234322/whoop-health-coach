@@ -2095,6 +2095,8 @@ background:#fafafa;
 
     margin-bottom:10px;
 
+    color:#111;
+
 }}
 
 
@@ -2694,45 +2696,58 @@ def format_weekly_report(report):
     if not report:
         return "暂无 AI 健康分析"
 
+
     sections = [
         "🟢【恢复趋势】",
-        "💚【恢复趋势】",
-        "❤️【HRV趋势】",
+        "💚【HRV趋势】",
         "😴【睡眠趋势】",
         "🔥【训练负荷】",
         "⚠️【风险提醒】",
         "📅【未来7天建议】"
     ]
 
+
     formatted = report
+
 
     for title in sections:
 
-        clean_title = (
+        name = (
             title
-            .replace("【", "")
-            .replace("】", "")
+            .replace("🟢","")
+            .replace("💚","")
+            .replace("😴","")
+            .replace("🔥","")
+            .replace("⚠️","")
+            .replace("📅","")
+            .replace("【","")
+            .replace("】","")
         )
+
 
         formatted = formatted.replace(
             title,
-            f'</div><div class="ai-item">'
-            f'<div class="ai-item-title">{clean_title}</div>'
+            f"""
+            </div>
+            <div class="ai-item">
+            <div class="ai-item-title">
+            {name}
+            </div>
+            """
         )
 
-    # 如果第一个替换产生了多余的 </div>
-    if formatted.startswith('</div>'):
+
+    formatted = formatted.replace(
+        "\n",
+        "<br>"
+    )
+
+
+    if formatted.startswith("</div>"):
         formatted = formatted[6:]
 
-    # 最后关闭 ai-item
-    if 'class="ai-item"' in formatted:
-        formatted += "</div>"
-
-    # 保留 AI 输出中的换行
-    formatted = formatted.replace("\n", "<br>")
 
     return formatted
-
 
 
 
