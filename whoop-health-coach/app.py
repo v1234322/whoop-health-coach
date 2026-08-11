@@ -3861,6 +3861,96 @@ def auto_report():
 
         })
 
+@app.route("/health")
+def health():
+
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                sleep_duration,
+                cycle_strain
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 1
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        cur.close()
+
+        conn.close()
+
+
+
+        if row:
+
+            return jsonify({
+
+                "app": "OK",
+
+                "database": "OK",
+
+                "last_report":
+                row[0],
+
+                "recovery":
+                row[1],
+
+                "sleep":
+                row[2],
+
+                "strain":
+                row[3]
+
+            })
+
+
+        else:
+
+            return jsonify({
+
+                "app": "OK",
+
+                "database": "OK",
+
+                "last_report": None
+
+            })
+
+
+    except Exception as e:
+
+
+        print(
+            "HEALTH CHECK ERROR:",
+            e
+        )
+
+
+        return jsonify({
+
+            "app": "ERROR",
+
+            "database": "ERROR",
+
+            "error": str(e)
+
+        }), 500
+        
 
 def trend_report():
 
