@@ -1696,6 +1696,50 @@ def weekly():
 
             return "red"
 
+
+        def recovery_label(value):
+
+            if value is None:
+                return "暂无数据"
+
+            if value >= 67:
+                return "恢复良好"
+
+            if value >= 34:
+                return "恢复一般"
+
+            return "需要恢复"
+
+
+
+        def sleep_label(value):
+
+            if value is None:
+        return "暂无数据"
+
+            if value >= 7:
+                return "睡眠充足"
+
+            if value >= 6:
+                return "略有不足"
+
+            return "睡眠不足"
+
+
+
+        def strain_label(value):
+
+            if value is None:
+                return "暂无数据"
+
+            if value <= 14:
+                return "训练合理"
+
+            if value <= 18:
+                return "注意负荷"
+
+            return "负荷偏高"
+    
     
         avg_recovery = safe_avg(
             recovery_values
@@ -1728,6 +1772,22 @@ def weekly():
             avg_strain
         )
 
+
+        recovery_text = recovery_label(
+            avg_recovery
+        )
+
+
+        sleep_text = sleep_label(
+            avg_sleep
+        )
+
+
+        strain_text = strain_label(
+            avg_strain
+        )
+
+        
 
         dates_json = json.dumps(dates)
 
@@ -1863,6 +1923,16 @@ color:#666;
 }}
 
 
+.status-text {{
+
+font-size:14px;
+
+font-weight:bold;
+
+margin-top:8px;
+
+}}
+
 
 
 body {{
@@ -1965,34 +2035,22 @@ h2 {{
 
 <div class="summary-card">
 
-<div class="summary-label">
-🟢 平均 Recovery
-</div>
+    <div class="summary-label">
+        🟢 平均 Recovery
+    </div>
 
-<div class="summary-value">
+    <div class="summary-value">
 
-<span class="status-{recovery_color}">
+        <span class="status-{recovery_color}">
+            {avg_recovery if avg_recovery else "-"}
+        </span>
+        %
 
-{avg_recovery if avg_recovery else "-"}
+    </div>
 
-</span>
-%
-
-</div>
-
-</div>
-
-
-
-<div class="summary-card">
-
-<div class="summary-label">
-❤️ 平均 HRV
-</div>
-
-<div class="summary-value">
-{avg_hrv if avg_hrv else "-"} ms
-</div>
+    <div class="status-text">
+        {recovery_text}
+    </div>
 
 </div>
 
@@ -2000,20 +2058,15 @@ h2 {{
 
 <div class="summary-card">
 
-<div class="summary-label">
-😴 平均睡眠
-</div>
+    <div class="summary-label">
+        ❤️ 平均 HRV
+    </div>
 
-<div class="summary-value">
+    <div class="summary-value">
 
-<span class="status-{sleep_color}">
+        {avg_hrv if avg_hrv else "-"} ms
 
-{avg_sleep if avg_sleep else "-"}
-
-</span>
-h
-
-</div>
+    </div>
 
 </div>
 
@@ -2021,25 +2074,46 @@ h
 
 <div class="summary-card">
 
-<div class="summary-label">
-🔥 平均 Strain
+    <div class="summary-label">
+        😴 平均睡眠
+    </div>
+
+    <div class="summary-value">
+
+        <span class="status-{sleep_color}">
+            {avg_sleep if avg_sleep else "-"}
+        </span>
+        h
+
+    </div>
+
+    <div class="status-text">
+        {sleep_text}
+    </div>
+
 </div>
 
-<div class="summary-value">
 
-<span class="status-{strain_color}">
 
-{avg_strain if avg_strain else "-"}
+<div class="summary-card">
 
-</span>
+    <div class="summary-label">
+        🔥 平均 Strain
+    </div>
+
+    <div class="summary-value">
+
+        <span class="status-{strain_color}">
+            {avg_strain if avg_strain else "-"}
+        </span>
+
+    </div>
+
+    <div class="status-text">
+        {strain_text}
+    </div>
 
 </div>
-
-</div>
-
-
-</div>
-
 
 
 <div class="card">
@@ -2394,6 +2468,8 @@ def generate_weekly_analysis():
 
 
         rows = cur.fetchall()
+
+        print("WEEKLY DATA:", rows)
 
 
         cur.close()
