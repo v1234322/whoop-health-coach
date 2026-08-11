@@ -2048,6 +2048,56 @@ background:#fafafa;
 
 }}
 
+.ai-box {{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    line-height:1.9;
+
+    font-size:17px;
+
+}}
+
+
+.ai-title {{
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    margin-bottom:25px;
+
+}}
+
+
+.ai-item {{
+
+    background:#fafafa;
+
+    border-radius:14px;
+
+    padding:18px;
+
+    margin-bottom:18px;
+
+}}
+
+
+.ai-item-title {{
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+
+}}
+
+
 
 
 </style>
@@ -2313,28 +2363,29 @@ h
 <div class="card">
 
 
-<div class="section">
+<div class="ai-box">
 
 
-<h2>
+<div class="ai-title">
+
 🤖 AI健康教练建议
-</h2>
-
 
 </div>
 
+
+<div class="ai-content">
 
 {weekly_report}
 
+</div>
 
 
 </div>
 
 
-
-
-
 </div>
+
+
 
 
 
@@ -2635,6 +2686,56 @@ def generate_ai_summary(ai_prompt):
         )
 
         return "⚠️ AI教练暂时无法生成建议"
+
+
+
+def format_weekly_report(report):
+
+    if not report:
+        return "暂无 AI 健康分析"
+
+    sections = [
+        "🟢【恢复趋势】",
+        "💚【恢复趋势】",
+        "❤️【HRV趋势】",
+        "😴【睡眠趋势】",
+        "🔥【训练负荷】",
+        "⚠️【风险提醒】",
+        "📅【未来7天建议】"
+    ]
+
+    formatted = report
+
+    for title in sections:
+
+        clean_title = (
+            title
+            .replace("【", "")
+            .replace("】", "")
+        )
+
+        formatted = formatted.replace(
+            title,
+            f'</div><div class="ai-item">'
+            f'<div class="ai-item-title">{clean_title}</div>'
+        )
+
+    # 如果第一个替换产生了多余的 </div>
+    if formatted.startswith('</div>'):
+        formatted = formatted[6:]
+
+    # 最后关闭 ai-item
+    if 'class="ai-item"' in formatted:
+        formatted += "</div>"
+
+    # 保留 AI 输出中的换行
+    formatted = formatted.replace("\n", "<br>")
+
+    return formatted
+
+
+
+
 
 def generate_weekly_analysis():
 
