@@ -1569,7 +1569,7 @@ def format_weekly_report(report):
 
     sections = {
         "🟢【恢复趋势】": "ai-green",
-        "💚【HRV趋势】": "ai-heart",
+        "❤️【HRV趋势】": "ai-heart",
         "😴【睡眠趋势】": "ai-sleep",
         "🔥【训练负荷】": "ai-fire",
         "⚠️【风险提醒】": "ai-warning",
@@ -2855,7 +2855,7 @@ maintainAspectRatio:false
         return str(e)
 
 
-def generate_ai_summary(ai_prompt):
+def generate_weekly_ai_summary(ai_prompt):
 
     try:
 
@@ -2871,120 +2871,98 @@ def generate_ai_summary(ai_prompt):
 你是 WHOOP 私人健康教练。
 
 你的任务：
-根据用户提供的 WHOOP 健康数据，
-生成专业、简洁、可执行的健康建议。
+根据用户最近最多7天的 WHOOP 数据，
+生成专业、谨慎、简洁、可执行的趋势分析。
 
-分析内容：
+必须严格使用以下标题，标题文字和emoji不能改变：
 
-💚 Recovery恢复状态
+🟢【恢复趋势】
 
-❤️ HRV变化
+❤️【HRV趋势】
 
-❤️‍🔥 静息心率
+😴【睡眠趋势】
 
-😴 睡眠质量
-
-🔥 Strain训练负荷
-
-
-输出格式：
-
-🟢【今日身体状态】
-
-总结当前恢复情况。
-
-
-💚【恢复分析】
-
-分析：
-- Recovery
-- HRV
-- 静息心率
-
-
-😴【睡眠分析】
-
-分析：
-- 睡眠时间
-- 睡眠质量
-- 对恢复影响
-
-
-🔥【训练建议】
-
-给出：
-- 是否适合训练
-- 推荐训练强度
-- 推荐训练类型
-
+🔥【训练负荷】
 
 ⚠️【风险提醒】
 
-如果存在恢复不足、疲劳累积，
-必须提醒。
+📅【未来7天建议】
 
+分析规则：
 
-📅【未来1-3天建议】
+1. 只能使用用户提供的数据，不得编造或猜测。
+2. 数据缺失时，必须明确写“数据缺失，无法判断”。
+3. 不得把没有训练记录解释为休息日或高强度训练。
+4. 不得根据单日变化作出确定性医学结论。
+5. 数据不足7天时，必须说明这是阶段性趋势。
+6. 必须区分短期波动和连续下降趋势。
+7. 不重复堆砌所有原始数据，只引用支持结论的关键数值。
+8. 睡眠建议必须结合睡眠时长和睡眠评分。
+9. 训练建议必须结合 Recovery、HRV、睡眠和 Strain。
+10. 未来7天建议必须是条件式建议，不得预先安排固定的HIIT或高强度训练。
 
-第1天：
-训练建议
+训练建议标准：
 
-第2天：
-恢复建议
+- Recovery较低或睡眠不足6小时：
+  建议休息或主动恢复。
 
-第3天：
-训练调整
+- Recovery处于中等水平：
+  建议低至中等强度训练。
 
+- Recovery较高、HRV稳定且睡眠充足：
+  才可以建议中高强度训练。
 
-规则：
+风险表达规则：
+
+- 使用“可能”“建议关注”等谨慎表达。
+- 不得诊断疾病。
+- 不得声称一定会受伤或生病。
+- 如出现持续异常，建议咨询医疗专业人员。
+
+输出要求：
 
 - 中文简体
 - 使用emoji
-- 不超过400字
-- 不重复罗列数据
-- 不编造不存在的数据
-- 像私人WHOOP教练
+- 500字以内
 - 不输出代码
-
+- 不使用Markdown表格
+- 像谨慎、专业的WHOOP私人教练
 """
                 },
 
                 {
                     "role": "user",
-                    "content": ai_prompt[:3000]
+                    "content": ai_prompt[:5000]
                 }
 
             ],
 
-            temperature=0.4,
+            temperature=0.3,
 
-            max_tokens=600
+            max_tokens=900
 
         )
 
-
         return response.choices[0].message.content
-
 
     except Exception as e:
 
         print(
-            "AI SUMMARY ERROR:",
+            "WEEKLY AI SUMMARY ERROR:",
             e
         )
 
-        return "⚠️ AI教练暂时无法生成建议"
-
-
+        return "⚠️ 周报 AI 教练暂时无法生成建议"
 
 def generate_weekly_analysis():
+
+    conn = None
+    cur = None
 
     try:
 
         conn = get_db_connection()
-
         cur = conn.cursor()
-
 
         cur.execute(
             """
@@ -2995,109 +2973,99 @@ def generate_weekly_analysis():
                 sleep_duration,
                 sleep_score,
                 cycle_strain
-
             FROM daily_metrics
-
             ORDER BY report_date DESC
-
             LIMIT 7
             """
         )
-
 
         rows = cur.fetchall()
 
         print("WEEKLY DATA:", rows)
 
-
-        cur.close()
-
-        conn.close()
-
-
-
         if len(rows) < 3:
-
             return "历史数据不足3天，暂无法生成可靠趋势分析"
 
+        # 数据库查询为倒序，这里转换成日期正序
+        rows = list(reversed(rows))
 
+        def show_value(value, suffix=""):
+
+            if value is None or value == "":
+                return "数据缺失"
+
+            return f"{value}{suffix}"
+
+        data_lines = []
+
+        for row in rows:
+
+            (
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+            ) = row
+
+            data_lines.append(
+                f"""
+日期：{report_date}
+Recovery：{show_value(recovery_score, "%")}
+HRV：{show_value(hrv, " ms")}
+睡眠时长：{show_value(sleep_duration, " 小时")}
+睡眠评分：{show_value(sleep_score, " 分")}
+Strain：{show_value(cycle_strain)}
+""".strip()
+            )
+
+        valid_days = len(rows)
+        start_date = rows[0][0]
+        end_date = rows[-1][0]
+
+        weekly_data_text = "\n\n".join(data_lines)
 
         prompt = f"""
+统计周期：{start_date} 至 {end_date}
+有效记录：{valid_days}/7天
 
-你是 WHOOP 私人健康教练。
+以下是按日期排列的 WHOOP 数据：
 
+{weekly_data_text}
 
-以下是用户最近7天 WHOOP 数据：
+请严格按照指定的六个标题生成周报。
 
-{rows}
+特别要求：
 
-
-请分析：
-
-
-🟢【恢复趋势】
-
-分析 Recovery变化。
-
-
-❤️【HRV趋势】
-
-分析 HRV 是否稳定。
-
-
-😴【睡眠趋势】
-
-分析睡眠时间和质量。
-
-
-🔥【训练负荷】
-
-分析 Strain 是否合理。
-
-
-⚠️【风险提醒】
-
-指出可能的疲劳风险。
-
-
-📅【未来7天建议】
-
-给出训练和恢复建议。
-
-
-要求：
-
-- 中文简体
-- 使用emoji
-- 500字以内
-- 不编造数据
-- 不重复罗列数字
-- 像私人WHOOP教练
-
-
+- 当前只有{valid_days}天记录。
+- 如果不足7天，说明当前结论属于阶段性趋势。
+- 不得对缺失日期和缺失指标进行推测。
+- 不得把“无训练数据”解释为休息或高强度训练。
+- 重点分析Recovery、HRV、睡眠和Strain之间的关系。
+- 未来7天采用条件式建议，根据每日Recovery和睡眠决定强度。
 """
 
-
-        result = generate_ai_summary(
-            prompt
-        )
-
+        result = generate_weekly_ai_summary(prompt)
 
         return result
 
-
-
     except Exception as e:
-
 
         print(
             "WEEKLY ANALYSIS ERROR:",
             e
         )
 
-
         return "⚠️ 周报告暂时无法生成"
 
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
 
 def privacy():
