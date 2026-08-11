@@ -3881,21 +3881,17 @@ def auto_report():
             )
 
 
-    except Exception as e:
+        conn.commit()
+
+        cur.close()
+
+        conn.close()
+
 
         print(
-            "SYSTEM STATUS ERROR:",
-             e
+            "SYSTEM STATUS UPDATED:",
+            success_time
         )
-
-
-    finally:
-
-         if cur:
-             cur.close()
-
-        if conn:
-            conn.close()
 
     
 
