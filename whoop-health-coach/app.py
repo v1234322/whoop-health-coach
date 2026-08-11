@@ -1849,21 +1849,21 @@ document.getElementById("recoveryChart"),
 
 type:"line",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Recovery",
 
 data:{recovery_json}
 
-}]
+}}]
 
-}
+}}
 
-}
+}}
 
 );
 
