@@ -1154,6 +1154,7 @@ def today():
 
         metrics = extract_daily_metrics(data)
 
+
         # =========================
         # AI健康教练
         # =========================
@@ -1164,7 +1165,7 @@ def today():
 
         Recovery:
         {metrics.get("recovery_score")}
-        
+
         HRV:
         {metrics.get("hrv")}
 
@@ -1199,228 +1200,174 @@ def today():
         )
 
 
+        # =========================
         # 保存当天数据
-        metrics = extract_daily_metrics(data)
+        # =========================
 
-        save_daily_data(metrics)
+        save_daily_data(
+            metrics
+        )
+
 
         print(
             "HTML REPORT OBJECT:",
             report
         )
 
+
         return f"""
 
-<!DOCTYPE html>
+        <html>
 
-<html>
+        <head>
 
-<head>
+        <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+        <title>WHOOP 今日健康报告</title>
 
-<title>WHOOP 今日健康报告</title>
+        <style>
 
+        body {{
+            font-family: Arial, sans-serif;
+            background:#f5f7fa;
+            padding:30px;
+        }}
 
-<style>
+        .card {{
+            background:white;
+            border-radius:20px;
+            padding:25px;
+            margin-bottom:20px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.08);
+        }}
 
-body {{
-    font-family: Arial, sans-serif;
-    background:#f5f7fa;
-    padding:30px;
-}}
+        .title {{
+            font-size:32px;
+            font-weight:bold;
+        }}
 
+        .metric {{
+            font-size:22px;
+            margin:12px 0;
+        }}
 
-.card {{
-    background:white;
-    border-radius:20px;
-    padding:25px;
-    margin-bottom:20px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.08);
-}}
+        .ai-text {{
+            white-space:pre-line;
+            font-size:18px;
+            line-height:1.8;
+        }}
 
+        </style>
 
-.title {{
-    font-size:32px;
-    font-weight:bold;
-}}
+        </head>
 
 
-.number {{
-    font-size:40px;
-    font-weight:bold;
-    color:#16a34a;
-}}
+        <body>
 
 
-.metric {{
-    font-size:22px;
-    margin:12px 0;
-}}
+        <div class="card">
 
+        <div class="title">
+        🧠 WHOOP 今日健康报告
+        </div>
 
-.ai-text {{
+        </div>
 
-    white-space: pre-line;
 
-    font-size:18px;
+        <div class="card">
 
-    line-height:1.8;
+        <h2>🟢 Recovery</h2>
 
-}}
+        <div class="metric">
+        {metrics.get("recovery_score")}%
+        </div>
 
-</style>
+        </div>
 
-</head>
 
+        <div class="card">
 
-<body>
+        <h2>❤️ HRV</h2>
 
+        <div class="metric">
+        {metrics.get("hrv"):.1f} ms
+        </div>
 
-<div class="card">
+        <div class="metric">
+        静息心率:
+        {metrics.get("resting_heart_rate")} bpm
+        </div>
 
-<div class="title">
+        </div>
 
-🧠 WHOOP 今日健康报告
 
-</div>
+        <div class="card">
 
-</div>
+        <h2>😴 睡眠</h2>
 
+        <div class="metric">
+        睡眠时长:
+        {metrics.get("sleep_duration")} 小时
+        </div>
 
+        <div class="metric">
+        睡眠效率:
+        {metrics.get("sleep_efficiency"):.1f}%
+        </div>
 
-<div class="card">
+        <div class="metric">
+        深度睡眠:
+        {metrics.get("deep_sleep_duration")} 小时
+        </div>
 
-<h2>
-🟢 Recovery
-</h2>
+        <div class="metric">
+        REM睡眠:
+        {metrics.get("rem_sleep_duration")} 小时
+        </div>
 
+        <div class="metric">
+        睡眠评分:
+        {metrics.get("sleep_score")}
+        </div>
 
-<div class="number">
+        </div>
 
-{metrics.get("recovery_score")}%
 
-</div>
+        <div class="card">
 
+        <h2>🔥 今日 Strain</h2>
 
-<p>
-恢复状态优秀
-</p>
+        <div class="metric">
+        {metrics.get("cycle_strain")}
+        </div>
 
-</div>
+        </div>
 
 
+        <div class="card">
 
+        <h2>🤖 AI健康教练</h2>
 
-<div class="card">
+        <div class="ai-text">
+        {ai_summary}
+        </div>
 
-<h2>
-❤️ HRV
-</h2>
+        </div>
 
 
-<div class="metric">
+        </body>
 
-{metrics.get("hrv"):.1f} ms
+        </html>
 
-</div>
-
-
-<p>
-
-自主神经恢复良好
-
-</p>
-
-
-</div>
-
-
-
-
-<div class="card">
-
-<h2>
-😴 睡眠
-</h2>
-
-
-<div class="metric">
-
-睡眠时长:
-{metrics.get("sleep_duration")} 小时
-
-</div>
-
-
-<div class="metric">
-
-睡眠效率:
-{metrics.get("sleep_efficiency"):.1f}%
-
-</div>
-
-
-
-<div class="metric">
-
-深度睡眠:
-{metrics.get("deep_sleep_duration")} 小时
-
-</div>
-
-
-
-<div class="metric">
-
-REM睡眠:
-{metrics.get("rem_sleep_duration")} 小时
-
-</div>
-
-
-
-<div class="metric">
-
-睡眠评分:
-{metrics.get("sleep_score")}
-
-</div>
-
-
-</div>
-
-
-
-
-<div class="card">
-
-<h2>
-🤖 AI健康教练
-</h2>
-
-
-<div class="ai-text">
-
-{ai_summary}
-
-</div>
-
-
-</div>
-
-
-
-</body>
-
-</html>
-
-"""
+        """
 
 
     except Exception as e:
 
-        print("TODAY ERROR:", e)
+        print(
+            "TODAY ERROR:",
+            e
+        )
 
         return str(e)
 
