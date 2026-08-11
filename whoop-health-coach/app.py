@@ -1570,6 +1570,73 @@ def weekly():
 
         weekly_report = generate_weekly_analysis()
 
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                cycle_strain
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 7
+            """
+        )
+
+
+        rows = cur.fetchall()
+
+
+        cur.close()
+
+        conn.close()
+
+
+        rows = list(
+            reversed(rows)
+        )
+
+
+        dates = [
+            r[0]
+            for r in rows
+        ]
+
+
+        recovery_values = [
+            r[1]
+            for r in rows
+        ]
+
+
+        hrv_values = [
+            r[2]
+            for r in rows
+        ]
+
+
+        sleep_values = [
+            r[3]
+            for r in rows
+        ]
+
+
+        strain_values = [
+            r[4]
+            for r in rows
+        ]
+
+
+        
         weekly_report = weekly_report.replace(
             "🟢【",
             "<br>🟢【"
@@ -1608,6 +1675,8 @@ def weekly():
 <html>
 
 <head>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <meta charset="UTF-8">
 
@@ -1715,6 +1784,32 @@ h2 {{
 
 <div class="card">
 
+<h2>
+📈 Recovery趋势
+</h2>
+
+<canvas id="recoveryChart"></canvas>
+
+
+<h2>
+❤️ HRV趋势
+</h2>
+
+<canvas id="hrvChart"></canvas>
+
+
+<h2>
+😴 睡眠趋势
+</h2>
+
+<canvas id="sleepChart"></canvas>
+
+
+<h2>
+🔥 Strain趋势
+</h2>
+
+<canvas id="strainChart"></canvas>
 
 <div class="section">
 
