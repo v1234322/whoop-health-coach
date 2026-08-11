@@ -1238,6 +1238,11 @@ def today():
 
         <meta charset="UTF-8">
 
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+>
+
         <title>WHOOP 今日健康报告</title>
 
         <style>
@@ -2001,9 +2006,188 @@ def weekly():
 
 <meta charset="UTF-8">
 
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>
 WHOOP 7天健康趋势
 </title>
+
+* {{
+    box-sizing: border-box;
+}}
+
+body {{
+    overflow-x: hidden;
+}}
+
+.ai-content,
+.ai-item,
+.card {{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}}
+
+
+/* 平板和手机 */
+
+@media (max-width: 768px) {
+
+    body {{
+        padding: 12px;
+    }}
+
+    .container {{
+        width: 100%;
+        max-width: 100%;
+    }}
+
+    .title {{
+        font-size: 26px;
+        line-height: 1.3;
+        margin-bottom: 18px;
+    }}
+
+    .health-score-card {{
+        padding: 20px 15px;
+        margin-bottom: 16px;
+        border-radius: 16px;
+    }}
+
+    .health-score-title {{
+        font-size: 18px;
+    }}
+
+    .health-score-value {{
+        font-size: 44px;
+        margin: 10px 0;
+    }}
+
+    .health-score-text {{
+        font-size: 14px;
+    }}
+
+    .data-coverage {{
+        font-size: 13px;
+        line-height: 1.7;
+        margin-top: 0;
+        margin-bottom: 16px;
+    }}
+
+    .summary-grid {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }}
+
+    .summary-card {{
+        padding: 15px 8px;
+        border-radius: 14px;
+    }}
+
+    .summary-label {{
+        font-size: 14px;
+        margin-bottom: 8px;
+    }}
+
+    .summary-value {{
+        font-size: 23px;
+        white-space: nowrap;
+    }}
+
+    .status-text {{
+        font-size: 12px;
+        margin-top: 6px;
+    }}
+
+    .card {{
+        padding: 16px 12px;
+        border-radius: 16px;
+        margin-bottom: 18px;
+    }}
+
+    .chart-box {{
+        height: 260px;
+        margin-bottom: 30px;
+    }}
+
+    h2 {{
+        font-size: 19px;
+        line-height: 1.4;
+    }}
+
+    .ai-box {{
+        padding: 4px;
+        font-size: 15px;
+        line-height: 1.7;
+    }}
+
+    .ai-title {{
+        font-size: 21px;
+        margin-bottom: 16px;
+    }}
+
+    .ai-item {{
+        padding: 14px;
+        margin-bottom: 10px;
+        border-radius: 14px;
+    }}
+
+    .ai-item-title {{
+        font-size: 21px;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }}
+
+    .ai-item-content {{
+        font-size: 15px;
+        line-height: 1.7;
+    }}
+}
+
+
+/* 小屏手机 */
+
+@media (max-width: 390px) {
+
+    body {{
+        padding: 8px;
+    }}
+
+    .title {{
+        font-size: 23px;
+    }}
+
+    .summary-grid {{
+        gap: 8px;
+    }}
+
+    .summary-card {{
+        padding: 13px 6px;
+    }}
+
+    .summary-label {{
+        font-size: 13px;
+    }}
+
+    .summary-value {{
+        font-size: 21px;
+    }}
+
+    .chart-box {{
+        height: 230px;
+    }}
+
+    .ai-item-title {{
+        font-size: 19px;
+    }}
+
+    .ai-item-content {{
+        font-size: 14px;
+    }}
+}
 
 
 <style>
