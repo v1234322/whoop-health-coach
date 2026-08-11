@@ -1567,55 +1567,75 @@ def format_weekly_report(report):
     if not report:
         return "暂无 AI 健康分析"
 
+    sections = {
+        "🟢【恢复趋势】": "ai-green",
+        "💚【HRV趋势】": "ai-heart",
+        "😴【睡眠趋势】": "ai-sleep",
+        "🔥【训练负荷】": "ai-fire",
+        "⚠️【风险提醒】": "ai-warning",
+        "📅【未来7天建议】": "ai-plan"
+    }
 
-    sections = [
-        ("🟢【恢复趋势】","ai-green"),
-        ("💚【HRV趋势】","ai-heart"),
-        ("😴【睡眠趋势】","ai-sleep"),
-        ("🔥【训练负荷】","ai-fire"),
-        ("⚠️【风险提醒】","ai-warning"),
-        ("📅【未来7天建议】","ai-plan")
+    html_parts = []
+    section_open = False
+
+    # 删除 AI 返回内容中的空白行
+    lines = [
+        line.strip()
+        for line in report.splitlines()
+        if line.strip()
     ]
 
+    for line in lines:
 
-    formatted = report
+        matched_title = None
 
+        for title in sections:
+            if line.startswith(title):
+                matched_title = title
+                break
 
-    for title, css in sections:
+        if matched_title:
 
-        name = (
-            title
-            .replace("【","")
-            .replace("】","")
-        )
+            if section_open:
+                html_parts.append("</div>")
 
+            css = sections[matched_title]
 
-        formatted = formatted.replace(
-            title,
-            f"""
-            </div>
-            <div class="ai-item">
+            html_parts.append(
+                f"""
+                <div class="ai-item">
+                    <div class="ai-item-title {css}">
+                        {matched_title}
+                    </div>
+                """
+            )
 
-            <div class="ai-item-title {css}">
-            {title}
-            </div>
+            section_open = True
 
-            """
-        )
+            # 保留标题后面可能存在的正文
+            remaining_text = line[len(matched_title):].strip()
 
+            if remaining_text:
+                html_parts.append(
+                    f'<div class="ai-item-content">{remaining_text}</div>'
+                )
 
-    formatted = formatted.replace(
-        "\n",
-        "<br>"
-    )
+        else:
 
+            if section_open:
+                html_parts.append(
+                    f'<div class="ai-item-content">{line}</div>'
+                )
+            else:
+                html_parts.append(
+                    f'<div class="ai-item-content">{line}</div>'
+                )
 
-    if formatted.startswith("</div>"):
-        formatted = formatted[6:]
+    if section_open:
+        html_parts.append("</div>")
 
-
-    return formatted
-
+    return "".join(html_parts)
 
 
 @app.route("/whoop/weekly")
