@@ -1625,9 +1625,10 @@ def weekly():
 
         weekly_report = generate_weekly_analysis()
 
-        import re
+        print("WEEKLY REPORT RAW:")
+        print(weekly_report)
 
-        weekly_report = generate_weekly_analysis()
+        import re
 
         # 压缩AI输出中的多余空行
         weekly_report = re.sub(
