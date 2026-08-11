@@ -1845,7 +1845,7 @@ h2 {{
 
 new Chart(
 document.getElementById("recoveryChart"),
-{
+{{
 
 type:"line",
 
@@ -1871,7 +1871,7 @@ data:{recovery_json}
 
 new Chart(
 document.getElementById("hrvChart"),
-{
+{{
 
 type:"line",
 
@@ -1897,7 +1897,7 @@ data:{hrv_json}
 
 new Chart(
 document.getElementById("sleepChart"),
-{
+{{
 
 type:"bar",
 
@@ -1923,7 +1923,7 @@ data:{sleep_json}
 
 new Chart(
 document.getElementById("strainChart"),
-{
+{{
 
 type:"bar",
 
