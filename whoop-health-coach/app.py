@@ -1425,66 +1425,82 @@ def trend():
         )
 
 
+        # =========================
+        # 7天趋势统计
+        # =========================
+
+        def avg_value(index):
+
+            values = [
+                float(r[index])
+                for r in rows
+                if r[index] is not None
+            ]
+
+            if not values:
+                return None
+
+            return sum(values) / len(values)
+
+
+        avg_recovery = avg_value(1)
+        avg_hrv = avg_value(2)
+        avg_resting_hr = avg_value(3)
+        avg_sleep = avg_value(4)
+        avg_sleep_score = avg_value(5)
+        avg_strain = avg_value(6)
+
+
+        summary = f"""
+
+<div style="
+background:white;
+padding:25px;
+margin:20px;
+border-radius:15px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+">
+
+<h2>
+📊 7天趋势总结
+</h2>
+
+<p>
+🟢 平均 Recovery:
+{round(avg_recovery,1) if avg_recovery is not None else "-"}%
+</p>
+
+<p>
+❤️ 平均 HRV:
+{round(avg_hrv,1) if avg_hrv is not None else "-"} ms
+</p>
+
+<p>
+❤️ 平均静息心率:
+{round(avg_resting_hr,1) if avg_resting_hr is not None else "-"} bpm
+</p>
+
+<p>
+😴 平均睡眠:
+{round(avg_sleep,2) if avg_sleep is not None else "-"} 小时
+</p>
+
+<p>
+⭐ 平均睡眠评分:
+{round(avg_sleep_score,1) if avg_sleep_score is not None else "-"}
+</p>
+
+<p>
+🔥 平均 Strain:
+{round(avg_strain,1) if avg_strain is not None else "-"}
+</p>
+
+</div>
+
+"""
+
+
         cards = ""
-
-
-        for r in rows:
-
-            cards += f"""
-
-            <div style="
-            background:white;
-            padding:20px;
-            margin:20px;
-            border-radius:15px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.1);
-            ">
-
-        
-    <h2>
-    📅 {r[0]}
-    </h2>
-
-
-    <p>
-    🟢 Recovery:
-    {r[1]}%
-    </p>
-
-
-    <p>
-    ❤️ HRV:
-    {round(r[2],1) if r[2] else "-"} ms
-    </p>
-
-
-    <p>
-    ❤️ 静息心率:
-    {r[3] if r[3] else "-"} bpm
-    </p>
-
-
-    <p>
-    😴 睡眠:
-    {r[4] if r[4] else "-"} 小时
-    </p>
-
-
-    <p>
-    ⭐ 睡眠评分:
-    {r[5] if r[5] else "-"}
-    </p>
-
-
-    <p>
-    🔥 Strain:
-    {round(r[6],1) if r[6] is not None else "-"}
-    </p>
-
-    
-    </div>
-
-    """
 
 
 
@@ -1511,6 +1527,7 @@ padding:30px;
 </h1>
 
 
+{summary}
 {cards}
 
 
