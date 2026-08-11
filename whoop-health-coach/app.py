@@ -1715,7 +1715,7 @@ def weekly():
         def sleep_label(value):
 
             if value is None:
-        return "暂无数据"
+                return "暂无数据"
 
             if value >= 7:
                 return "睡眠充足"
