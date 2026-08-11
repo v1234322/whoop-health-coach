@@ -1962,7 +1962,13 @@ margin-top:8px;
 
 }}
 
+canvas {{
 
+    width:100% !important;
+
+    height:350px !important;
+
+}}
 
 body {{
 
@@ -1981,7 +1987,7 @@ body {{
 
 .container {{
 
-    max-width:900px;
+    max-width:12000px;
 
     margin:auto;
 
@@ -2010,9 +2016,11 @@ body {{
     box-shadow:
     0 8px 25px rgba(0,0,0,0.08);
 
-    line-height:1.9;
-
     font-size:18px;
+
+    width:100%;
+
+    box-sizing:border-box;
 
 }}
 
