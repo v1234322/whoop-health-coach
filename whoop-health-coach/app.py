@@ -2343,11 +2343,11 @@ h
 
 new Chart(
 document.getElementById("recoveryChart"),
-{
+{{
 
 type:"line",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
@@ -2357,9 +2357,9 @@ label:"Recovery",
 
 data:{recovery_json}
 
-}]
+}}]
 
-},
+}},
 
 
 options:{
@@ -2368,10 +2368,10 @@ responsive:true,
 
 maintainAspectRatio:false
 
-}
+}}
 
 
-}
+}}
 
 );
 
@@ -2381,35 +2381,35 @@ maintainAspectRatio:false
 
 new Chart(
 document.getElementById("hrvChart"),
-{
+{{
 
 type:"line",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"HRV",
 
 data:{hrv_json}
 
-}]
+}}]
 
-},
+}},
 
 
-options:{
+options:{{
 
 responsive:true,
 
 maintainAspectRatio:false
 
-}
+}}
 
 
-}
+}}
 
 );
 
@@ -2420,32 +2420,32 @@ maintainAspectRatio:false
 
 new Chart(
 document.getElementById("sleepChart"),
-{
+{{
 
 type:"bar",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Sleep Hours",
 
 data:{sleep_json}
 
-}]
+}}]
 
-},
+}},
 
 
-options:{
+options:{{
 
 responsive:true,
 
 maintainAspectRatio:false
 
-}
+}}
 
 
 }
@@ -2459,32 +2459,32 @@ maintainAspectRatio:false
 
 new Chart(
 document.getElementById("strainChart"),
-{
+{{
 
 type:"bar",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Strain",
 
 data:{strain_json}
 
-}]
+}}]
 
-},
+}},
 
 
-options:{
+options:{{
 
 responsive:true,
 
 maintainAspectRatio:false
 
-}
+}}
 
 
 }
