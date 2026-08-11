@@ -2033,7 +2033,7 @@ body {{
 
 /* 平板和手机 */
 
-@media (max-width: 768px) {
+@media (max-width: 768px) {{
 
     body {{
         padding: 12px;
@@ -2145,12 +2145,12 @@ body {{
         font-size: 15px;
         line-height: 1.7;
     }}
-}
+}}
 
 
 /* 小屏手机 */
 
-@media (max-width: 390px) {
+@media (max-width: 390px) {{
 
     body {{
         padding: 8px;
@@ -2187,7 +2187,7 @@ body {{
     .ai-item-content {{
         font-size: 14px;
     }}
-}
+}}
 
 
 <style>
