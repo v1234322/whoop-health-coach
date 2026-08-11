@@ -1694,13 +1694,19 @@ def weekly():
             reversed(rows)
         )
 
+        valid_days = len(rows)
 
+        if valid_days < 7:
+            score_period_text = f"{valid_days}天阶段性综合状态"
+        else:
+            score_period_text = "近7天综合状态"
+
+        
         dates = [
             r[0]
             for r in rows
         ]
-
-        valid_days = len(rows)
+            
 
         sleep_valid_days = sum(
             1 for r in rows
@@ -2382,7 +2388,7 @@ color:#666;
 
 <div class="health-score-text">
 
-近7天综合状态
+{score_period_text}
 
 </div>
 
