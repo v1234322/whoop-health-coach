@@ -3804,7 +3804,23 @@ def auto_report():
         )
 
 
+        print(
+            "========== DAILY REPORT SUCCESS =========="
+        )
 
+        print(
+            {
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "recovery": metrics.get("recovery_score"),
+                "hrv": metrics.get("hrv"),
+                "sleep": metrics.get("sleep_duration"),
+                "strain": metrics.get("cycle_strain"),
+                "ai": "OK",
+                "database": "OK"
+            }
+        )
+
+        
         # =========================
         # 7. 返回
         # =========================
