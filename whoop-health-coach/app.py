@@ -1625,6 +1625,9 @@ def weekly():
 
         weekly_report = generate_weekly_analysis()
 
+        weekly_report = weekly_report.replace("\n\n\n", "\n")
+        weekly_report = weekly_report.replace("\n\n", "\n")
+
         weekly_report = format_weekly_report(weekly_report)
 
         conn = get_db_connection()
