@@ -2042,7 +2042,7 @@ def extract_daily_metrics(data):
     # =====================
     # Cycle
     # =====================
-    
+
     strain = None
 
 
@@ -2053,22 +2053,6 @@ def extract_daily_metrics(data):
             {}
         )
 
-        print(
-            "EXTRACT DATA KEYS:",
-            data.keys()
-        )
-
-
-        print(
-            "EXTRACT RAW DATA:",
-            data
-        )
-
-
-        print(
-            "EXTRACT CYCLE DATA:",
-            cycle_data
-        )
 
         cycle_records = cycle_data.get(
             "records",
@@ -2076,16 +2060,27 @@ def extract_daily_metrics(data):
         )
 
 
-        if cycle_records:
+        print(
+            "CYCLE RECORD COUNT:",
+            len(cycle_records)
+        )
 
-            latest_cycle = cycle_records[0]
 
+        for cycle in cycle_records:
 
-            strain = (
-                latest_cycle
-                .get("score", {})
-                .get("strain")
+            score = cycle.get(
+                "score",
+                {}
             )
+
+
+            if score.get("strain") is not None:
+
+                strain = score.get(
+                    "strain"
+                )
+
+                break
 
 
     except Exception as e:
@@ -2097,7 +2092,7 @@ def extract_daily_metrics(data):
 
 
     print(
-        "CYCLE STRAIN:",
+        "FINAL CYCLE STRAIN:",
         strain
     )
 
