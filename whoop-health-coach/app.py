@@ -2789,6 +2789,8 @@ def get_whoop_data():
 
         cycle = whoop_get("/cycle")
 
+        workout = whoop_get("/activity/workout")
+
 
         print("API RECOVERY:")
         print(recovery)
@@ -2802,10 +2804,15 @@ def get_whoop_data():
         print(cycle)
 
 
+        print("API WORKOUT:")
+        print(workout)
+
+
         return {
             "recovery": recovery,
             "sleep": sleep,
-            "workout": cycle
+            "cycle": cycle,
+            "workout": workout
         }
 
 
@@ -2817,7 +2824,6 @@ def get_whoop_data():
         )
 
         return {}
-
 
 
 def today():
