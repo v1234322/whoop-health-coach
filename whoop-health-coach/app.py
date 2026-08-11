@@ -1875,21 +1875,21 @@ document.getElementById("hrvChart"),
 
 type:"line",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"HRV",
 
 data:{hrv_json}
 
-}]
+}}]
 
-}
+}}
 
-}
+}}
 
 );
 
@@ -1901,21 +1901,21 @@ document.getElementById("sleepChart"),
 
 type:"bar",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Sleep Hours",
 
 data:{sleep_json}
 
-}]
+}}]
 
-}
+}}
 
-}
+}}
 
 );
 
@@ -1927,21 +1927,21 @@ document.getElementById("strainChart"),
 
 type:"bar",
 
-data:{
+data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Strain",
 
 data:{strain_json}
 
-}]
+}}]
 
-}
+}}
 
-}
+}}
 
 );
 
