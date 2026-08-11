@@ -2362,7 +2362,7 @@ data:{recovery_json}
 }},
 
 
-options:{
+options:{{
 
 responsive:true,
 
