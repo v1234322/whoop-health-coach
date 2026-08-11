@@ -1854,7 +1854,32 @@ def weekly():
             hrv_values
         )
 
+        hrv_color = hrv_status(avg_hrv)
 
+
+        if hrv_color == "green":
+            hrv_text = "状态良好"
+
+        elif hrv_color == "orange":
+            hrv_text = "略有下降"
+
+        elif hrv_color == "red":
+            hrv_text = "需要恢复"
+
+        else:
+            hrv_text = "-"
+            
+
+        avg_sleep = safe_avg(
+            sleep_values
+        )
+
+
+        avg_strain = safe_avg(
+            strain_values
+        )
+
+        
         # 综合健康评分
 
         health_score = 0
@@ -1884,31 +1909,6 @@ def weekly():
 
         health_score = round(health_score)
 
-
-        hrv_color = hrv_status(avg_hrv)
-
-
-        if hrv_color == "green":
-            hrv_text = "状态良好"
-
-        elif hrv_color == "orange":
-            hrv_text = "略有下降"
-
-        elif hrv_color == "red":
-            hrv_text = "需要恢复"
-
-        else:
-            hrv_text = "-"
-            
-
-        avg_sleep = safe_avg(
-            sleep_values
-        )
-
-
-        avg_strain = safe_avg(
-            strain_values
-        )
 
         recovery_color = recovery_status(
             avg_recovery
