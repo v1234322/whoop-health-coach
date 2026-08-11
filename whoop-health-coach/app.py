@@ -4040,15 +4040,15 @@ def health():
              FROM system_status
              LIMIT 1
              """
-         )
+        )
 
 
-         status_row = cur.fetchone()
+        status_row = cur.fetchone()
 
 
-         cur.close()
+        cur.close()
 
-         conn.close()
+        conn.close()
 
 
         if row:
