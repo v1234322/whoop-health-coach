@@ -1881,7 +1881,7 @@ WHOOP 7天健康趋势
 <style>
 
 
-.summary-grid {
+.summary-grid {{
 
 display:grid;
 
@@ -1891,11 +1891,11 @@ gap:18px;
 
 margin-bottom:30px;
 
-}
+}}
 
 
 
-.summary-card {
+.summary-card {{
 
 background:#fafafa;
 
@@ -1905,33 +1905,33 @@ padding:20px;
 
 text-align:center;
 
-}
+}}
 
 
 
-.summary-label {
+.summary-label {{
 
 font-size:16px;
 
 margin-bottom:10px;
 
-}
+}}
 
 
 
-.summary-value {
+.summary-value {{
 
 font-size:28px;
 
 font-weight:bold;
 
-}
+}}
 
 
 
-.status-green {
+.status-green {{
 color:#16a34a;
-}
+}}
 
 
 .status-orange {
@@ -1939,17 +1939,17 @@ color:#f59e0b;
 }
 
 
-.status-red {
+.status-red {{
 color:#dc2626;
-}
+}}
 
 
-.status-gray {
+.status-gray {{
 color:#666;
-}
+}}
 
 
-.status-text {
+.status-text {{
 
 font-size:14px;
 
@@ -1957,11 +1957,11 @@ font-weight:bold;
 
 margin-top:8px;
 
-}
+}}
 
 
 
-body {
+body {{
 
 background:#f5f7fa;
 
@@ -1973,21 +1973,21 @@ Arial;
 
 padding:20px;
 
-}
+}}
 
 
 
-.container {
+.container {{
 
 max-width:1100px;
 
 margin:auto;
 
-}
+}}
 
 
 
-.title {
+.title {{
 
 font-size:34px;
 
@@ -1995,11 +1995,11 @@ font-weight:700;
 
 margin-bottom:25px;
 
-}
+}}
 
 
 
-.card {
+.card {{
 
 background:white;
 
@@ -2012,31 +2012,31 @@ box-shadow:
 
 margin-bottom:30px;
 
-}
+}}
 
 
 
-.chart-box {
+.chart-box {{
 
 height:350px;
 
 margin-bottom:40px;
 
-}
+}}
 
 
 
-h2 {
+h2 {{
 
 margin-top:0;
 
 font-size:22px;
 
-}
+}}
 
 
 
-.section {
+.section {{
 
 margin-top:20px;
 
@@ -2046,7 +2046,7 @@ border-radius:15px;
 
 background:#fafafa;
 
-}
+}}
 
 
 
@@ -2351,7 +2351,7 @@ data:{{
 
 labels:{dates_json},
 
-datasets:[{
+datasets:[{{
 
 label:"Recovery",
 
