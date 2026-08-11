@@ -1750,7 +1750,6 @@ def weekly():
 
             return round(
                 sum(valid_values) / len(valid_values),
-                1
     
 
         def recovery_status(value):
