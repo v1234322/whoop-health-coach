@@ -3881,21 +3881,21 @@ def auto_report():
             )
 
 
-        except Exception as e:
+    except Exception as e:
 
-            print(
-                "SYSTEM STATUS ERROR:",
-                e
-            )
+        print(
+            "SYSTEM STATUS ERROR:",
+             e
+        )
 
 
-        finally:
+    finally:
 
-            if cur:
-                cur.close()
+         if cur:
+             cur.close()
 
-            if conn:
-                conn.close()
+        if conn:
+            conn.close()
 
     
 
