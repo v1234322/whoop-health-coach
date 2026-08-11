@@ -1798,28 +1798,27 @@ h2 {{
 📈 Recovery趋势
 </h2>
 
-<canvas id="recoveryChart"></canvas>
-
+<canvas id="recoveryChart" height="100"></canvas>
 
 <h2>
 ❤️ HRV趋势
 </h2>
 
-<canvas id="hrvChart"></canvas>
+<canvas id="hrvChart" height="100"></canvas>
 
 
 <h2>
 😴 睡眠趋势
 </h2>
 
-<canvas id="sleepChart"></canvas>
+<canvas id="sleepChart" height="100"></canvas>
 
 
 <h2>
 🔥 Strain趋势
 </h2>
 
-<canvas id="strainChart"></canvas>
+<canvas id="strainChart" height="100"></canvas>
 
 <div class="section">
 
@@ -1827,11 +1826,11 @@ h2 {{
 🤖 AI健康教练建议
 </h2>
 
-<div>
+</div>
 
 {weekly_report}
 
-<div>
+</div>
 
 </div>
 
