@@ -3866,6 +3866,66 @@ def health():
 
     try:
 
+        # =====================
+        # WHOOP TOKEN CHECK
+        # =====================
+
+        whoop_token_status = "ERROR"
+
+
+        try:
+
+            conn_token = get_db_connection()
+
+            cur_token = conn_token.cursor()
+
+
+            cur_token.execute(
+                """
+                SELECT access_token
+                FROM tokens
+                WHERE access_token IS NOT NULL
+                ORDER BY id DESC
+                LIMIT 1
+                """
+            )
+
+
+            token_row = cur_token.fetchone()
+
+
+            if token_row and token_row[0]:
+
+                whoop_token_status = "OK"
+
+            else:
+
+                whoop_token_status = "MISSING"
+
+
+            cur_token.close()
+
+            conn_token.close()
+
+
+        except Exception as e:
+
+            print(
+                "TOKEN HEALTH ERROR:",
+                e
+            )
+
+            whoop_token_status = "ERROR"
+
+            
+            print(
+                "TOKEN HEALTH ERROR:",
+                e
+            )
+
+            whoop_token_status = "ERROR"
+            
+
         conn = get_db_connection()
 
         cur = conn.cursor()
@@ -3904,6 +3964,9 @@ def health():
 
                 "database": "OK",
 
+                "whoop_token":
+                whoop_token_status,
+            
                 "last_report":
                 row[0],
 
