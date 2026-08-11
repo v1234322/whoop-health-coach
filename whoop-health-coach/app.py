@@ -1881,7 +1881,7 @@ WHOOP 7天健康趋势
 <style>
 
 
-.summary-grid {{
+.summary-grid {
 
 display:grid;
 
@@ -1891,10 +1891,11 @@ gap:18px;
 
 margin-bottom:30px;
 
-}}
+}
 
 
-.summary-card {{
+
+.summary-card {
 
 background:#fafafa;
 
@@ -1904,55 +1905,51 @@ padding:20px;
 
 text-align:center;
 
-}}
+}
 
 
-.summary-label {{
+
+.summary-label {
 
 font-size:16px;
 
 margin-bottom:10px;
 
-}}
+}
 
 
-.summary-value {{
+
+.summary-value {
 
 font-size:28px;
 
 font-weight:bold;
 
-}}
+}
 
-.status-green {{
 
+
+.status-green {
 color:#16a34a;
+}
 
-}}
 
-
-.status-orange {{
-
+.status-orange {
 color:#f59e0b;
+}
 
-}}
 
-
-.status-red {{
-
+.status-red {
 color:#dc2626;
+}
 
-}}
 
-
-.status-gray {{
-
+.status-gray {
 color:#666;
+}
 
-}}
 
-
-.status-text {{
+.status-text {
 
 font-size:14px;
 
@@ -1960,85 +1957,97 @@ font-weight:bold;
 
 margin-top:8px;
 
-}}
+}
 
 
 
+body {
 
-body {{
+background:#f5f7fa;
 
-    background:#f5f7fa;
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+"Segoe UI",
+Arial;
 
-    font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Arial;
+padding:20px;
 
-    padding:20px;
-
-}}
-
-
-.container {{
-
-    max-width:1000px;
-
-    margin:auto;
-
-}}
-
-
-.title {{
-
-    font-size:34px;
-
-    font-weight:700;
-
-    margin-bottom:25px;
-
-}}
-
-
-.card {{
-
-    background:white;
-
-    border-radius:20px;
-
-    padding:30px;
-
-    box-shadow:
-    0 8px 25px rgba(0,0,0,0.08);
-
-    line-height:1.9;
-
-    font-size:18px;
-
-}}
+}
 
 
 
-.section {{
+.container {
 
-    margin-top:20px;
+max-width:1100px;
 
-    padding:18px;
+margin:auto;
 
-    border-radius:15px;
-
-    background:#fafafa;
-
-}}
+}
 
 
-h2 {{
 
-    margin-top:0;
+.title {
 
-    font-size:22px;
+font-size:34px;
 
-}}
+font-weight:700;
+
+margin-bottom:25px;
+
+}
+
+
+
+.card {
+
+background:white;
+
+border-radius:20px;
+
+padding:30px;
+
+box-shadow:
+0 8px 25px rgba(0,0,0,0.08);
+
+margin-bottom:30px;
+
+}
+
+
+
+.chart-box {
+
+height:350px;
+
+margin-bottom:40px;
+
+}
+
+
+
+h2 {
+
+margin-top:0;
+
+font-size:22px;
+
+}
+
+
+
+.section {
+
+margin-top:20px;
+
+padding:18px;
+
+border-radius:15px;
+
+background:#fafafa;
+
+}
+
 
 
 </style>
@@ -2047,10 +2056,12 @@ h2 {{
 </head>
 
 
+
 <body>
 
 
 <div class="container">
+
 
 
 <div class="title">
@@ -2061,39 +2072,60 @@ h2 {{
 
 
 
+
+<!-- SUMMARY -->
+
+
 <div class="summary-grid">
 
 
 <div class="summary-card">
 
 <div class="summary-label">
+
 🟢 平均 Recovery
+
 </div>
+
 
 <div class="summary-value">
 
 <span class="status-{recovery_color}">
+
 {avg_recovery if avg_recovery else "-"}
+
 </span>
+
 %
 
 </div>
 
+
 <div class="status-text">
+
 {recovery_text}
-</div>
 
 </div>
+
+
+</div>
+
+
 
 
 
 <div class="summary-card">
 
+
 <div class="summary-label">
+
 ❤️ 平均 HRV
+
 </div>
 
+
 <div class="summary-value">
+
 
 <span class="status-{hrv_color}">
 
@@ -2103,108 +2135,183 @@ h2 {{
 
 ms
 
+
+</div>
+
+
 <div class="status-text">
 
 {hrv_text}
 
 </div>
 
-</div>
 
 </div>
+
+
+
 
 
 
 <div class="summary-card">
 
+
 <div class="summary-label">
+
 😴 平均睡眠
+
 </div>
 
+
 <div class="summary-value">
+
 
 <span class="status-{sleep_color}">
+
 {avg_sleep if avg_sleep else "-"}
+
 </span>
+
 h
 
+
 </div>
+
 
 <div class="status-text">
+
 {sleep_text}
-</div>
 
 </div>
+
+
+</div>
+
+
+
+
 
 
 
 <div class="summary-card">
 
+
 <div class="summary-label">
+
 🔥 平均 Strain
+
 </div>
+
 
 <div class="summary-value">
 
+
 <span class="status-{strain_color}">
+
 {avg_strain if avg_strain else "-"}
+
 </span>
 
+
 </div>
+
 
 <div class="status-text">
+
 {strain_text}
-</div>
 
 </div>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<!-- CHARTS -->
 
 
 <div class="card">
+
 
 <h2>
 📈 Recovery趋势
 </h2>
 
+
 <div class="chart-box">
-    <div style="height:350px">
-    <canvas id="recoveryChart"></canvas>
+
+<canvas id="recoveryChart"></canvas>
+
 </div>
 
 
-<div class="card">
+
+
 
 <h2>
 ❤️ HRV趋势
 </h2>
 
+
 <div class="chart-box">
-    <div style="height:350px">
-    <canvas id="hrvChart"></canvas>
+
+<canvas id="hrvChart"></canvas>
+
 </div>
 
 
-<div class="card">
+
+
+
 
 <h2>
 😴 睡眠趋势
 </h2>
 
+
 <div class="chart-box">
-    <div style="height:350px">
-    <canvas id="sleepChart"></canvas>
+
+<canvas id="sleepChart"></canvas>
+
 </div>
 
 
-<div class="card">
+
+
+
 
 <h2>
 🔥 Strain趋势
 </h2>
 
+
 <div class="chart-box">
-    <div style="height:350px">
-    <canvas id="strainChart"></canvas>
+
+<canvas id="strainChart"></canvas>
+
 </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+<!-- AI REPORT -->
+
+
+<div class="card">
+
 
 <div class="section">
 
@@ -2213,151 +2320,184 @@ h
 🤖 AI健康教练建议
 </h2>
 
+
 </div>
+
 
 {weekly_report}
 
-</div>
-
-</div>
 
 
 </div>
 
 
+
+
+
 </div>
+
+
 
 <script>
 
 
 new Chart(
 document.getElementById("recoveryChart"),
-{{
+{
 
 type:"line",
 
-data:{{
+data:{
 
 labels:{dates_json},
 
-datasets:[{{
+datasets:[{
 
 label:"Recovery",
 
 data:{recovery_json}
 
-}}]
+}]
 
-}},
+},
 
-options:{{
-    responsive:true,
-    maintainAspectRatio:false
-}}
 
-}}
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false
+
+}
+
+
+}
 
 );
+
+
 
 
 
 new Chart(
 document.getElementById("hrvChart"),
-{{
+{
 
 type:"line",
 
-data:{{
+data:{
 
 labels:{dates_json},
 
-datasets:[{{
+datasets:[{
 
 label:"HRV",
 
 data:{hrv_json}
 
-}}]
+}]
 
-}},
+},
 
-options:{{
-    responsive:true,
-    maintainAspectRatio:false
-}}
 
-}}
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false
+
+}
+
+
+}
 
 );
+
+
+
 
 
 
 new Chart(
 document.getElementById("sleepChart"),
-{{
+{
 
 type:"bar",
 
-data:{{
+data:{
 
 labels:{dates_json},
 
-datasets:[{{
+datasets:[{
 
 label:"Sleep Hours",
 
 data:{sleep_json}
 
-}}]
+}]
 
-}},
+},
 
-options:{{
-    responsive:true,
-    maintainAspectRatio:false
-}}
 
-}}
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false
+
+}
+
+
+}
 
 );
+
+
+
 
 
 
 new Chart(
 document.getElementById("strainChart"),
-{{
+{
 
 type:"bar",
 
-data:{{
+data:{
 
 labels:{dates_json},
 
-datasets:[{{
+datasets:[{
 
 label:"Strain",
 
 data:{strain_json}
 
-}}]
+}]
 
-}},
+},
 
-options:{{
-    responsive:true,
-    maintainAspectRatio:false
-}}
 
-}}
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false
+
+}
+
+
+}
 
 );
+
 
 
 </script>
 
 
-</body>
 
+</body>
 
 </html>
 
