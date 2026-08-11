@@ -1635,6 +1635,44 @@ def weekly():
             for r in rows
         ]
 
+
+        def safe_avg(values):
+
+            valid_values = [
+                float(v)
+                for v in values
+                if v is not None
+            ]
+
+            if not valid_values:
+                return None
+
+            return round(
+                sum(valid_values) / len(valid_values),
+                1
+            )
+
+
+        avg_recovery = safe_avg(
+            recovery_values
+        )
+
+
+        avg_hrv = safe_avg(
+            hrv_values
+        )
+
+
+        avg_sleep = safe_avg(
+            sleep_values
+        )
+
+
+        avg_strain = safe_avg(
+            strain_values
+        )
+
+        
         dates_json = json.dumps(dates)
 
         recovery_json = json.dumps(recovery_values)
@@ -1696,6 +1734,7 @@ WHOOP 7天健康趋势
 
 
 <style>
+
 
 body {{
 
@@ -1774,6 +1813,50 @@ h2 {{
 
 </style>
 
+.summary-grid {{
+
+display:grid;
+
+grid-template-columns:
+repeat(4,1fr);
+
+gap:18px;
+
+margin-bottom:30px;
+
+}}
+
+
+.summary-card {{
+
+background:#fafafa;
+
+border-radius:16px;
+
+padding:20px;
+
+text-align:center;
+
+}}
+
+
+.summary-label {{
+
+font-size:16px;
+
+margin-bottom:10px;
+
+}}
+
+
+.summary-value {{
+
+font-size:28px;
+
+font-weight:bold;
+
+}}
+
 
 </head>
 
@@ -1787,6 +1870,68 @@ h2 {{
 <div class="title">
 
 📊 WHOOP 7天健康趋势报告
+
+</div>
+
+
+
+<div class="summary-grid">
+
+
+<div class="summary-card">
+
+<div class="summary-label">
+🟢 平均 Recovery
+</div>
+
+<div class="summary-value">
+{avg_recovery if avg_recovery else "-"}%
+</div>
+
+</div>
+
+
+
+<div class="summary-card">
+
+<div class="summary-label">
+❤️ 平均 HRV
+</div>
+
+<div class="summary-value">
+{avg_hrv if avg_hrv else "-"} ms
+</div>
+
+</div>
+
+
+
+<div class="summary-card">
+
+<div class="summary-label">
+😴 平均睡眠
+</div>
+
+<div class="summary-value">
+{avg_sleep if avg_sleep else "-"} h
+</div>
+
+</div>
+
+
+
+<div class="summary-card">
+
+<div class="summary-label">
+🔥 平均 Strain
+</div>
+
+<div class="summary-value">
+{avg_strain if avg_strain else "-"}
+</div>
+
+</div>
+
 
 </div>
 
