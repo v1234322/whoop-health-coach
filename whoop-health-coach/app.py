@@ -1934,9 +1934,9 @@ color:#16a34a;
 }}
 
 
-.status-orange {
+.status-orange {{
 color:#f59e0b;
-}
+}}
 
 
 .status-red {{
