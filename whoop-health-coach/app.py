@@ -868,6 +868,21 @@ def init_db():
     """)
 
 
+    # =========================
+    # 系统状态表
+    # =========================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS system_status (
+
+        id SERIAL PRIMARY KEY,
+
+        last_success_time TEXT
+
+    )
+    """)
+
+
     conn.commit()
 
     conn.close()
@@ -3823,6 +3838,67 @@ def auto_report():
             "========== DAILY REPORT SUCCESS =========="
         )
 
+
+        success_time = (
+            datetime.utcnow()
+            + timedelta(hours=8)
+        ).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            DELETE FROM system_status
+            """
+        )
+
+
+        cur.execute(
+            """
+            INSERT INTO system_status
+            (last_success_time)
+
+            VALUES
+            (%s)
+            """,
+            (
+                success_time,
+            )
+        )
+
+
+        conn.commit()
+
+        print(
+                "SYSTEM STATUS UPDATED:",
+                success_time
+            )
+
+
+        except Exception as e:
+
+            print(
+                "SYSTEM STATUS ERROR:",
+                e
+            )
+
+
+        finally:
+
+            if cur:
+                cur.close()
+
+            if conn:
+                conn.close()
+
+    
+
         print(
             {
                 "date": datetime.now().strftime("%Y-%m-%d"),
@@ -3835,6 +3911,7 @@ def auto_report():
             }
         )
 
+        
         
         # =========================
         # 7. 返回
