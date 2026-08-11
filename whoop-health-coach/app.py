@@ -1585,12 +1585,6 @@ def format_weekly_report(report):
 
         name = (
             title
-            .replace("🟢","")
-            .replace("💚","")
-            .replace("😴","")
-            .replace("🔥","")
-            .replace("⚠️","")
-            .replace("📅","")
             .replace("【","")
             .replace("】","")
         )
@@ -2154,9 +2148,7 @@ background:#fafafa;
 
     font-weight:bold;
 
-    margin-bottom:10px;
-
-    color:#111;
+    margin-bottom:12px;
 
 }}
 
