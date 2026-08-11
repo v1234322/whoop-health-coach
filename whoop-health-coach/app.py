@@ -1700,6 +1700,18 @@ def weekly():
             for r in rows
         ]
 
+        valid_days = len(rows)
+
+        sleep_valid_days = sum(
+            1 for r in rows
+            if r[3] is not None
+        )
+
+        if dates:
+            report_period = f"{dates[0]} 至 {dates[-1]}"
+        else:
+            report_period = "暂无数据"
+            
 
         recovery_values = [
             r[1]
@@ -1739,41 +1751,7 @@ def weekly():
             return round(
                 sum(valid_values) / len(valid_values),
                 1
-            )
-
-        def calculate_health_score(
-            recovery,
-            hrv,
-            sleep,
-            strain
-        ):
-
-            score = 0
-
-
-            if recovery:
-                score += min(recovery,100)*0.4
-
-
-            if hrv:
-                score += min(hrv/70*100,100)*0.2
-
-
-            if sleep:
-                score += min(sleep/8*100,100)*0.25
-
-
-            if strain:
-                if strain <=14:
-                    score += 15
-                elif strain <=18:
-                    score += 10
-                else:
-                    score += 5
-
-
-            return round(score)
-            
+    
 
         def recovery_status(value):
 
@@ -1810,6 +1788,9 @@ def weekly():
             if value is None:
                 return "gray"
 
+            if value < 6:
+                return "orange"
+
             if value <= 14:
                 return "green"
 
@@ -1818,7 +1799,7 @@ def weekly():
 
             return "red"
 
-
+        
         def hrv_status(value):
 
             if value is None:
@@ -1868,13 +1849,16 @@ def weekly():
             if value is None:
                 return "暂无数据"
 
+            if value < 6:
+                return "训练负荷较低"
+
             if value <= 14:
-                return "训练合理"
+                return "中等训练负荷"
 
             if value <= 18:
-                return "注意负荷"
+                return "较高训练负荷"
 
-            return "负荷偏高"
+        return "训练负荷过高"
     
     
         avg_recovery = safe_avg(
@@ -1886,20 +1870,36 @@ def weekly():
             hrv_values
         )
 
-        hrv_color = hrv_status(avg_hrv)
+        valid_hrv_values = [
+            float(v)
+            for v in hrv_values
+            if v is not None
+        ]
 
+        hrv_color = "gray"
+        hrv_text = "数据不足"
 
-        if hrv_color == "green":
-            hrv_text = "状态良好"
+        if len(valid_hrv_values) >= 2:
 
-        elif hrv_color == "orange":
-            hrv_text = "略有下降"
+            first_hrv = valid_hrv_values[0]
+            latest_hrv = valid_hrv_values[-1]
 
-        elif hrv_color == "red":
-            hrv_text = "需要恢复"
+            if first_hrv > 0:
+                hrv_change = (
+                    latest_hrv - first_hrv
+                ) / first_hrv * 100
 
-        else:
-            hrv_text = "-"
+                if hrv_change >= 5:
+                    hrv_color = "green"
+                    hrv_text = "较期初上升"
+
+                elif hrv_change <= -5:
+                    hrv_color = "red"
+                    hrv_text = "较期初下降"
+
+                else:
+                    hrv_color = "orange"
+                    hrv_text = "整体稳定"
             
 
         avg_sleep = safe_avg(
@@ -1980,38 +1980,6 @@ def weekly():
         sleep_json = json.dumps(sleep_values)
 
         strain_json = json.dumps(strain_values)
-
-
-        
-        weekly_report = weekly_report.replace(
-            "🟢【",
-            "<br>🟢【"
-        )
-
-        weekly_report = weekly_report.replace(
-            "❤️【",
-            "<br>❤️【"
-        )
-
-        weekly_report = weekly_report.replace(
-            "😴【",
-            "<br>😴【"
-        )
-
-        weekly_report = weekly_report.replace(
-            "🔥【",
-            "<br>🔥【"
-        )
-
-        weekly_report = weekly_report.replace(
-            "⚠️【",
-            "<br>⚠️【"
-        )
-
-        weekly_report = weekly_report.replace(
-            "📅【",
-            "<br>📅【"
-        )
 
 
         return f"""
@@ -2276,13 +2244,6 @@ line-height:1.6;
 }}
 
 
-.ai-content br {{
-
-    display:none;
-
-}}
-
-
 .ai-green {{
 
 color:#16a34a;
@@ -2368,6 +2329,13 @@ color:#666;
 
 }}
 
+.data-coverage {{
+    color:#666;
+    font-size:15px;
+    margin-top:-15px;
+    margin-bottom:25px;
+}}
+
 
 
 </style>
@@ -2413,10 +2381,16 @@ color:#666;
 
 <div class="health-score-text">
 
-今日整体状态
+近7天综合状态
 
 </div>
 
+</div>
+
+<div class="data-coverage">
+统计周期：{report_period}　
+有效记录：{valid_days}/7天　
+睡眠记录：{sleep_valid_days}/7天
 </div>
 
 
@@ -2436,7 +2410,7 @@ color:#666;
 
 <span class="status-{recovery_color}">
 
-{avg_recovery if avg_recovery else "-"}
+{avg_recovery if avg_recovery is not None else "-"}
 
 </span>
 
@@ -2473,7 +2447,7 @@ color:#666;
 
 <span class="status-{hrv_color}">
 
-{avg_hrv if avg_hrv else "-"}
+{avg_hrv if avg_hrv is not None else "-"}
 
 </span>
 
@@ -2512,7 +2486,7 @@ ms
 
 <span class="status-{sleep_color}">
 
-{avg_sleep if avg_sleep else "-"}
+{avg_sleep if avg_sleep is not None else "-"}
 
 </span>
 
@@ -2552,7 +2526,7 @@ h
 
 <span class="status-{strain_color}">
 
-{avg_strain if avg_strain else "-"}
+{avg_strain if avg_strain is not None else "-"}
 
 </span>
 
@@ -2853,6 +2827,127 @@ maintainAspectRatio:false
 
 
         return str(e)
+
+
+
+def generate_ai_summary(ai_prompt):
+
+try:
+
+    response = client.chat.completions.create(
+
+        model="deepseek-chat",
+
+        messages=[
+
+            {
+                "role": "system",
+                "content": """
+
+
+你是 WHOOP 私人健康教练。
+
+你的任务：
+根据用户提供的 WHOOP 健康数据，
+生成专业、简洁、可执行的健康建议。
+
+分析内容：
+
+💚 Recovery恢复状态
+
+❤️ HRV变化
+
+❤️‍🔥 静息心率
+
+😴 睡眠质量
+
+🔥 Strain训练负荷
+
+输出格式：
+
+🟢【今日身体状态】
+
+总结当前恢复情况。
+
+💚【恢复分析】
+
+分析：
+
+Recovery
+HRV
+静息心率
+
+😴【睡眠分析】
+
+分析：
+
+睡眠时间
+睡眠质量
+对恢复影响
+
+🔥【训练建议】
+
+给出：
+
+是否适合训练
+推荐训练强度
+推荐训练类型
+
+⚠️【风险提醒】
+
+如果存在恢复不足、疲劳累积，
+必须提醒。
+
+📅【未来1-3天建议】
+
+第1天：
+训练建议
+
+第2天：
+恢复建议
+
+第3天：
+训练调整
+
+规则：
+
+中文简体
+使用emoji
+不超过400字
+不重复罗列数据
+不编造不存在的数据
+像私人WHOOP教练
+不输出代码
+
+"""
+},
+
+            {
+                "role": "user",
+                "content": ai_prompt[:3000]
+            }
+
+        ],
+
+        temperature=0.4,
+
+        max_tokens=600
+
+    )
+
+
+    return response.choices[0].message.content
+
+
+except Exception as e:
+
+    print(
+        "AI SUMMARY ERROR:",
+        e
+    )
+
+    return "⚠️ AI教练暂时无法生成建议"
+
 
 
 def generate_weekly_ai_summary(ai_prompt):
