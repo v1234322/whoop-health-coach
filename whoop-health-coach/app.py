@@ -1571,86 +1571,148 @@ def weekly():
         weekly_report = generate_weekly_analysis()
 
 
-        return f"""
-        <!DOCTYPE html>
+    return f"""
 
-        <html>
+<!DOCTYPE html>
 
-        <head>
+<html>
 
-        <meta charset="UTF-8">
+<head>
 
-        <title>
-        WHOOP 7天健康报告
-        </title>
+<meta charset="UTF-8">
 
-
-        <style>
-
-        body {{
-
-            font-family: Arial, sans-serif;
-
-            background:#f5f7fa;
-
-            padding:30px;
-
-        }}
+<title>
+WHOOP 7天健康趋势
+</title>
 
 
-        .card {{
+<style>
 
-            background:white;
+body {{
 
-            padding:25px;
+    background:#f5f7fa;
 
-            border-radius:15px;
+    font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial;
 
-            box-shadow:
-            0 4px 12px rgba(0,0,0,0.1);
+    padding:20px;
 
-            line-height:1.8;
-
-        }}
-
-
-        h1 {{
-
-            font-size:28px;
-
-        }}
+}}
 
 
-        </style>
+.container {{
 
-        </head>
+    max-width:900px;
 
+    margin:auto;
 
-        <body>
-
-
-        <div class="card">
-
-        <h1>
-        📊 WHOOP 7天健康趋势报告
-        </h1>
+}}
 
 
-        <p>
+.title {{
 
-        {weekly_report}
+    font-size:34px;
 
-        </p>
+    font-weight:700;
+
+    margin-bottom:25px;
+
+}}
 
 
-        </div>
+.card {{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:30px;
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,0.08);
+
+    line-height:1.9;
+
+    font-size:18px;
+
+}}
 
 
-        </body>
+.section {{
 
-        </html>
+    margin-top:20px;
 
-        """
+    padding:18px;
+
+    border-radius:15px;
+
+    background:#fafafa;
+
+}}
+
+
+h2 {{
+
+    margin-top:0;
+
+    font-size:22px;
+
+}}
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<div class="title">
+
+📊 WHOOP 7天健康趋势报告
+
+</div>
+
+
+
+<div class="card">
+
+
+<div class="section">
+
+<h2>
+🟢 AI健康教练分析
+</h2>
+
+<p>
+
+{weekly_report}
+
+</p>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</body>
+
+
+</html>
+
+"""
 
 
     except Exception as e:
