@@ -1188,7 +1188,7 @@ def today():
         {metrics.get("rem_sleep_duration")}
 
         Strain:
-        {metrics.get("cycle_strain")}
+        {metrics.get("cycle_strain"):.1F}
 
         请生成今日健康教练建议。
 
@@ -1338,7 +1338,7 @@ def today():
         <h2>🔥 今日 Strain</h2>
 
         <div class="metric">
-        {metrics.get("cycle_strain"):1f}
+        {metrics.get("cycle_strain")}
         </div>
 
         </div>
