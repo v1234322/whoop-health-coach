@@ -1700,13 +1700,17 @@ def privacy():
 
 def check_api_key():
 
-
     key = request.headers.get(
         "X-API-Key"
     )
 
 
-    return key == API_SECRET
+    api_secret = os.getenv(
+        "API_SECRET"
+    )
+
+
+    return key == api_secret
     
 
 def whoop_token():
