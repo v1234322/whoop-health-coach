@@ -1653,6 +1653,50 @@ def weekly():
             )
 
 
+        def recovery_status(value):
+
+            if value is None:
+                return "gray"
+
+            if value >= 67:
+                return "green"
+
+            if value >= 34:
+                return "orange"
+
+            return "red"
+
+
+
+        def sleep_status(value):
+
+            if value is None:
+                return "gray"
+
+            if value >= 7:
+                return "green"
+
+            if value >= 6:
+                return "orange"
+
+            return "red"
+
+
+
+        def strain_status(value):
+
+            if value is None:
+                return "gray"
+
+            if value <= 14:
+                return "green"
+
+            if value <= 18:
+                return "orange"
+
+            return "red"
+
+    
         avg_recovery = safe_avg(
             recovery_values
         )
@@ -1672,7 +1716,19 @@ def weekly():
             strain_values
         )
 
-        
+        recovery_color = recovery_status(
+            avg_recovery
+        )
+
+        sleep_color = sleep_status(
+            avg_sleep
+        )
+
+        strain_color = strain_status(
+            avg_strain
+        )
+
+
         dates_json = json.dumps(dates)
 
         recovery_json = json.dumps(recovery_values)
@@ -1735,6 +1791,7 @@ WHOOP 7天健康趋势
 
 <style>
 
+
 .summary-grid {{
 
 display:grid;
@@ -1777,6 +1834,35 @@ font-size:28px;
 font-weight:bold;
 
 }}
+
+.status-green {{
+
+color:#16a34a;
+
+}}
+
+
+.status-orange {{
+
+color:#f59e0b;
+
+}}
+
+
+.status-red {{
+
+color:#dc2626;
+
+}}
+
+
+.status-gray {{
+
+color:#666;
+
+}}
+
+
 
 
 body {{
@@ -1884,7 +1970,14 @@ h2 {{
 </div>
 
 <div class="summary-value">
-{avg_recovery if avg_recovery else "-"}%
+
+<span class="status-{recovery_color}">
+
+{avg_recovery if avg_recovery else "-"}
+
+</span>
+%
+
 </div>
 
 </div>
@@ -1912,7 +2005,14 @@ h2 {{
 </div>
 
 <div class="summary-value">
-{avg_sleep if avg_sleep else "-"} h
+
+<span class="status-{sleep_color}">
+
+{avg_sleep if avg_sleep else "-"}
+
+</span>
+h
+
 </div>
 
 </div>
@@ -1926,7 +2026,13 @@ h2 {{
 </div>
 
 <div class="summary-value">
+
+<span class="status-{strain_color}">
+
 {avg_strain if avg_strain else "-"}
+
+</span>
+
 </div>
 
 </div>
