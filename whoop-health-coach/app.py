@@ -1982,7 +1982,7 @@ body {{
 
 .container {{
 
-    max-width:1200px;
+    max-width:1000px;
 
     margin:auto;
 
@@ -2014,9 +2014,6 @@ body {{
     line-height:1.9;
 
     font-size:18px;
-
-    width:100%;
-
 
 }}
 
@@ -2169,6 +2166,7 @@ h
 </h2>
 
 <div class="chart-box">
+    <div style="height:350px">
     <canvas id="recoveryChart"></canvas>
 </div>
 
@@ -2180,6 +2178,7 @@ h
 </h2>
 
 <div class="chart-box">
+    <div style="height:350px">
     <canvas id="hrvChart"></canvas>
 </div>
 
@@ -2191,6 +2190,7 @@ h
 </h2>
 
 <div class="chart-box">
+    <div style="height:350px">
     <canvas id="sleepChart"></canvas>
 </div>
 
@@ -2202,6 +2202,7 @@ h
 </h2>
 
 <div class="chart-box">
+    <div style="height:350px">
     <canvas id="strainChart"></canvas>
 </div>
 
