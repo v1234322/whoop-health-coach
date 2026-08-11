@@ -1735,6 +1735,49 @@ WHOOP 7天健康趋势
 
 <style>
 
+.summary-grid {{
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:18px;
+
+margin-bottom:30px;
+
+}}
+
+
+.summary-card {{
+
+background:#fafafa;
+
+border-radius:16px;
+
+padding:20px;
+
+text-align:center;
+
+}}
+
+
+.summary-label {{
+
+font-size:16px;
+
+margin-bottom:10px;
+
+}}
+
+
+.summary-value {{
+
+font-size:28px;
+
+font-weight:bold;
+
+}}
+
 
 body {{
 
@@ -1812,50 +1855,6 @@ h2 {{
 
 
 </style>
-
-.summary-grid {{
-
-display:grid;
-
-grid-template-columns:
-repeat(4,1fr);
-
-gap:18px;
-
-margin-bottom:30px;
-
-}}
-
-
-.summary-card {{
-
-background:#fafafa;
-
-border-radius:16px;
-
-padding:20px;
-
-text-align:center;
-
-}}
-
-
-.summary-label {{
-
-font-size:16px;
-
-margin-bottom:10px;
-
-}}
-
-
-.summary-value {{
-
-font-size:28px;
-
-font-weight:bold;
-
-}}
 
 
 </head>
