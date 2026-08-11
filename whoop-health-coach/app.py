@@ -1570,6 +1570,36 @@ def weekly():
 
         weekly_report = generate_weekly_analysis()
 
+        weekly_report = weekly_report.replace(
+            "🟢【",
+            "<br><br>🟢【"
+        )
+
+        weekly_report = weekly_report.replace(
+            "❤️【",
+            "<br><br>❤️【"
+        )
+
+        weekly_report = weekly_report.replace(
+            "😴【",
+            "<br><br>😴【"
+        )
+
+        weekly_report = weekly_report.replace(
+            "🔥【",
+            "<br><br>🔥【"
+        )
+
+        weekly_report = weekly_report.replace(
+            "⚠️【",
+            "<br><br>⚠️【"
+        )
+
+        weekly_report = weekly_report.replace(
+            "📅【",
+            "<br><br>📅【"
+        )
+
 
         return f"""
 
@@ -1692,11 +1722,11 @@ h2 {{
 🟢 AI健康教练分析
 </h2>
 
-<p>
+<div>
 
 {weekly_report}
 
-</p>
+<div>
 
 </div>
 
