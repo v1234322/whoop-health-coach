@@ -1982,7 +1982,7 @@ body {{
 
 .container {{
 
-    max-width:12000px;
+    max-width:1200px;
 
     margin:auto;
 
@@ -2020,15 +2020,6 @@ body {{
 
 }}
 
-.chart-box {{
-
-    width:100%;
-
-    height:400px;
-
-    margin-bottom:40px;
-
-}}
 
 
 .section {{
@@ -2181,6 +2172,7 @@ h
     <canvas id="recoveryChart"></canvas>
 </div>
 
+
 <div class="card">
 
 <h2>
@@ -2191,6 +2183,7 @@ h
     <canvas id="hrvChart"></canvas>
 </div>
 
+
 <div class="card">
 
 <h2>
@@ -2200,6 +2193,7 @@ h
 <div class="chart-box">
     <canvas id="sleepChart"></canvas>
 </div>
+
 
 <div class="card">
 
