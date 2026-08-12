@@ -1647,17 +1647,20 @@ def trend():
 
             for r in rows:
 
-                try:
+                    value = r[index]
 
-                    if value is not None:
+                    if value is None:
+                        continue
 
                         values.append(
                             float(value)
                         )
 
-                except Exception:
+                    try:
+                        values.append(float(value))
 
-                    continue
+                    except (TypeError, ValueError):
+                        continue
 
             if len(values) == 0:
                 return 0
