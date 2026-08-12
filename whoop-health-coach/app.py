@@ -1655,9 +1655,9 @@ def trend():
                             float(value)
                         )
 
-                    except Exception:
+                 except Exception:
 
-                        continue
+                     continue
 
             if len(values) == 0:
                 return 0
