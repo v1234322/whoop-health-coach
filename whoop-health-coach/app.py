@@ -1661,6 +1661,24 @@ def today():
             font-size:16px;
 
         }}
+
+        .two-column {{
+
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:20px;
+            width:100%;
+
+        }}
+        
+        .small-card {{
+
+            background:white;
+            border-radius:20px;
+            padding:25px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.08);
+
+        }}
         
 
         </style>
@@ -1757,56 +1775,45 @@ def today():
 
 
 
-        <div class="card">
+        <div class="two-column">
+
+
+        <div class="small-card">
 
         <h2>❤️ 身体指标</h2>
 
+        <div class="metric">
+        HRV: {metrics.get("hrv")} ms
+        </div>
 
-        <p>
-        HRV:
-        {metrics.get("hrv"):.1f} ms
-        </p>
-
-
-        <p>
-        静息心率:
-        {metrics.get("resting_heart_rate"):.0f} bpm
-        </p>
-
+        <div class="metric">
+        静息心率: {metrics.get("resting_heart_rate")} bpm
+        </div>
 
         </div>
 
 
-
-
-
-        <div class="card">
+        <div class="small-card">
 
         <h2>😴 睡眠详情</h2>
 
+        <div class="metric">
+        睡眠时长: {metrics.get("sleep_duration")} 小时
+        </div>
 
-        <p>
-        睡眠时长:
-        {metrics.get("sleep_duration")} 小时
-        </p>
+        <div class="metric">
+        睡眠效率: {metrics.get("sleep_efficiency")}%
+        </div>
 
+        <div class="metric">
+        深度睡眠: {metrics.get("deep_sleep_duration")} 小时
+        </div>
 
-        <p>
-        睡眠效率:
-        {metrics.get("sleep_efficiency"):.1f}%
-        </p>
+        <div class="metric">
+        REM睡眠: {metrics.get("rem_sleep_duration")} 小时
+        </div>
 
-
-        <p>
-        深度睡眠:
-        {metrics.get("deep_sleep_duration")} 小时
-        </p>
-
-
-        <p>
-        REM睡眠:
-        {metrics.get("rem_sleep_duration")} 小时
-        </p>
+        </div>
 
 
         </div>
