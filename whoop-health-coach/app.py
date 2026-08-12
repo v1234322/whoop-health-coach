@@ -1599,32 +1599,47 @@ def today():
 
 
         .whoop-grid {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            align-items: start;
-            text-align: center;
-            margin-top: 25px;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+
+            width:100%;
+
         }}
+
 
         .whoop-item {{
-            font-size: 20px;
-            min-width: 0;
+
+            flex:1;
+
+            text-align:center;
+
         }}
+
 
         .whoop-item strong {{
-            display: block;
-            font-size: 32px;
-            margin-top: 10px;
-            margin-bottom: 8px;
+
+            display:block;
+
+            font-size:32px;
+
+            margin-top:10px;
+
         }}
+
 
         .strain-level {{
-            display: block;
-            font-size: 16px;
-            margin-top: 6px;
-        }}
 
+            display:block;
+
+            margin-top:8px;
+
+            font-size:16px;
+
+        }}
 
 
         .whoop-item strong{{
@@ -1686,10 +1701,8 @@ def today():
 
         🟢 Recovery
 
-        <br>
-
         <strong>
-        {metrics.get("recovery_score")}%
+        {metrics.get("recovery_score"):.1f}%
         </strong>
 
         </div>
@@ -1709,35 +1722,19 @@ def today():
         </span>
 
         <div>
-
-
-        <div class="whoop-item">
-
-        🟢 Recovery
-
-        <strong>
-        {metrics.get("recovery_score"):.1f}%
-        </strong>
-
-        </div>
-
+        
 
         <div class="whoop-item">
 
         😴 Sleep
 
         <strong>
-        {metrics.get("sleep_score")}%
+        {metrics.get("sleep_score"):.1f}%
         </strong>
 
         </div>
 
-
         </div>
-
-
-        </div>
-
 
 
 
