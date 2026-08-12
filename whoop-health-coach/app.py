@@ -1894,23 +1894,6 @@ def today():
         </div>
 
 
-        <div class="coach-status">
-
-        {health_level}
-
-        </div>
-
-
-        <div>
-
-        Recovery Score
-
-        </div>
-
-
-        </div>
-
-
 
         <div class="card">
 
@@ -3831,7 +3814,7 @@ def generate_ai_summary(ai_prompt):
 
 请严格按照以下结构输出：
 
-🟡 今日教练总结
+【🟡 今日教练总结】
 
 用1-2句话总结今天身体状态。
 告诉用户今天最重要的一件事。
