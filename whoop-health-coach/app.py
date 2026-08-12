@@ -1582,12 +1582,21 @@ def today():
             font-size:20px;
             line-height:2;
         }}
+        
 
+        .ai-text::first-line {{
+
+        font-weight:bold;
+
+        }}
+        
 
         .ai-text strong {{
 
-            font-size:30px;
+            font-size:28px;
             font-weight:bold;
+            margin-top:35px;
+            margin-bottom:15px;
 
         }}
 
@@ -1885,34 +1894,6 @@ def today():
         </div>
 
 
-        <div class="card">
-
-
-        <h2>
-        🤖 WHOOP AI Coach
-        </h2>
-
-
-        <div class="coach-header">
-
-        <div class="coach-score">
-
-        {metrics.get("recovery_score"):.0f}
-
-        </div>
-
-
-        <div class="coach-advice">
-
-        📌 今日建议
-
-        <br>
-
-        优先恢复，不追求训练强度
-
-        </div>
-
-
         <div class="coach-status">
 
         {health_level}
@@ -1930,6 +1911,10 @@ def today():
         </div>
 
 
+
+        <div class="card">
+
+        <h2>🤖 WHOOP AI Coach</h2>
 
         <div class="ai-text">
 
@@ -3852,13 +3837,13 @@ def generate_ai_summary(ai_prompt):
 告诉用户今天最重要的一件事。
 
 
-🧠 今日身体状态
+【🧠 今日身体状态】
 
 总结今天身体恢复情况。
 结合近期趋势分析，不要只重复数据。
 
 
-❤️ 恢复分析
+【❤️ 恢复分析】
 
 分析：
 Recovery
@@ -3868,7 +3853,7 @@ HRV
 解释身体可能出现的信号。
 
 
-😴 睡眠分析
+【😴 睡眠分析】
 
 分析：
 睡眠时间
@@ -3879,7 +3864,7 @@ REM
 说明睡眠对恢复的影响，并给出改善建议。
 
 
-🏋️ 今日训练建议
+【🏋️ 今日训练建议】
 
 必须明确：
 
