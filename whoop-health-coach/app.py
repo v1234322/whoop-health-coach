@@ -914,9 +914,36 @@ def init_db():
 
         workout_data TEXT
 
+        health_score REAL
+
     )
     """)
 
+    # =========================
+    # 添加 health_score 字段
+    # =========================
+
+    try:
+
+        cursor.execute(
+            """
+            ALTER TABLE daily_metrics
+            ADD COLUMN health_score REAL
+            """
+        )
+
+        print(
+            "HEALTH SCORE COLUMN ADDED"
+        )
+
+    except Exception as e:
+
+        print(
+            "HEALTH SCORE COLUMN EXISTS:",
+            e
+        )
+
+    
 
     # =========================
     # 系统状态表
