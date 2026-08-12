@@ -1269,6 +1269,88 @@ def today():
 
         }
 
+
+        # =========================
+        # 获取最近7天趋势
+        # =========================
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 7
+            """
+        )
+
+        trend_rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+
+        def calculate_average(rows, index):
+
+            values = [
+                float(r[index])
+                for r in rows
+                if r[index] is not None
+            ]
+
+            if not values:
+                return 0
+
+            return sum(values) / len(values)
+
+
+
+        if trend_rows:
+
+            avg_recovery = calculate_average(
+                trend_rows,
+                1
+            )
+
+            avg_hrv = calculate_average(
+                trend_rows,
+                2
+            )
+
+            avg_sleep = calculate_average(
+                trend_rows,
+                3
+            )
+
+            avg_sleep_score = calculate_average(
+                trend_rows,
+                4
+            )
+
+            avg_strain = calculate_average(
+                trend_rows,
+                5
+            )
+
+
+        else:
+
+            avg_recovery = 0
+            avg_hrv = 0
+            avg_sleep = 0
+            avg_sleep_score = 0
+            avg_strain = 0
+
+
+    
         # =========================
         # AI健康教练
         # =========================
@@ -1304,7 +1386,34 @@ def today():
         Strain:
         {metrics.get("cycle_strain")}
 
-        请生成今日健康教练建议。
+
+            最近7天趋势:
+
+                平均 Recovery:
+                {avg_recovery:.1f}
+
+                平均 HRV:
+                {avg_hrv:.1f}
+
+                平均睡眠:
+                {avg_sleep:.1f} 小时
+
+                平均睡眠评分:
+                {avg_sleep_score:.1f}
+            
+                平均 Strain:
+                {avg_strain:.1f}
+
+
+        请结合今天状态和最近7天趋势，
+        生成今日健康教练建议。
+
+        重点分析：
+
+        1. 今日恢复是否高于或低于近期水平
+        2. 是否存在疲劳累积
+        3. 今日训练强度建议
+        4. 未来1-3天调整方案
 
         """
 
@@ -1649,7 +1758,7 @@ box-shadow:0 4px 12px rgba(0,0,0,0.1);
 
         <p>
         🔥 Strain:
-        {r[6]}
+        {float(r[6]):.1f}
         </p>
 
         </div>
