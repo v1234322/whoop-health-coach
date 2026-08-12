@@ -1367,7 +1367,9 @@ def today():
                 hrv,
                 sleep_duration,
                 sleep_score,
-                cycle_strain
+                cycle_strain,
+                health_score
+                
             FROM daily_metrics
             ORDER BY report_date DESC
             LIMIT 7
@@ -1777,6 +1779,7 @@ def trend():
         avg_sleep = avg_value(4)
         avg_sleep_score = avg_value(5)
         avg_strain = avg_value(6)
+        avg_health_score = avg_value(7)
 
 
         summary = f"""
@@ -1792,6 +1795,11 @@ box-shadow:0 4px 12px rgba(0,0,0,0.1);
 <h2>
 📊 7天趋势总结
 </h2>
+
+<p>
+🧠 平均健康评分:
+{round(avg_health_score,1) if avg_health_score is not None else "-"}
+</p>
 
 <p>
 🟢 平均 Recovery:
