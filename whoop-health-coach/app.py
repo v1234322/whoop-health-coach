@@ -1305,7 +1305,7 @@ def today():
 
             "cycle_strain": row[9],
 
-            "work_data": row[10]
+            "work_data": row[10],
 
             "health_score": row[11]
 
