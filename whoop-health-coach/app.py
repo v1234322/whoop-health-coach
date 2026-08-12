@@ -1337,6 +1337,10 @@ def today():
         )
 
         metrics["health_score"] = health_score
+
+        save_daily_data(
+            metrics
+        )
         
 
         # =========================
@@ -4340,7 +4344,7 @@ def save_daily_data(metrics):
                 deep_sleep_duration,
                 rem_sleep_duration,
                 cycle_strain,
-                workout_data
+                workout_data,
                 health_score
             )
             VALUES
@@ -4369,7 +4373,9 @@ def save_daily_data(metrics):
 
            cycle_strain = EXCLUDED.cycle_strain,
 
-           workout_data = EXCLUDED.workout_data
+           workout_data = EXCLUDED.workout_data,
+
+           health_score = EXCLUDED.health_score
 
            """,
             (
