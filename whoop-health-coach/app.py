@@ -1581,7 +1581,8 @@ def today():
         .ai-text {{
             white-space:pre-line;
             font-size:22px;
-            line-height:2;
+            line-height:1.8;
+            padding-top:0;
         }}
         
 
@@ -1595,10 +1596,10 @@ def today():
         .ai-text strong {{
 
             display:block;
-            font-size:32px;
+            font-size:30px;
             font-weight:bold;
-            margin-top:45px;
-            margin-bottom:25px;
+            margin-top:35px;
+            margin-bottom:20px;
 
         }}
 
