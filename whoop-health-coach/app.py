@@ -1740,7 +1740,6 @@ box-shadow:0 4px 12px rgba(0,0,0,0.1);
         padding:20px;
         margin:15px;
         border-radius:15px;
-        box-shadow:0 4px 12px rgba(0,0,0,0.08);
         ">
 
         <h3>
@@ -1749,32 +1748,32 @@ box-shadow:0 4px 12px rgba(0,0,0,0.1);
 
         <p>
         🟢 Recovery:
-        {r[1]}%
+        {r[1] if r[1] is not None else "-"}%
         </p>
 
         <p>
         ❤️ HRV:
-        {r[2]} ms
+        {round(float(r[2]),1) if r[2] is not None else "-"} ms
         </p>
 
         <p>
         ❤️ 静息心率:
-        {r[3]} bpm
+        {r[3] if r[3] is not None else "-"} bpm
         </p>
 
         <p>
         😴 睡眠:
-        {r[4]} 小时
+        {round(float(r[4]),1) if r[4] is not None else "-"} 小时
         </p>
 
         <p>
         ⭐ 睡眠评分:
-        {r[5]}
+        {r[5] if r[5] is not None else "-"}
         </p>
 
         <p>
         🔥 Strain:
-        {float(r[6]):.1f}
+        {round(float(r[6]),1) if r[6] is not None else "-"}
         </p>
 
         </div>
