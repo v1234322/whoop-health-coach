@@ -912,7 +912,7 @@ def init_db():
 
         cycle_strain REAL,
 
-        workout_data TEXT
+        workout_data TEXT,
 
         health_score REAL
 
