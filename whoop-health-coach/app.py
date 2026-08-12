@@ -936,12 +936,9 @@ def init_db():
             "HEALTH SCORE COLUMN ADDED"
         )
 
-    except Exception as e:
+    except Exception:
 
-        print(
-            "HEALTH SCORE COLUMN EXISTS:",
-            e
-        )
+        conn.rollback()
 
     
 
@@ -960,7 +957,19 @@ def init_db():
     """)
 
 
-    conn.commit()
+    try:
+
+        conn.commit()
+
+    except Exception as e:
+
+        print(
+            "DATABASE INIT ERROR:",
+            e
+        )
+
+        conn.rollback()
+
 
     conn.close()
 
