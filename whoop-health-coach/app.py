@@ -1576,10 +1576,29 @@ def today():
             margin:12px 0;
         }}
 
+
         .ai-text {{
             white-space:pre-line;
             font-size:20px;
             line-height:2;
+        }}
+
+
+        .ai-text strong {{
+
+            font-size:30px;
+            font-weight:bold;
+
+        }}
+
+
+        .ai-text h3 {{
+
+            font-size:30px;
+            margin-top:35px;
+            margin-bottom:15px;
+            font-weight:bold;
+
         }}
 
 
@@ -1715,7 +1734,18 @@ def today():
             box-shadow:0 4px 15px rgba(0,0,0,0.08);
 
         }}
-        
+
+
+        .coach-advice {{
+
+            margin-top:20px;
+            padding:20px;
+            background:#fafafa;
+            border-radius:18px;
+            font-size:22px;
+            line-height:1.8;
+
+        }}
 
         </style>
 
@@ -1868,6 +1898,17 @@ def today():
         <div class="coach-score">
 
         {metrics.get("recovery_score"):.0f}
+
+        </div>
+
+
+        <div class="coach-advice">
+
+        📌 今日建议
+
+        <br>
+
+        优先恢复，不追求训练强度
 
         </div>
 
@@ -3804,6 +3845,22 @@ def generate_ai_summary(ai_prompt):
 请按照以下结构输出：
 
 （不要输出总标题，直接开始今日身体状态）
+
+
+标题请使用 Markdown 三级标题格式：
+
+### 🧠 今日身体状态
+
+### ❤️ 恢复分析
+
+### 😴 睡眠分析
+
+### 🏋️ 今日训练建议
+
+### 📈 明日恢复预测
+
+标题需要明显大于正文
+
 
 🧠 今日身体状态
 - 总结今天身体恢复情况
