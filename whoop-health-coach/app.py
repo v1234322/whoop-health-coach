@@ -1583,6 +1583,42 @@ def today():
         }}
 
 
+        .coach-header {{
+
+            background:#fafafa;
+            border-radius:18px;
+            padding:20px;
+            margin-bottom:20px;
+            text-align:center;
+
+        }}
+
+
+        .coach-score {{
+
+            font-size:36px;
+            font-weight:bold;
+            margin:10px;
+
+        }}
+
+
+        .coach-status {{
+
+            font-size:22px;
+
+        }}
+
+
+        .coach-section {{
+
+            margin-top:25px;
+            padding-top:15px;
+            border-top:1px solid #eee;
+
+        }}
+
+
         .score{{
 
         font-size:48px;
@@ -1675,7 +1711,7 @@ def today():
 
             background:white;
             border-radius:20px;
-            padding:25px;
+            padding:20px;
             box-shadow:0 4px 15px rgba(0,0,0,0.08);
 
         }}
@@ -1783,7 +1819,7 @@ def today():
         <h2>❤️ 身体指标</h2>
 
         <div class="metric">
-        HRV: {metrics.get("hrv")} ms
+        HRV: {metrics.get("hrv"):.1f} ms
         </div>
 
         <div class="metric">
@@ -1802,7 +1838,7 @@ def today():
         </div>
 
         <div class="metric">
-        睡眠效率: {metrics.get("sleep_efficiency")}%
+        睡眠效率: {metrics.get("sleep_efficiency"):.1f}%
         </div>
 
         <div class="metric">
@@ -1821,11 +1857,45 @@ def today():
 
         <div class="card">
 
-        <h2>🤖 WHOOP AI Coach</h2>
+
+        <h2>
+        🤖 WHOOP AI Coach
+        </h2>
+
+
+        <div class="coach-header">
+
+        <div class="coach-score">
+
+        {metrics.get("recovery_score"):.0f}
+
+        </div>
+
+
+        <div class="coach-status">
+
+        {health_level}
+
+        </div>
+
+
+        <div>
+
+        Recovery Score
+
+        </div>
+
+
+        </div>
+
+
 
         <div class="ai-text">
+
         {ai_summary}
+
         </div>
+
 
         </div>
 
