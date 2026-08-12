@@ -1316,6 +1316,15 @@ def today():
             metrics.get("health_score",0)
         )
 
+        recovery = metrics.get("recovery_score",0)
+
+        if recovery >= 67:
+            recovery_color = "🟢"
+        elif recovery >= 34:
+            recovery_color = "🟡"
+        else:
+            recovery_color = "🔴"
+
         strain_level = get_strain_level(
             metrics.get("cycle_strain",0)
         )
@@ -1701,7 +1710,7 @@ def today():
         <div class="whoop-item">
 
         <span class="whoop-label">
-        🟢 Recovery
+        {recovery_color} Recovery
         </span>
 
         <strong>
@@ -1722,9 +1731,9 @@ def today():
         {metrics.get("cycle_strain"):.1f}
         </strong>
 
-        <span class="strain-level">
+        <div class="strain-level">
         {strain_level}
-        </span>
+        </div>
 
         </div>
         
