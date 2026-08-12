@@ -1797,6 +1797,11 @@ border-radius:15px;
 </h2>
 
 <p>
+TEST HEALTH:
+{avg_health_score}
+</p>
+
+<p>
 🧠 平均健康评分:
 {round(avg_health_score,1) if avg_health_score is not None else "-"}
 </p>
