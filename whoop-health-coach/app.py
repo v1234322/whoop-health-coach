@@ -1600,11 +1600,11 @@ def today():
 
         .whoop-grid {{
 
-            display:flex;
+            display:grid;
 
-            justify-content:space-between;
+            grid-template-columns:repeat(3,1fr);
 
-            align-items:center;
+            gap:20px;
 
             width:100%;
 
@@ -1613,8 +1613,12 @@ def today():
 
         .whoop-item {{
 
-            flex:1;
-
+            background:#fafafa;
+            
+            border-radius:18px;
+            
+            padding:25px;
+            
             text-align:center;
 
         }}
@@ -1624,12 +1628,20 @@ def today():
 
             display:block;
 
-            font-size:32px;
+            font-size:42px;
 
-            margin-top:10px;
+            margin-top:12px;
 
         }}
+        
 
+        .whoop-label {{
+
+            font-size:20px;
+            font-weight:bold;
+
+        }}
+        
 
         .strain-level {{
 
@@ -1638,17 +1650,6 @@ def today():
             margin-top:8px;
 
             font-size:16px;
-
-        }}
-
-
-        .whoop-item strong{{
-
-        font-size:32px;
-
-        display:block;
-
-        margin-top:10px;
 
         }}
         
@@ -1699,7 +1700,9 @@ def today():
 
         <div class="whoop-item">
 
+        <span class="whoop-label">
         🟢 Recovery
+        </span>
 
         <strong>
         {metrics.get("recovery_score"):.1f}%
@@ -1711,7 +1714,9 @@ def today():
 
         <div class="whoop-item">
 
+        <span class="whoop-label">
         🔥 Strain
+        </span>
 
         <strong>
         {metrics.get("cycle_strain"):.1f}
@@ -1726,7 +1731,10 @@ def today():
 
         <div class="whoop-item">
 
+        <span class="whoop-label">
         😴 Sleep
+        </span>
+
 
         <strong>
         {metrics.get("sleep_score"):.1f}%
