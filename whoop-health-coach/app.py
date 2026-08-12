@@ -1721,7 +1721,7 @@ def today():
         {strain_level}
         </span>
 
-        <div>
+        </div>
         
 
         <div class="whoop-item">
@@ -1731,6 +1731,8 @@ def today():
         <strong>
         {metrics.get("sleep_score"):.1f}%
         </strong>
+
+        </div>
 
         </div>
 
