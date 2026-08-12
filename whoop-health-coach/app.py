@@ -1400,7 +1400,7 @@ def today():
         WHOOP 数据:
 
 
-        健康评分:
+        今日健康评分:
         {health_score}/100
 
         Recovery:
@@ -1538,7 +1538,7 @@ def today():
         </h2>
 
         <div class="metric">
-        {{health_score}} / 100
+        {health_score} / 100
         </div>
 
         </div>
