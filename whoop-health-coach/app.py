@@ -6249,6 +6249,8 @@ def auto_report():
         # 6. AI健康教练
         # =========================
 
+        weekly = get_weekly_trend()
+
         ai_prompt = f"""
 
 你是 WHOOP 私人健康教练。
@@ -6278,6 +6280,24 @@ def auto_report():
 
 🔥 Strain:
 {metrics.get("cycle_strain",0)}
+
+
+
+📊 最近7天趋势：
+
+平均Recovery:
+{weekly.get("avg_recovery",0)}
+
+平均HRV:
+{weekly.get("avg_hrv",0)}
+
+平均静息心率:
+{weekly.get("avg_resting_hr",0)}
+
+平均睡眠:
+{weekly.get("avg_sleep",0)} 小时
+
+
 
 
 
@@ -6598,7 +6618,101 @@ def health():
             "error": str(e)
 
         }), 500
-        
+
+
+def get_weekly_trend():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+            report_date,
+            recovery_score,
+            hrv,
+            resting_heart_rate,
+            sleep_duration,
+            sleep_score,
+            cycle_strain
+
+        FROM daily_metrics
+
+        ORDER BY report_date DESC
+
+        LIMIT 7
+        """
+    )
+
+
+    rows = cur.fetchall()
+
+
+    cur.close()
+    conn.close()
+
+
+    if not rows:
+        return {}
+
+
+    rows = list(reversed(rows))
+
+
+    recovery_values = []
+    hrv_values = []
+    resting_hr_values = []
+    sleep_values = []
+
+
+    for r in rows:
+
+        if r[1] is not None:
+            recovery_values.append(float(r[1]))
+
+        if r[2] is not None:
+            hrv_values.append(float(r[2]))
+
+        if r[3] is not None:
+            resting_hr_values.append(float(r[3]))
+
+        if r[4] is not None:
+            sleep_values.append(float(r[4]))
+
+
+
+    def avg(values):
+
+        if not values:
+            return 0
+
+        return round(
+            sum(values)/len(values),
+            2
+        )
+
+
+    return {
+
+        "days": len(rows),
+
+        "avg_recovery":
+            avg(recovery_values),
+
+        "avg_hrv":
+            avg(hrv_values),
+
+        "avg_resting_hr":
+            avg(resting_hr_values),
+
+        "avg_sleep":
+            avg(sleep_values),
+
+    }
+
+
+
 
 def trend_report():
 
