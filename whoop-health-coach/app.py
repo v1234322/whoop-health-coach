@@ -1367,8 +1367,7 @@ def today():
                 hrv,
                 sleep_duration,
                 sleep_score,
-                cycle_strain,
-                health_score
+                cycle_strain
                 
             FROM daily_metrics
             ORDER BY report_date DESC
@@ -1706,7 +1705,8 @@ def trend():
                 resting_heart_rate,
                 sleep_duration,
                 sleep_score,
-                cycle_strain
+                cycle_strain,
+                health_score
 
             FROM daily_metrics
 
