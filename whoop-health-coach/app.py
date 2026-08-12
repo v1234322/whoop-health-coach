@@ -1578,8 +1578,8 @@ def today():
 
         .ai-text {{
             white-space:pre-line;
-            font-size:18px;
-            line-height:1.8;
+            font-size:26px;
+            line-height:2.1;
         }}
 
 
@@ -1587,8 +1587,8 @@ def today():
 
             background:#fafafa;
             border-radius:18px;
-            padding:20px;
-            margin-bottom:20px;
+            padding:15px;
+            margin-bottom:15px;
             text-align:center;
 
         }}
@@ -1596,9 +1596,9 @@ def today():
 
         .coach-score {{
 
-            font-size:36px;
+            font-size:32px;
             font-weight:bold;
-            margin:10px;
+            margin:5px;
 
         }}
 
@@ -3827,6 +3827,17 @@ def generate_ai_summary(ai_prompt):
 
 📈 明日恢复预测
 根据今天数据预测明天趋势。
+
+
+回答必须像 WHOOP Coach：
+
+要求：
+1. 先给一句简短总结
+2. 不要重复大量数据
+3. 重点解释身体信号
+4. 给明确行动建议
+5. 使用第二人称“你”
+6. 每个章节控制3-5句话
 
 输出规则：
 1. 不使用 Markdown 符号
