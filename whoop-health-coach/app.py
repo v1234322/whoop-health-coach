@@ -1569,6 +1569,62 @@ def today():
             line-height:1.8;
         }}
 
+
+        .score{{
+
+        font-size:48px;
+
+        font-weight:bold;
+
+        text-align:center;
+
+        margin:20px;
+
+        }}
+
+
+
+        .status{{
+
+        font-size:22px;
+
+        text-align:center;
+
+        }}
+
+
+
+        .whoop-grid{{
+
+        display:flex;
+
+        justify-content:space-around;
+
+        text-align:center;
+        
+        }}
+
+
+
+        .whoop-item{{
+
+        font-size:20px;
+        
+        }}
+
+
+
+        .whoop-item strong{{
+
+        font-size:32px;
+
+        display:block;
+
+        margin-top:10px;
+
+        }}
+        
+
         </style>
 
         </head>
@@ -1585,114 +1641,135 @@ def today():
 
         </div>
 
-
         <div class="card">
 
-        <h2>
-        🧠 今日健康评分
-        </h2>
+        <h2>🧠 今日健康评分</h2>
 
-        <div class="metric">
+        <div class="score">
+
         {metrics.get("health_score")} / 100
+
         </div>
 
-        <div class="metric">
+        <div class="status">
+
         {health_level}
+
         </div>
 
         </div>
+
 
 
         <div class="card">
 
-        <h2>🟢 Recovery</h2>
+        <h2>📊 今日 WHOOP 状态</h2>
 
-        <div class="metric">
+
+        <div class="whoop-grid">
+
+
+        <div class="whoop-item">
+
+        🟢 Recovery
+
+        <br>
+
+        <strong>
         {metrics.get("recovery_score")}%
-        </div>
+        </strong>
 
         </div>
+
+
+
+        <div class="whoop-item">
+
+        🔥 Strain
+
+        <br>
+
+        <strong>
+        {metrics.get("cycle_strain"):.1f}
+        </strong>
+
+        </div>
+
+
+
+        <div class="whoop-item">
+
+        😴 Sleep
+
+        <br>
+
+        <strong>
+        {metrics.get("sleep_score")}%
+        </strong>
+
+        </div>
+
+
+        </div>
+
+
+        </div>
+
+
 
 
         <div class="card">
 
-        <h2>❤️ HRV</h2>
+        <h2>❤️ 身体指标</h2>
 
-        <div class="metric">
-        {metrics.get("hrv"):.1f} ms
-        </div>
 
-        <div class="metric">
+        <p>
+        HRV:
+        {metrics.get("hrv")} ms
+        </p>
+
+
+        <p>
         静息心率:
         {metrics.get("resting_heart_rate")} bpm
-        </div>
+        </p>
+
 
         </div>
+
+
+
 
 
         <div class="card">
 
-        <h2>😴 睡眠</h2>
+        <h2>😴 睡眠详情</h2>
 
-        <div class="metric">
+
+        <p>
         睡眠时长:
         {metrics.get("sleep_duration")} 小时
-        </div>
+        </p>
 
-        <div class="metric">
+
+        <p>
         睡眠效率:
         {metrics.get("sleep_efficiency"):.1f}%
-        </div>
+        </p>
 
-        <div class="metric">
+
+        <p>
         深度睡眠:
         {metrics.get("deep_sleep_duration")} 小时
-        </div>
+        </p>
 
-        <div class="metric">
+
+        <p>
         REM睡眠:
         {metrics.get("rem_sleep_duration")} 小时
-        </div>
-
-        <div class="metric">
-        睡眠评分:
-        {metrics.get("sleep_score")}
-        </div>
-
-        </div>
+        </p>
 
 
-        <div class="card">
-
-        <h2>
-        📊 今日 WHOOP 状态
-        </h2>
-
-
-        <div class="metric">
-        🟢 Recovery:
-        {metrics.get("recovery_score")}%
-        </div>
-
-
-        <div class="metric">
-        🔥 Strain:
-        {metrics.get("cycle_strain")}
-        </div>
-
-
-        <div class="metric">
-        😴 Sleep:
-        {metrics.get("sleep_score")}%
-        </div>
-
-        </div>
-
-
-        <div class="metric">
-        状态: {health_level}
-        </div>
-        
         </div>
 
 
