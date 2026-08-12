@@ -1664,22 +1664,30 @@ def today():
 
         <div class="card">
 
-        <h2>🔥 今日 Strain</h2>
+        <h2>
+        📊 今日 WHOOP 状态
+        </h2>
+
 
         <div class="metric">
-        {metrics.get("cycle_strain"):.1f}
+        🟢 Recovery:
+        {metrics.get("recovery_score")}%
         </div>
 
-        </div>
-
-
-        <div class="card">
-
-        <h2>🟠 今日恢复状态</h2>
 
         <div class="metric">
-        Recovery: {metrics.get("recovery_score")}%
+        🔥 Strain:
+        {metrics.get("cycle_strain")}
         </div>
+
+
+        <div class="metric">
+        😴 Sleep:
+        {metrics.get("sleep_score")}%
+        </div>
+
+        </div>
+
 
         <div class="metric">
         状态: {health_level}
