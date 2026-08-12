@@ -1606,6 +1606,56 @@ box-shadow:0 4px 12px rgba(0,0,0,0.1);
 
         cards = ""
 
+        for r in rows:
+
+            cards += f"""
+
+        <div style="
+        background:white;
+        padding:20px;
+        margin:15px;
+        border-radius:15px;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        ">
+
+        <h3>
+        📅 {r[0]}
+        </h3>
+
+        <p>
+        🟢 Recovery:
+        {r[1]}%
+        </p>
+
+        <p>
+        ❤️ HRV:
+        {r[2]} ms
+        </p>
+
+        <p>
+        ❤️ 静息心率:
+        {r[3]} bpm
+        </p>
+
+        <p>
+        😴 睡眠:
+        {r[4]} 小时
+        </p>
+
+        <p>
+        ⭐ 睡眠评分:
+        {r[5]}
+        </p>
+
+        <p>
+        🔥 Strain:
+        {r[6]}
+        </p>
+
+        </div>
+
+        """
+
 
 
         return f"""
