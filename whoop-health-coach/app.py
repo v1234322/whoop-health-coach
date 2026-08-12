@@ -1533,6 +1533,7 @@ def today():
         ai_summary = generate_ai_summary(
             ai_prompt
         )
+        ai_summary = ai_summary.strip()
 
 
         return f"""
@@ -1593,10 +1594,11 @@ def today():
 
         .ai-text strong {{
 
-            font-size:28px;
+            display:block;
+            font-size:32px;
             font-weight:bold;
-            margin-top:35px;
-            margin-bottom:15px;
+            margin-top:45px;
+            margin-bottom:25px;
 
         }}
 
