@@ -1641,17 +1641,28 @@ def trend():
         # =========================
         # 7天趋势统计
         # =========================
-
         def avg_value(index):
 
-            values = [
-                float(r[index])
-                for r in rows
-                if r[index] is not None
-            ]
+            values = []
+
+            for r in rows:
+
+                value = r[index]
+
+                if value is not None:
+
+                    try:
+                        values.append(
+                            float(value)
+                        )
+
+                    except:
+                        pass
+
 
             if not values:
-                return None
+                return 0
+
 
             return sum(values) / len(values)
 
