@@ -1796,10 +1796,6 @@ border-radius:15px;
 📊 7天趋势总结
 </h2>
 
-<p>
-TEST HEALTH:
-{avg_health_score}
-</p>
 
 <p>
 🧠 平均健康评分:
