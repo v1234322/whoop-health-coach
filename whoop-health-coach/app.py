@@ -1264,7 +1264,9 @@ def today():
                 sleep_efficiency,
                 deep_sleep_duration,
                 rem_sleep_duration,
-                cycle_strain
+                cycle_strain,
+                health_score
+                
             FROM daily_metrics
             ORDER BY report_date DESC
             LIMIT 1
@@ -1303,7 +1305,9 @@ def today():
 
             "cycle_strain": row[9],
 
-            "health_score": row[12]
+            "work_data": row[10]
+
+            "health_score": row[11]
 
         }
 
