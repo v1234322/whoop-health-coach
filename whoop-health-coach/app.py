@@ -4729,7 +4729,7 @@ def get_health_level(score):
         return "🟠 一般状态"
 
     else:
-        return "🔴 需要恢复
+        return "🔴 需要恢复"
 
 
 def get_strain_level(strain):
