@@ -1387,22 +1387,22 @@ def today():
         {metrics.get("cycle_strain")}
 
 
-            最近7天趋势:
+        最近7天趋势:
 
-                平均 Recovery:
-                {avg_recovery:.1f}
+        平均 Recovery:
+        {avg_recovery:.1f}
 
-                平均 HRV:
-                {avg_hrv:.1f}
+        平均 HRV:
+        {avg_hrv:.1f}
 
-                平均睡眠:
-                {avg_sleep:.1f} 小时
-
-                平均睡眠评分:
-                {avg_sleep_score:.1f}
+        平均睡眠:
+        {avg_sleep:.1f} 小时
+                
+        平均睡眠评分:
+        {avg_sleep_score:.1f}
             
-                平均 Strain:
-                {avg_strain:.1f}
+        平均 Strain:
+        {avg_strain:.1f}
 
 
         请结合今天状态和最近7天趋势，
@@ -3529,6 +3529,8 @@ HRV
 不重复罗列数据
 不编造不存在的数据
 像私人WHOOP教练
+必须结合今日数据和最近7天趋势进行比较
+指出改善或下降趋势
 不输出代码
 
 """
