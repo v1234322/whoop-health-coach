@@ -1303,8 +1303,15 @@ def today():
 
             "cycle_strain": row[9],
 
+            "health_score": row[12]
+
         }
 
+        health_level = get_health_level(
+            metrics.get("health_score",0)
+        )
+
+        
         # =========================
         # 今日健康评分
         # =========================
@@ -1581,7 +1588,11 @@ def today():
         </h2>
 
         <div class="metric">
-        {health_score} / 100
+        {metrics.get("health_score")} / 100
+        </div>
+
+        <div class="metric">
+        {health_level}
         </div>
 
         </div>
@@ -4628,6 +4639,22 @@ def generate_coach_advice(
 
 
     return advice
+    
+
+def get_health_level(score):
+
+    if score >= 85:
+        return "🟢 优秀状态"
+
+    elif score >= 70:
+        return "🟡 良好状态"
+
+    elif score >= 50:
+        return "🟠 一般状态"
+
+    else:
+        return "🔴 需要恢复"
+        
 
 def generate_health_report(data):
 
@@ -5028,6 +5055,7 @@ def generate_health_report(data):
         "training_advice": training_advice
 
     }
+
 
 def get_whoop_data():
 
