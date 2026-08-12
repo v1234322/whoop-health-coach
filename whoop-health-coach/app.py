@@ -1580,15 +1580,20 @@ def today():
 
         .ai-text {{
             white-space:pre-line;
-            font-size:22px;
-            line-height:1.8;
+            font-size:21px;
+            line-height:1.9;
+            max-width:900px;
             padding-top:0;
+            margin:auto;
         }}
         
 
         .ai-text::first-line {{
 
-        font-weight:bold;
+            font-size:28px;
+            font-weight:bold;
+            margin-top:35px;
+            margin-bottom:15px;
 
         }}
         
@@ -1596,7 +1601,7 @@ def today():
         .ai-text strong {{
 
             display:block;
-            font-size:30px;
+            font-size:28px;
             font-weight:bold;
             margin-top:35px;
             margin-bottom:20px;
@@ -3877,7 +3882,7 @@ REM
 9. 给明确可执行建议。
 10. 使用第二人称“你”。
 11. 每个章节控制2-3句话。
-12. 每句话不超过35个字。
+12. 每句话控制25-35字。
 13. 优先给行动建议。
 14. 避免长篇解释。
 15. 重点解释身体信号，并给行动建议
