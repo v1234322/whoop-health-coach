@@ -1335,6 +1335,8 @@ def today():
             health_score,
             1
         )
+
+        metrics["health_score"] = health_score
         
 
         # =========================
@@ -4339,10 +4341,11 @@ def save_daily_data(metrics):
                 rem_sleep_duration,
                 cycle_strain,
                 workout_data
+                health_score
             )
             VALUES
             (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
             )
            ON CONFLICT (report_date)
 
@@ -4380,7 +4383,8 @@ def save_daily_data(metrics):
                 metrics.get("deep_sleep_duration",0),
                 metrics.get("rem_sleep_duration",0),
                 metrics.get("cycle_strain",0),
-                str(metrics.get("workout_data",""))
+                str(metrics.get("workout_data","")),
+                metrics.get("health_score",0)
             )
             )
 
