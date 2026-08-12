@@ -1269,6 +1269,46 @@ def today():
 
         }
 
+        # =========================
+        # 今日健康评分
+        # =========================
+
+        recovery = metrics.get("recovery_score", 0) or 0
+        sleep_score = metrics.get("sleep_score", 0) or 0
+        hrv = metrics.get("hrv", 0) or 0
+        rest_hr = metrics.get("resting_heart_rate", 0) or 0
+
+
+        # HRV评分（简单标准化）
+        hrv_score = min(
+            max(hrv / 60 * 100, 0),
+            100
+        )
+
+
+        # 静息心率评分（越低越好）
+        rest_hr_score = max(
+            min((80 - rest_hr) / 30 * 100, 100),
+            0
+        )
+
+
+        health_score = (
+            recovery * 0.4
+            +
+            sleep_score * 0.3
+            +
+            hrv_score * 0.2
+            +
+            rest_hr_score * 0.1
+        )
+
+
+        health_score = round(
+            health_score,
+            1
+        )
+        
 
         # =========================
         # 获取最近7天趋势
@@ -1358,6 +1398,10 @@ def today():
         ai_prompt = f"""
 
         WHOOP 数据:
+
+
+        健康评分:
+        {health_score}/100
 
         Recovery:
         {metrics.get("recovery_score")}
@@ -1482,6 +1526,19 @@ def today():
 
         <div class="title">
         🧠 WHOOP 今日健康报告
+        </div>
+
+        </div>
+
+
+        <div class="card">
+
+        <h2>
+        🧠 今日健康评分
+        </h2>
+
+        <div class="metric">
+        {{health_score}} / 100
         </div>
 
         </div>
