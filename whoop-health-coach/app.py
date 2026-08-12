@@ -1585,6 +1585,7 @@ def today():
             max-width:900px;
             padding-top:0;
             margin:auto;
+            letter-spacing:0.5px;
         }}
         
 
