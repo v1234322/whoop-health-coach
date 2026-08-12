@@ -1781,6 +1781,7 @@ def trend():
         avg_strain = avg_value(6)
         avg_health_score = avg_value(7)
 
+        print("AVG HEALTH SCORE:", avg_health_score)
 
         summary = f"""
 
@@ -1789,7 +1790,6 @@ background:white;
 padding:25px;
 margin:20px;
 border-radius:15px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
 ">
 
 <h2>
