@@ -1579,7 +1579,7 @@ def today():
 
         .ai-text {{
             white-space:pre-line;
-            font-size:20px;
+            font-size:22px;
             line-height:2;
         }}
         
