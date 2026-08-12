@@ -1213,12 +1213,61 @@ def today():
 
     try:
 
-        data = get_whoop_data()
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-        report = generate_health_report(data)
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_score,
+                sleep_duration,
+                sleep_efficiency,
+                deep_sleep_duration,
+                rem_sleep_duration,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 1
+            """
+        )
 
-        metrics = extract_daily_metrics(data)
+        row = cur.fetchone()
 
+        cur.close()
+        conn.close()
+
+
+        if not row:
+            return "暂无健康数据"
+
+
+        metrics = {
+
+            "date": row[0],
+
+            "recovery_score": row[1],
+
+            "hrv": row[2],
+
+            "resting_heart_rate": row[3],
+
+            "sleep_score": row[4],
+
+            "sleep_duration": row[5],
+
+            "sleep_efficiency": row[6],
+
+            "deep_sleep_duration": row[7],
+
+            "rem_sleep_duration": row[8],
+
+            "cycle_strain": row[9],
+
+        }
 
         # =========================
         # AI健康教练
@@ -1262,21 +1311,6 @@ def today():
 
         ai_summary = generate_ai_summary(
             ai_prompt
-        )
-
-
-        # =========================
-        # 保存当天数据
-        # =========================
-
-        save_daily_data(
-            metrics
-        )
-
-
-        print(
-            "HTML REPORT OBJECT:",
-            report
         )
 
 
