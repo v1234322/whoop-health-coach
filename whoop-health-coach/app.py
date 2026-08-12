@@ -1675,6 +1675,21 @@ def today():
 
         <div class="card">
 
+        <h2>🟠 今日恢复状态</h2>
+
+        <div class="metric">
+        Recovery: {metrics.get("recovery_score")}%
+        </div>
+
+        <div class="metric">
+        状态: {health_level}
+        </div>
+        
+        </div>
+
+
+        <div class="card">
+
         <h2>🤖 AI健康教练</h2>
 
         <div class="ai-text">
@@ -3587,7 +3602,7 @@ def generate_ai_summary(ai_prompt):
 
 请按照以下结构输出：
 
-🤖 AI健康教练
+（不要输出总标题，直接开始今日身体状态）
 
 🧠 今日身体状态
 - 总结今天身体恢复情况
