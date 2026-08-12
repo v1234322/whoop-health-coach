@@ -4096,6 +4096,9 @@ def save_daily_data(metrics):
 
         print("AUTO DAILY SAVE OK")
 
+        print("BEFORE SELECT TEST")
+
+        print("SAVED METRICS:", metrics)
 
         cur.execute(
             """
