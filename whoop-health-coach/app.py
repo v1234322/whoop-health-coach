@@ -6249,6 +6249,10 @@ def auto_report():
         # 6. AI健康教练
         # =========================
 
+        metrics = extract_daily_metrics(
+            data
+        )
+
         weekly = get_weekly_trend()
 
         ai_prompt = f"""
