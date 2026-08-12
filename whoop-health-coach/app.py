@@ -1618,7 +1618,10 @@ def trend():
 
         rows = cur.fetchall()
 
+        print("TREND ROWS:", rows)
 
+
+        
         cur.close()
 
         conn.close()
