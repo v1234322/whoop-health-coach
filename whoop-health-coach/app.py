@@ -1316,6 +1316,10 @@ def today():
             metrics.get("health_score",0)
         )
 
+        strain_level = get_strain_level(
+            metrics.get("cycle_strain",0)
+        )
+
         
         # =========================
         # 今日健康评分
@@ -1693,7 +1697,12 @@ def today():
         {metrics.get("cycle_strain"):.1f}
         </strong>
 
-        </div>
+        <br>
+
+
+        <span>
+        {strain_level}
+        </span>
 
 
 
@@ -1725,13 +1734,13 @@ def today():
 
         <p>
         HRV:
-        {metrics.get("hrv")} ms
+        {metrics.get("hrv"):.1f} ms
         </p>
 
 
         <p>
         静息心率:
-        {metrics.get("resting_heart_rate")} bpm
+        {metrics.get("resting_heart_rate"):.0f} bpm
         </p>
 
 
@@ -1775,7 +1784,7 @@ def today():
 
         <div class="card">
 
-        <h2>🤖 AI健康教练</h2>
+        <h2>🤖 WHOOP AI Coach</h2>
 
         <div class="ai-text">
         {ai_summary}
@@ -4720,7 +4729,19 @@ def get_health_level(score):
         return "🟠 一般状态"
 
     else:
-        return "🔴 需要恢复"
+        return "🔴 需要恢复
+
+
+def get_strain_level(strain):
+
+    if strain < 10:
+        return "🟢 低负荷"
+
+    elif strain < 15:
+        return "🟡 中等负荷"
+
+    else:
+        return "🔴 高负荷"
         
 
 def generate_health_report(data):
