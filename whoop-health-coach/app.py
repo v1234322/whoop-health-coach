@@ -1265,6 +1265,7 @@ def today():
                 deep_sleep_duration,
                 rem_sleep_duration,
                 cycle_strain,
+                workout_data,
                 health_score
                 
             FROM daily_metrics
