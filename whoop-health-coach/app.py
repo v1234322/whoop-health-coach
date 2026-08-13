@@ -2485,11 +2485,12 @@ def api_whoop_profile():
                 AVG(sleep_duration),
                 AVG(cycle_strain)
 
-            FROM daily_metrics
-
-            ORDER BY report_date DESC
-
-            LIMIT 7
+            FROM (
+                SELECT *
+                FROM daily_metrics
+                ORDER BY report_date DESC
+                LIMIT 7
+            )
             """
         )
 
