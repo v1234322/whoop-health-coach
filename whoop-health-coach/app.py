@@ -3057,6 +3057,10 @@ def api_whoop_coach_report():
 
                     "recommended_strain": recommended_strain,
 
+                    "strain_completion": strain_completion,
+
+                    "remaining_strain": remaining_strain,
+
                     "fatigue_warning": fatigue_warning,
 
                     "reason":[
