@@ -7863,7 +7863,7 @@ def auto_report():
 攀岩:
 - 次数: {training_load["climbing_sessions"]}
 - 总时长: {training_load["climbing_duration"]} 分钟
-- 平均手指疲劳: {training_load["avg_finger_fatigue"]}/10
+- 平均手指疲劳: training_load["finger_fatigue"]
 - 平均前臂疲劳: {training_load["avg_forearm_fatigue"]}/10
 
 
