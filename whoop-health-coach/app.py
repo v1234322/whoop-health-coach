@@ -918,6 +918,79 @@ def init_db():
     )
     """)
 
+
+
+    # ==============================
+    # 指力板训练日志
+    # ==============================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hangboard_training_log (
+
+        id SERIAL PRIMARY KEY,
+
+        training_date TEXT,
+
+        protocol TEXT,
+
+        edge_size TEXT,
+
+        grip_type TEXT,
+
+        added_weight REAL,
+
+        hold_seconds INTEGER,
+
+        rest_seconds INTEGER,
+
+        sets INTEGER,
+
+        total_hang_time INTEGER,
+
+        intensity TEXT,
+
+        finger_fatigue INTEGER,
+
+        notes TEXT,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    );
+    """)
+
+
+
+    # ==============================
+    # 训练周期分析
+    # ==============================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS training_cycle_analysis (
+
+        id SERIAL PRIMARY KEY,
+
+        analysis_date TEXT UNIQUE,
+
+        weekly_climbing_sessions INTEGER,
+
+        weekly_total_duration INTEGER,
+
+        avg_finger_fatigue REAL,
+
+        avg_forearm_fatigue REAL,
+
+        hard_session_count INTEGER,
+
+        recovery_status TEXT,
+
+        training_recommendation TEXT,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    );
+    """)
+
+
     # ==============================
     # 检查攀岩训练表
     # ==============================
@@ -3326,7 +3399,69 @@ def get_training_history():
 
 
     return jsonify(rows)
-    
+
+
+@app.route("/training/hangboard", methods=["POST"])
+def training_hangboard():
+
+    data=request.json
+
+
+    save_hangboard_training(data)
+
+
+    return jsonify({
+
+        "success":True,
+
+        "message":"指力板训练已保存",
+
+        "data":data
+
+    })
+
+
+@app.route("/training/hangboard/history")
+def hangboard_history():
+
+    conn=get_db_connection()
+
+    cursor=conn.cursor()
+
+
+    cursor.execute("""
+    SELECT
+
+    training_date,
+    protocol,
+    edge_size,
+    grip_type,
+    added_weight,
+    hold_seconds,
+    sets,
+    finger_fatigue,
+    notes
+
+    FROM hangboard_training_log
+
+    ORDER BY id DESC
+
+    LIMIT 30
+
+    """)
+
+
+    rows=cursor.fetchall()
+
+
+    cursor.close()
+
+    conn.close()
+
+
+    return jsonify(rows)
+
+
 
 
 @app.route("/whoop/weekly")
@@ -5642,6 +5777,78 @@ def save_daily_data(metrics):
         if conn:
             conn.close()
 
+
+def save_hangboard_training(data):
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+
+    cursor.execute("""
+    INSERT INTO hangboard_training_log (
+
+        training_date,
+        protocol,
+        edge_size,
+        grip_type,
+        added_weight,
+        hold_seconds,
+        rest_seconds,
+        sets,
+        total_hang_time,
+        intensity,
+        finger_fatigue,
+        notes
+
+    )
+
+    VALUES (
+
+        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+
+    )
+
+    """,
+
+    (
+
+        data.get("training_date"),
+
+        data.get("protocol"),
+
+        data.get("edge_size"),
+
+        data.get("grip_type"),
+
+        data.get("added_weight"),
+
+        data.get("hold_seconds"),
+
+        data.get("rest_seconds"),
+
+        data.get("sets"),
+
+        data.get("total_hang_time"),
+
+        data.get("intensity"),
+
+        data.get("finger_fatigue"),
+
+        data.get("notes")
+
+    ))
+
+
+    conn.commit()
+
+    cursor.close()
+
+    conn.close()
+
+
+    return True
+    
 
 def convert_utc_to_beijing(obj):
 
