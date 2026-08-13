@@ -4970,6 +4970,12 @@ def get_training_load_summary():
 
     climbing = cursor.fetchone()
 
+    if climbing is None:
+        climbing = {
+            "sessions": 0,
+            "total_duration": 0
+        }
+
 
     cursor.execute("""
     SELECT
@@ -5220,7 +5226,17 @@ def calculate_training_load():
     """)
 
 
-    climbing = cursor.fetchone()
+    climbing = cursor.fetchone
+
+    print(
+        "DEBUG CLIMBING TYPE:",
+        type(climbing)
+    )
+
+    print(
+        "DEBUG CLIMBING VALUE:",
+        climbing
+    )
 
 
     cursor.close()
@@ -5303,16 +5319,10 @@ def calculate_training_load():
         # ======================
 
         "climbing_sessions":
-            climbing.get(
-                "sessions",
-                0
-            ),
+            climbing["sessions"],
 
         "climbing_duration":
-            climbing.get(
-                "total_duration",
-                0
-            ),
+            climbing["total_duration"],
 
 
         # ======================
