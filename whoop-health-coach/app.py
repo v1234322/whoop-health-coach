@@ -4914,6 +4914,68 @@ maintainAspectRatio:false
         return str(e)
 
 
+# ==============================
+# 训练负荷分析
+# ==============================
+
+def get_training_load_summary():
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT
+        COUNT(*),
+        COALESCE(SUM(duration),0),
+        COALESCE(AVG(finger_fatigue),0),
+        COALESCE(AVG(forearm_fatigue),0)
+
+    FROM climbing_training_log
+
+    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+    """)
+
+    climbing = cursor.fetchone()
+
+
+    cursor.execute("""
+    SELECT
+        COUNT(*),
+        COALESCE(SUM(total_hang_time),0),
+        COALESCE(AVG(finger_fatigue),0),
+        COALESCE(AVG(elbow_fatigue),0)
+
+    FROM hangboard_training_log
+
+    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+    """)
+
+    hangboard = cursor.fetchone()
+
+
+    cursor.close()
+    conn.close()
+
+
+    return {
+
+        "climbing_sessions": climbing[0],
+        "climbing_duration": climbing[1],
+        "avg_finger_fatigue": round(climbing[2],1),
+        "avg_forearm_fatigue": round(climbing[3],1),
+
+        "hangboard_sessions": hangboard[0],
+        "hang_time": hangboard[1],
+        "hangboard_finger_fatigue": round(hangboard[2],1),
+        "elbow_fatigue": round(hangboard[3],1)
+
+    }
+
+
+
+# ==============================
+# AI 教练总结
+# ==============================
 
 def generate_ai_summary(ai_prompt):
 
@@ -7495,6 +7557,8 @@ def auto_report():
 
         weekly = get_weekly_trend()
 
+        training_load = get_training_load_summary()
+
         ai_prompt = f"""
 
 你是 WHOOP 私人健康教练。
@@ -7526,6 +7590,21 @@ def auto_report():
 {metrics.get("cycle_strain",0)}
 
 
+最近7天训练历史：
+
+攀岩:
+- 次数: {training_load["climbing_sessions"]}
+- 总时长: {training_load["climbing_duration"]} 分钟
+- 平均手指疲劳: {training_load["avg_finger_fatigue"]}/10
+- 平均前臂疲劳: {training_load["avg_forearm_fatigue"]}/10
+
+
+指力板:
+- 次数: {training_load["hangboard_sessions"]}
+- 总悬挂时间: {training_load["hang_time"]} 秒
+- 手指疲劳: {training_load["hangboard_finger_fatigue"]}/10
+- 肘部疲劳: {training_load["elbow_fatigue"]}/10
+
 
 📊 最近7天趋势：
 
@@ -7549,28 +7628,109 @@ def auto_report():
 
 🟢 今日身体状态
 
+用1-2句话总结今天最重要的身体信号。
+不要简单重复数字，要解释身体状态。
+
+
 💚 Recovery分析
+
+结合：
+
+- Recovery
+- HRV
+- 静息心率
+- 最近7天平均趋势
+
+解释恢复能力和压力状态。
+
 
 😴 睡眠分析
 
+分析：
+
+- 睡眠时间
+- 睡眠评分
+- 睡眠质量
+
+说明睡眠对今天训练能力的影响。
+
+
 🔥 训练建议
+
+结合：
+
+- WHOOP Recovery
+- Strain
+- 最近7天攀岩训练
+- 指力板训练历史
+- 手指疲劳
+- 前臂疲劳
+
+明确建议：
+
+✅ 推荐：
+今天适合什么训练。
+
+❌ 避免：
+今天不建议什么训练。
+
+
+如果适合攀岩，请说明：
+
+- 技术训练
+- Boulder
+- 项目线路
+- 耐力训练
+
+哪一种更适合。
+
+
+如果适合指力板，请说明：
+
+- 是否适合最大力量
+- 是否适合耐力训练
+- 是否建议恢复
+
 
 ⚠️ 风险提醒
 
+如果发现：
+
+- Recovery下降
+- HRV下降
+- 静息心率升高
+- 连续训练负荷增加
+- 手指疲劳升高
+
+提醒疲劳风险。
+
+不要医学诊断。
+
+
 📅 未来1-3天建议
+
+根据：
+
+- 今日恢复状态
+- 最近训练负荷
+- 疲劳趋势
+
+给出未来训练安排。
 
 
 要求：
 
-中文简体
+中文简体。
 
-使用emoji
+使用emoji。
 
-400字以内
+400字以内。
 
-不要编造数据
+不要编造不存在的数据。
 
-像私人WHOOP教练
+不要机械罗列指标。
+
+像专业WHOOP私人健康教练一样解释身体信号。
 
 """
 
