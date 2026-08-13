@@ -5210,21 +5210,39 @@ def calculate_training_load():
 
     return {
 
+        # ======================
+        # Hangboard 基础
+        # ======================
+
         "hangboard_sessions":
-            hangboard["sessions"],
+            hangboard.get(
+                "sessions",
+                0
+            ),
 
         "hangboard_duration":
-            hangboard["total_duration"],
-
-         "hang_time":
             hangboard.get(
-                 "total_hang_time",
-                 hangboard.get(
-                 "total_duration",
-                 0
-             )
-         ),
+                "total_duration",
+                0
+            ),
 
+
+        "hang_time":
+            hangboard.get(
+                "total_hang_time",
+                0
+            ),
+
+
+        # ======================
+        # 手指疲劳（兼容所有版本）
+        # ======================
+
+        "finger_fatigue":
+            hangboard.get(
+                "avg_fatigue",
+                0
+            ),
 
         "avg_finger_fatigue":
             hangboard.get(
@@ -5232,19 +5250,62 @@ def calculate_training_load():
                 0
             ),
 
-        
+        "hangboard_finger_fatigue":
+            hangboard.get(
+                "avg_fatigue",
+                0
+            ),
+
+
+        # ======================
+        # 前臂/肘部疲劳
+        # ======================
+
         "avg_forearm_fatigue":
             hangboard.get(
                 "avg_elbow_fatigue",
                 0
             ),
 
+        "hangboard_forearm_fatigue":
+            hangboard.get(
+                "avg_elbow_fatigue",
+                0
+            ),
+
+
+        # ======================
+        # 攀岩训练
+        # ======================
 
         "climbing_sessions":
-            climbing["sessions"],
+            climbing.get(
+                "sessions",
+                0
+            ),
 
         "climbing_duration":
-            climbing["total_duration"]
+            climbing.get(
+                "total_duration",
+                0
+            ),
+
+
+        # ======================
+        # 周期分析兼容
+        # ======================
+
+        "weekly_total_duration":
+            climbing.get(
+                "total_duration",
+                0
+            ),
+
+        "hard_session_count":
+            hangboard.get(
+                "sessions",
+                0
+            )
 
     }
 
