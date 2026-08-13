@@ -918,23 +918,23 @@ def init_db():
     )
     """)
 
-        # ==============================
-        # 检查攀岩训练表
-        # ==============================
+    # ==============================
+    # 检查攀岩训练表
+    # ==============================
 
-        cursor.execute(
-            """
-            SELECT column_name, data_type
-            FROM information_schema.columns
-            WHERE table_name='climbing_training_log'
-            ORDER BY ordinal_position
-            """
-        )
+    cursor.execute(
+        """
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name='climbing_training_log'
+         ORDER BY ordinal_position
+         """
+     )
 
-        print(
-            "CLIMBING TABLE COLUMNS:",
-            cursor.fetchall()
-        )
+     print(
+         "CLIMBING TABLE COLUMNS:",
+         cursor.fetchall()
+     )
     
 
     # =========================
