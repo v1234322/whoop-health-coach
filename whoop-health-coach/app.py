@@ -5202,7 +5202,7 @@ def calculate_training_load():
 
     if not isinstance(hangboard, dict):
 
-    hangboard = dict(hangboard)
+        hangboard = dict(hangboard)
 
     
     cursor.execute("""
