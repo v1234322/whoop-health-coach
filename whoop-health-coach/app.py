@@ -3234,6 +3234,100 @@ def api_whoop_coach_report():
             conn.close()
 
 
+@app.route("/training/log", methods=["POST"])
+def add_training_log():
+
+    data = request.json
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO climbing_training_log
+        (
+        training_date,
+        training_type,
+        duration,
+        intensity,
+        climbing_grade,
+        boulder_count,
+        hangboard_seconds,
+        hangboard_weight,
+        finger_fatigue,
+        forearm_fatigue,
+        notes
+        )
+
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+
+        """,
+
+        (
+        data.get("training_date"),
+        data.get("training_type"),
+        data.get("duration"),
+        data.get("intensity"),
+        data.get("climbing_grade"),
+        data.get("boulder_count"),
+        data.get("hangboard_seconds"),
+        data.get("hangboard_weight"),
+        data.get("finger_fatigue"),
+        data.get("forearm_fatigue"),
+        data.get("notes")
+        )
+    )
+
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+    return jsonify({
+        "success": True,
+        "message": "训练记录已保存"
+    })
+
+
+@app.route("/training/history")
+def get_training_history():
+
+    conn = get_db_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+        training_date,
+        training_type,
+        duration,
+        intensity,
+        climbing_grade,
+        finger_fatigue,
+        forearm_fatigue,
+        notes
+
+        FROM climbing_training_log
+
+        ORDER BY training_date DESC
+
+        LIMIT 30
+        """
+    )
+
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+
+    return jsonify(rows)
+    
+
 
 @app.route("/whoop/weekly")
 def weekly():
