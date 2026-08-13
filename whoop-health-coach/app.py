@@ -966,38 +966,6 @@ def init_db():
 
 
 
-    # =========================
-    # 添加指力板字段
-    # =========================
-
-    try:
-
-        cursor.execute("""
-        ALTER TABLE hangboard_training_log
-        ADD COLUMN session_type TEXT
-        """)
-
-        print("SESSION_TYPE COLUMN ADDED")
-
-    except Exception:
-    
-        conn.rollback()
-
-    try:
-
-        cursor.execute("""
-        ALTER TABLE hangboard_training_log
-        ADD COLUMN recovery_after INTEGER
-        """)
-
-        print("RECOVERY_AFTER COLUMN ADDED")
-
-    except Exception:
-
-        conn.rollback()
-
-
-
     # ==============================
     # 训练周期分析
     # ==============================
@@ -5847,6 +5815,7 @@ def save_hangboard_training(data):
     INSERT INTO hangboard_training_log (
 
         training_date,
+        protocol,
         session_type,
         edge_size,
         grip_type,
@@ -5867,7 +5836,7 @@ def save_hangboard_training(data):
 
         %s,%s,%s,%s,%s,
         %s,%s,%s,%s,%s,
-        %s,%s,%s,%s
+        %s,%s,%s,%s,%s
 
     )
 
