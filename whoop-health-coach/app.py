@@ -965,6 +965,47 @@ def init_db():
     """)
 
 
+    # =========================
+    # 修复旧 hangboard 表字段
+    # =========================
+
+    hangboard_columns = [
+        ("protocol", "TEXT"),
+        ("session_type", "TEXT"),
+        ("edge_size", "TEXT"),
+        ("grip_type", "TEXT"),
+        ("added_weight", "REAL"),
+        ("hold_seconds", "INTEGER"),
+        ("duration", "INTEGER"),
+        ("sets", "INTEGER"),
+        ("total_hang_time", "INTEGER"),
+        ("intensity", "TEXT"),
+        ("finger_fatigue", "INTEGER"),
+        ("elbow_fatigue", "INTEGER"),
+        ("recovery_after", "INTEGER"),
+    ]
+
+
+    for column, dtype in hangboard_columns:
+
+        try:
+
+            cursor.execute(
+                f"""
+                ALTER TABLE hangboard_training_log
+                ADD COLUMN {column} {dtype}
+                """
+            )
+
+            print(
+                f"HANGBOARD COLUMN ADDED: {column}"
+            )
+
+        except Exception:
+
+            conn.rollback()
+
+    
 
     # ==============================
     # 训练周期分析
