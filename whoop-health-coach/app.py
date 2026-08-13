@@ -5179,8 +5179,7 @@ def calculate_training_load():
 
     FROM hangboard_training_log
 
-    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
-
+    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
     """)
 
 
@@ -5197,7 +5196,7 @@ def calculate_training_load():
 
     FROM climbing_training_log
 
-    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
 
     """)
 
