@@ -2948,7 +2948,7 @@ def api_whoop_coach_report():
 
                     "light_sleep_ratio": light_sleep_ratio,
                     
-                    "strain": round(today[9] or 0,1)，
+                    "strain": round(today[9] or 0,1),
 
                     "training_level": training_level,
 
