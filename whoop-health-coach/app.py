@@ -2918,133 +2918,133 @@ def api_whoop_coach_report():
 
        # 疲劳趋势判断
 
-       fatigue_warning = "正常"
+        fatigue_warning = "正常"
 
 
        # Recovery颜色等级
 
-       if recovery >= 67:
+        if recovery >= 67:
 
-           recovery_status = "🟢 绿色 - 恢复良好"
+            recovery_status = "🟢 绿色 - 恢复良好"
 
-       elif recovery >= 34:
+        elif recovery >= 34:
 
-           recovery_status = "🟡 黄色 - 需要控制训练"
+            recovery_status = "🟡 黄色 - 需要控制训练"
        
-       else:
+        else:
 
-           recovery_status = "🔴 红色 - 优先恢复"
+            recovery_status = "🔴 红色 - 优先恢复"
 
 
 
        # Recovery明显下降超过15%
 
-       if (
-           avg_recovery > 0
-           and recovery < avg_recovery * 0.85
-       ):
+        if (
+            avg_recovery > 0
+            and recovery < avg_recovery * 0.85
+        ):
 
-           fatigue_warning = (
-               "Recovery明显下降，建议降低训练强度"
-           )
+            fatigue_warning = (
+                "Recovery明显下降，建议降低训练强度"
+            )
 
 
 
        # Recovery + HRV + 静息心率同时恶化
 
-       elif (
-           recovery < avg_recovery
-           and hrv < avg_hrv
-           and rhr > avg_rhr
-       ):
+        elif (
+            recovery < avg_recovery
+            and hrv < avg_hrv
+            and rhr > avg_rhr
+        ):
 
-           fatigue_warning = (
-               "恢复压力升高，可能存在疲劳累积"
-           )
+            fatigue_warning = (
+                "恢复压力升高，可能存在疲劳累积"
+            )
 
 
 
        # Recovery和HRV下降
 
-       elif (
-           recovery < avg_recovery
-           and hrv < avg_hrv
-       ):
+        elif (
+            recovery < avg_recovery
+            and hrv < avg_hrv
+        ):
 
-           fatigue_warning = (
-               "恢复指标下降，需要关注训练负荷"
-           )
+            fatigue_warning = (
+                "恢复指标下降，需要关注训练负荷"
+            )
 
 
 
        # 连续疲劳检测
 
-       continuous_fatigue = False
+        continuous_fatigue = False
 
 
-       try:
+        try:
 
-           cur = conn.cursor()
+            cur = conn.cursor()
 
-           cur.execute(
-               """
-               SELECT
-                   recovery_score,
-                   hrv,
-                   resting_heart_rate
+            cur.execute(
+                """
+                SELECT
+                    recovery_score,
+                    hrv,
+                    resting_heart_rate
        
-               FROM daily_metrics
+                FROM daily_metrics
 
-               ORDER BY report_date DESC
+                ORDER BY report_date DESC
 
-               LIMIT 3
-               """
-           )
+                LIMIT 3
+                """
+            )
 
-           recent_days = cur.fetchall()
+            recent_days = cur.fetchall()
 
 
-           if len(recent_days) == 3:
+            if len(recent_days) == 3:
 
-               fatigue_days = 0
+                fatigue_days = 0
        
 
-               for day in recent_days:
+                for day in recent_days:
        
-                   day_recovery = day[0]
-                   day_hrv = day[1]
-                   day_rhr = day[2]
+                    day_recovery = day[0]
+                    day_hrv = day[1]
+                    day_rhr = day[2]
 
 
-                   if (
-                       day_recovery < avg_recovery
-                       and day_hrv < avg_hrv
-                       and day_rhr > avg_rhr
-                   ):
+                    if (
+                        day_recovery < avg_recovery
+                        and day_hrv < avg_hrv
+                        and day_rhr > avg_rhr
+                    ):
 
-                       fatigue_days += 1
-
-
-
-               if fatigue_days >= 3:
-
-                   continuous_fatigue = True
-
-                   fatigue_warning = (
-                       "连续3天恢复压力升高，建议安排恢复日"
-                   )
-
-
-           cur.close()
+                        fatigue_days += 1
 
 
 
-       except Exception as e:
+                if fatigue_days >= 3:
 
-           print(
-               "CONTINUOUS FATIGUE CHECK ERROR:",
-               e
-           )
+                    continuous_fatigue = True
+
+                    fatigue_warning = (
+                        "连续3天恢复压力升高，建议安排恢复日"
+                    )
+
+
+            cur.close()
+
+
+
+        except Exception as e:
+
+            print(
+                "CONTINUOUS FATIGUE CHECK ERROR:",
+                e
+            )
 
 
 
