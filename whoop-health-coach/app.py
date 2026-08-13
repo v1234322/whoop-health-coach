@@ -47,6 +47,10 @@ def require_chatgpt_api_key(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
 
+        return func(*args, **kwargs)
+
+    return wrapper
+
         expected_key = os.getenv(
             "CHATGPT_ACTION_API_KEY"
         )
