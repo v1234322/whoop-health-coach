@@ -2970,10 +2970,10 @@ def api_whoop_coach_report():
 
                 "coach":{
 
-                    "status":status,
+                    "training_level": training_level,
 
-                    "training_recommendation":training,
-
+                    "training_recommendation": training_advice,
+                    
                     "reason":[
 
                         "基于个人7天恢复基线",
