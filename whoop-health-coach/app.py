@@ -2902,9 +2902,22 @@ def api_whoop_coach_report():
 
         # 疲劳趋势判断
 
-
         fatigue_warning = "正常"
 
+        # Recovery颜色等级
+
+        if recovery >= 67:
+
+            recovery_status = "🟢 绿色 - 恢复良好"
+
+        elif recovery >= 34:
+
+            recovery_status = "🟡 黄色 - 需要控制训练"
+
+        else:
+
+            recovery_status = "🔴 红色 - 优先恢复"
+            
 
         if (
             recovery < avg_recovery
@@ -2917,6 +2930,8 @@ def api_whoop_coach_report():
             )
 
 
+        # Recovery和HRV下降
+
         elif (
             recovery < avg_recovery
             and hrv < avg_hrv
@@ -2924,6 +2939,18 @@ def api_whoop_coach_report():
 
             fatigue_warning = (
                 "恢复指标下降，需要关注训练负荷"
+            )
+
+
+        # Recovery明显下降超过15%
+
+        elif (
+            avg_recovery > 0
+            and recovery < avg_recovery * 0.85
+        ):
+
+            fatigue_warning = (
+                "Recovery明显下降，建议降低训练强度"
             )
     
 
@@ -3011,6 +3038,8 @@ def api_whoop_coach_report():
                     "remaining_strain": remaining_strain,
 
                     "fatigue_warning": fatigue_warning,
+
+                    "recovery_status": recovery_status,
 
                 },
 
