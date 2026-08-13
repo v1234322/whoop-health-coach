@@ -3040,6 +3040,12 @@ def api_whoop_coach_report():
 
                     "training_advice": training_advice,
 
+                    "strain_completion": strain_completion,
+
+                    "remaining_strain": remaining_strain,
+
+                    "fatigue_warning": fatigue_warning,
+
                 },
 
 
