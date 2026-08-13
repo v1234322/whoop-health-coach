@@ -2916,126 +2916,137 @@ def api_whoop_coach_report():
             recommended_strain = "0-6"
 
 
-        # 疲劳趋势判断
+       # 疲劳趋势判断
 
-        fatigue_warning = "正常"
-
-        # Recovery颜色等级
-
-        if recovery >= 67:
-
-            recovery_status = "🟢 绿色 - 恢复良好"
-
-        elif recovery >= 34:
-
-            recovery_status = "🟡 黄色 - 需要控制训练"
-
-        else:
-
-            recovery_status = "🔴 红色 - 优先恢复"
-            
-
-        if (
-            recovery < avg_recovery
-            and hrv < avg_hrv
-            and rhr > avg_rhr
-        ):
-
-            fatigue_warning = (
-                "恢复压力升高，可能存在疲劳累积"
-            )
+       fatigue_warning = "正常"
 
 
-        # Recovery和HRV下降
+       # Recovery颜色等级
 
-        elif (
-            recovery < avg_recovery
-            and hrv < avg_hrv
-        ):
+       if recovery >= 67:
 
-            fatigue_warning = (
-                "恢复指标下降，需要关注训练负荷"
-            )
+           recovery_status = "🟢 绿色 - 恢复良好"
 
-        # 连续疲劳检测
+       elif recovery >= 34:
 
-        continuous_fatigue = False
+           recovery_status = "🟡 黄色 - 需要控制训练"
+       
+       else:
 
-
-        try:
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT
-                    recovery_score,
-                    hrv,
-                    resting_heart_rate
-
-                FROM daily_metrics
-
-                ORDER BY report_date DESC
-
-                LIMIT 3
-                """
-            )
-
-            recent_days = cur.fetchall()
+           recovery_status = "🔴 红色 - 优先恢复"
 
 
-            if len(recent_days) == 3:
 
-                fatigue_days = 0
+       # Recovery明显下降超过15%
 
+       if (
+           avg_recovery > 0
+           and recovery < avg_recovery * 0.85
+       ):
 
-                for day in recent_days:
-
-                    day_recovery = day[0]
-                    day_hrv = day[1]
-                    day_rhr = day[2]
-
-
-                    if (
-                        day_recovery < avg_recovery
-                        and day_hrv < avg_hrv
-                        and day_rhr > avg_rhr
-                    ):
-
-                        fatigue_days += 1
+           fatigue_warning = (
+               "Recovery明显下降，建议降低训练强度"
+           )
 
 
-                if fatigue_days >= 3:
 
-                    continuous_fatigue = True
+       # Recovery + HRV + 静息心率同时恶化
 
-                    fatigue_warning = (
-                "连续3天恢复压力升高，建议安排恢复日"
-                    )
+       elif (
+           recovery < avg_recovery
+           and hrv < avg_hrv
+           and rhr > avg_rhr
+       ):
 
-
-            cur.close()
-
-
-        except Exception as e:
-
-            print(
-                "CONTINUOUS FATIGUE CHECK ERROR:",
-                e
-            )
+           fatigue_warning = (
+               "恢复压力升高，可能存在疲劳累积"
+           )
 
 
-        # Recovery明显下降超过15%
 
-        elif (
-            avg_recovery > 0
-            and recovery < avg_recovery * 0.85
-        ):
+       # Recovery和HRV下降
 
-            fatigue_warning = (
-                "Recovery明显下降，建议降低训练强度"
-            )
-    
+       elif (
+           recovery < avg_recovery
+           and hrv < avg_hrv
+       ):
+
+           fatigue_warning = (
+               "恢复指标下降，需要关注训练负荷"
+           )
+
+
+
+       # 连续疲劳检测
+
+       continuous_fatigue = False
+
+
+       try:
+
+           cur = conn.cursor()
+
+           cur.execute(
+               """
+               SELECT
+                   recovery_score,
+                   hrv,
+                   resting_heart_rate
+       
+               FROM daily_metrics
+
+               ORDER BY report_date DESC
+
+               LIMIT 3
+               """
+           )
+
+           recent_days = cur.fetchall()
+
+
+           if len(recent_days) == 3:
+
+               fatigue_days = 0
+       
+
+               for day in recent_days:
+       
+                   day_recovery = day[0]
+                   day_hrv = day[1]
+                   day_rhr = day[2]
+
+
+                   if (
+                       day_recovery < avg_recovery
+                       and day_hrv < avg_hrv
+                       and day_rhr > avg_rhr
+                   ):
+
+                       fatigue_days += 1
+
+
+
+               if fatigue_days >= 3:
+
+                   continuous_fatigue = True
+
+                   fatigue_warning = (
+                       "连续3天恢复压力升高，建议安排恢复日"
+                   )
+
+
+           cur.close()
+
+
+
+       except Exception as e:
+
+           print(
+               "CONTINUOUS FATIGUE CHECK ERROR:",
+               e
+           )
+
+
 
         # Strain 完成度
 
