@@ -5216,11 +5216,23 @@ def calculate_training_load():
         "hangboard_duration":
             hangboard["total_duration"],
 
+         "hang_time":
+            hangboard.get(
+                 "total_hang_time",
+                 hangboard.get(
+                 "total_duration",
+                 0
+             )
+         ),
+
 
         "avg_finger_fatigue":
-            hangboard["avg_fatigue"],
+            hangboard.get(
+                "avg_fatigue",
+                0
+            ),
 
-
+        
         "avg_forearm_fatigue":
             hangboard.get(
                 "avg_elbow_fatigue",
