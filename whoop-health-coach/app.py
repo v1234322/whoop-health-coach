@@ -5386,8 +5386,6 @@ def check_api_key():
 
 
     return key == api_secret
-
-    return key == api_secret
     
 
 def whoop_token():
@@ -7460,6 +7458,8 @@ def auto_report():
     
     if not check_api_key():
 
+        print("API KEY FAILED")
+
         return jsonify({
 
             "error":
@@ -7467,8 +7467,12 @@ def auto_report():
 
         }),401
 
+    print("API KEY FAILED")
+
 
     try:
+
+        print("TRY BLOCK ENTERED")
 
         print(
             "========== AUTO REPORT START =========="
