@@ -4877,6 +4877,12 @@ def extract_daily_metrics(data):
             main_sleep.get("score") or {}
         )
 
+        print(
+            "SLEEP SCORE RAW:",
+            sleep_score_data
+        )
+        
+
         stage = (
             sleep_score_data
             .get("stage_summary") or {}
