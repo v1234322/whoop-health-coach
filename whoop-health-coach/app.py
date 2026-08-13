@@ -1571,6 +1571,10 @@ def today():
         """
 
 
+        print("FINAL AI PROMPT DEBUG:")
+        print(ai_prompt)
+
+
         ai_summary = generate_ai_summary(
             ai_prompt
         )
@@ -6452,6 +6456,16 @@ Strain
 
 建议强度
 
+
+训练建议部分必须包含以下信息：
+
+- 当前 Strain 数值
+- 今日建议 Strain 范围
+- 已完成训练比例
+- 剩余建议训练负荷
+- 疲劳趋势判断
+
+不要省略训练负荷分析。
 
 
 ⚠️ 【未来3天行动计划】
