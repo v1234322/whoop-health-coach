@@ -966,6 +966,38 @@ def init_db():
 
 
 
+    # =========================
+    # 添加指力板字段
+    # =========================
+
+    try:
+
+        cursor.execute("""
+        ALTER TABLE hangboard_training_log
+        ADD COLUMN session_type TEXT
+        """)
+
+        print("SESSION_TYPE COLUMN ADDED")
+
+    except Exception:
+    
+        conn.rollback()
+
+    try:
+
+        cursor.execute("""
+        ALTER TABLE hangboard_training_log
+        ADD COLUMN recovery_after INTEGER
+        """)
+
+        print("RECOVERY_AFTER COLUMN ADDED")
+
+    except Exception:
+
+        conn.rollback()
+
+
+
     # ==============================
     # 训练周期分析
     # ==============================
@@ -3468,7 +3500,7 @@ def hangboard_history():
     finger_fatigue,
     elbow_fatigue
 
-    FROM hangboard_training_log
+    FROM 
 
     ORDER BY training_date DESC
 
@@ -5835,7 +5867,7 @@ def save_hangboard_training(data):
 
         %s,%s,%s,%s,%s,
         %s,%s,%s,%s,%s,
-        %s,%s,%s,%s,%s
+        %s,%s,%s,%s
 
     )
 
