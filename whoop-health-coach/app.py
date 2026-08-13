@@ -3501,7 +3501,7 @@ def hangboard_history():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        RealDictCursor
+        cursor_factory=RealDictCursor
     )
 
     cursor.execute(
