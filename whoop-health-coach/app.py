@@ -3530,7 +3530,7 @@ def hangboard_history():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        cursor_factory=RealDictCursor
+        RealDictCursor
     )
 
     cursor.execute(
@@ -5161,31 +5161,50 @@ def calculate_training_load():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        cursor_factory=RealDictCursor
+        RealDictCursor
     )
 
 
     cursor.execute("""
     SELECT
         COUNT(*) AS sessions,
+
         COALESCE(
             SUM(duration),
             0
         ) AS total_duration,
+
+        COALESCE(
+            SUM(total_hang_time),
+            0
+        ) AS total_hang_time,
+
         COALESCE(
             AVG(finger_fatigue),
             0
-        ) AS avg_fatigue
+        ) AS avg_fatigue,
+
+        COALESCE(
+            AVG(elbow_fatigue),
+            0
+        ) AS avg_elbow_fatigue
 
     FROM hangboard_training_log
 
     WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
-    """)
 
+    """)
 
     hangboard = cursor.fetchone()
 
+    print("DEBUG HANGBOARD TYPE:", type(hangboard))
+    print("DEBUG HANGBOARD VALUE:", hangboard)
 
+    if not isinstance(hangboard, dict):
+
+    hangboard = dict(hangboard)
+
+    
     cursor.execute("""
     SELECT
         COUNT(*) AS sessions,
