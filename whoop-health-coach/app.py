@@ -2549,6 +2549,199 @@ def api_whoop_profile():
             conn.close()
 
 
+@app.route("/api/whoop/training-advice", methods=["GET"])
+@require_chatgpt_api_key
+def api_whoop_training_advice():
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                cycle_strain
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 1
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        if not row:
+
+            return jsonify({
+
+                "success": False,
+
+                "message": "暂无今日数据"
+
+            })
+
+
+        recovery = row[0] or 0
+        hrv = row[1] or 0
+        rhr = row[2] or 0
+        sleep = row[3] or 0
+        strain = row[4] or 0
+
+
+
+        # =====================
+        # 训练决策逻辑
+        # =====================
+
+
+        if recovery >= 67:
+
+
+            level = "high"
+
+            recommendation = [
+                "正常训练",
+                "力量训练",
+                "间歇训练"
+            ]
+
+            target_strain = "10-14"
+
+
+            avoid = []
+
+
+        elif recovery >= 45:
+
+
+            level = "medium"
+
+
+            recommendation = [
+                "中低强度训练",
+                "Zone2有氧",
+                "技术训练"
+            ]
+
+
+            target_strain = "6-10"
+
+
+            avoid = [
+                "极限冲刺",
+                "连续高负荷训练"
+            ]
+
+
+        else:
+
+
+            level = "low"
+
+
+            recommendation = [
+                "主动恢复",
+                "散步",
+                "拉伸",
+                "轻Zone2"
+            ]
+
+
+            target_strain = "3-6"
+
+
+            avoid = [
+                "HIIT",
+                "大重量训练",
+                "力竭训练"
+            ]
+
+
+
+        # HRV额外修正
+
+        if hrv < 45:
+
+            avoid.append(
+                "高神经压力训练"
+            )
+
+
+        return jsonify({
+
+            "success": True,
+
+
+            "training_advice": {
+
+
+                "recovery": recovery,
+
+                "hrv": hrv,
+
+                "resting_heart_rate": rhr,
+
+                "sleep_hours": sleep,
+
+                "strain": strain,
+
+
+                "training_level": level,
+
+
+                "recommended_training":
+                    recommendation,
+
+
+                "avoid":
+                    avoid,
+
+
+                "target_strain":
+                    target_strain
+
+            }
+
+        })
+
+
+    except Exception as e:
+
+
+        return jsonify({
+
+            "success": False,
+
+            "error": str(e)
+
+        }),500
+
+
+    finally:
+
+
+        if cur:
+            cur.close()
+
+
+        if conn:
+            conn.close()
+            
+
 
 @app.route("/whoop/weekly")
 def weekly():
