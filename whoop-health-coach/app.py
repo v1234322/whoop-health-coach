@@ -2819,6 +2819,35 @@ def api_whoop_coach_report():
         avg_rhr = baseline[2] or 0
 
 
+
+        sleep_hours = today[4] or 0
+
+        deep_sleep_hours = today[7] or 0
+
+        rem_sleep_hours = today[8] or 0
+        
+
+        deep_sleep_ratio = (
+            round(deep_sleep_hours / sleep_hours * 100, 1)
+            if sleep_hours > 0
+            else 0
+        )
+
+
+        rem_sleep_ratio = (
+            round(rem_sleep_hours / sleep_hours * 100, 1)
+            if sleep_hours > 0
+            else 0
+        )
+
+
+        light_sleep_ratio = (
+            round(100 - deep_sleep_ratio - rem_sleep_ratio, 1)
+            if sleep_hours > 0
+            else 0
+        )
+
+        
         # 简单 Coach 判断
 
         if recovery >= avg_recovery:
@@ -2861,7 +2890,13 @@ def api_whoop_coach_report():
                     "deep_sleep_hours": round(today[7] or 0,2),
 
                     "rem_sleep_hours": round(today[8] or 0,2),
+                    
+                    "deep_sleep_ratio": deep_sleep_ratio,
+            
+                    "rem_sleep_ratio": rem_sleep_ratio,
 
+                    "light_sleep_ratio": light_sleep_ratio,
+                    
                     "strain": round(today[9] or 0,1)
 
                 },
