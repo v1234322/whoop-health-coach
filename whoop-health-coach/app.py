@@ -1426,7 +1426,20 @@ def today():
         # AI健康教练
         # =========================
 
+
+        # Recovery 颜色判断
+        recovery = metrics.get("recovery_score") or 0
+
+        if recovery >= 67:
+            recovery_color = "🟢 绿色 - 恢复良好"
+        elif recovery >= 34:
+            recovery_color = "🟡 黄色 - 需要控制训练"
+        else:
+            recovery_color = "🔴 红色 - 优先恢复"
+
+
         ai_prompt = f"""
+
 
         WHOOP 数据:
 
@@ -1435,7 +1448,10 @@ def today():
         {health_score}/100
 
         Recovery:
-        {metrics.get("recovery_score")}
+        {metrics.get("recovery_score")}%
+
+        Recovery状态:
+        {recovery_color}
 
         HRV:
         {metrics.get("hrv")}
