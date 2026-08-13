@@ -5226,7 +5226,14 @@ def calculate_training_load():
     """)
 
 
-    climbing = cursor.fetchone
+   climbing = cursor.fetchone()
+
+
+    if climbing is None:
+        climbing = {
+            "sessions": 0,
+            "total_duration": 0
+        }
 
     print(
         "DEBUG CLIMBING TYPE:",
