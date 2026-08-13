@@ -5161,7 +5161,7 @@ def calculate_training_load():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        RealDictCursor
+        cursor_factory=RealDictCursor
     )
 
 
