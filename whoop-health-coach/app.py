@@ -3496,7 +3496,7 @@ def training_hangboard():
 @app.route("/training/hangboard/history")
 def hangboard_history():
 
-    conn=get_db()
+    conn = get_db_connection()
 
     cursor=conn.cursor()
 
