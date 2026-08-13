@@ -3498,24 +3498,30 @@ def hangboard_history():
 
     conn = get_db_connection()
 
-    cursor=conn.cursor()
-
+    cursor = conn.cursor(
+        RealDictCursor
+    )
 
     cursor.execute(
     """
     SELECT
-    training_date,
-    protocol,
-    edge_size,
-    grip_type,
-    added_weight,
-    duration,
-    sets,
-    max_hang_seconds,
-    finger_fatigue,
-    elbow_fatigue
+        training_date,
+        protocol,
+        session_type,
+        edge_size,
+        grip_type,
+        added_weight,
+        hold_seconds,
+        duration,
+        sets,
+        total_hang_time,
+        intensity,
+        finger_fatigue,
+        elbow_fatigue,
+        recovery_after,
+        notes
 
-    FROM 
+    FROM hangboard_training_log
 
     ORDER BY training_date DESC
 
@@ -3524,16 +3530,12 @@ def hangboard_history():
     """
     )
 
-
-    rows=cursor.fetchall()
-
+    rows = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
-
     return jsonify(rows)
-
 
 
 
