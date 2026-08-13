@@ -1014,7 +1014,28 @@ def init_db():
         "CLIMBING TABLE COLUMNS:",
         cursor.fetchall()
     )
-    
+
+
+    # =========================
+    # 检查指力板训练表
+    # =========================
+
+    cursor.execute(
+        """
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name='hangboard_training_log'
+        ORDER BY ordinal_position
+        """
+    )
+
+
+    print(
+        "HANGBOARD TABLE COLUMNS:",
+        cursor.fetchall()
+    )
+
+
 
     # =========================
     # 系统状态表
