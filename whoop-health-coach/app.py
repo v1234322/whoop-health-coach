@@ -5322,29 +5322,31 @@ def generate_coach_prompt(
 
 WHOOP:
 Recovery:
-{whoop['recovery']}
+{whoop.get('recovery', whoop.get('recovery_score', 0))}
+
+HRV:
+{whoop.get('hrv', whoop.get('hrv_rmssd',0))}
 
 Strain:
-{whoop['strain']}
+{whoop.get('strain', whoop.get('cycle_strain', 0))}
 
 
 最近7天训练：
 
 攀岩次数:
-{training['climbing_sessions']}
+{training.get('climbing_sessions',0)}
 
 攀岩时间:
-{training['climbing_duration']}分钟
-
+{training.get('climbing_duration',0)}
 
 指力板次数:
-{training['hangboard_sessions']}
+{training.get('hangboard_sessions',0)}
 
-指力训练时间:
-{training['hangboard_duration']}分钟
+指力训练:
+{training.get('hangboard_duration',0)}
 
-平均手指疲劳:
-{training['finger_fatigue']}
+手指疲劳:
+{training.get('finger_fatigue',0)}
 
 
 请输出：
