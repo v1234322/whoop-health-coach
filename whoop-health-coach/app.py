@@ -2993,7 +2993,13 @@ def api_whoop_coach_report():
             max(target_min - current_strain, 0),
             1
         )
-    
+
+        print(
+            "COACH EXTRA:",
+            strain_completion,
+            remaining_strain,
+            fatigue_warning
+        )
 
         return jsonify({
 
