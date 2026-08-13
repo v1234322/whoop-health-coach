@@ -4932,7 +4932,7 @@ def get_training_load_summary():
 
     FROM climbing_training_log
 
-    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
     """)
 
     climbing = cursor.fetchone()
@@ -4947,7 +4947,7 @@ def get_training_load_summary():
 
     FROM hangboard_training_log
 
-    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
     """)
 
     hangboard = cursor.fetchone()
@@ -5375,16 +5375,6 @@ def check_api_key():
         "CHATGPT_ACTION_API_KEY"
     )
 
-
-    print(
-        "API KEY RECEIVED:",
-        repr(key)
-    )
-
-    print(
-        "ENV API KEY:",
-        repr(api_secret)
-    )
 
 
     print(
