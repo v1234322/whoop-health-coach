@@ -2932,6 +2932,67 @@ def api_whoop_coach_report():
         else:
 
             recommended_strain = "0-6"
+
+
+        # 疲劳趋势判断
+
+
+        fatigue_warning = "正常"
+
+
+        if (
+            recovery < avg_recovery
+            and hrv < avg_hrv
+            and rhr > avg_rhr
+        ):
+
+            fatigue_warning = (
+                "恢复压力升高，可能存在疲劳累积"
+            )
+
+
+        elif (
+            recovery < avg_recovery
+            and hrv < avg_hrv
+        ):
+
+            fatigue_warning = (
+                "恢复指标下降，需要关注训练负荷"
+            )
+    
+
+        # Strain 完成度
+
+
+        if recovery >= 67:
+
+            target_min = 12
+
+        elif recovery >= 34:
+
+            target_min = 8
+
+        else:
+
+            target_min = 0
+
+
+        if target_min > 0:
+
+            strain_completion = round(
+                current_strain / target_min * 100,
+                1
+            )
+
+        else:
+
+            strain_completion = 100
+
+
+        remaining_strain = round(
+            max(target_min - current_strain, 0),
+            1
+        )
     
 
         return jsonify({
@@ -2995,6 +3056,8 @@ def api_whoop_coach_report():
                     "current_strain": round(today[9] or 0,1),
 
                     "recommended_strain": recommended_strain,
+
+                    "fatigue_warning": fatigue_warning,
 
                     "reason":[
 
