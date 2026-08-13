@@ -1552,6 +1552,14 @@ def today():
 ❌ 避免：
 今天不建议做什么。
 
+训练负荷信息：
+
+当前 Strain：
+目标 Strain：
+训练完成度：
+剩余建议负荷：
+疲劳趋势：
+
 
 📈 明日恢复预测
 
@@ -2992,13 +3000,6 @@ def api_whoop_coach_report():
         remaining_strain = round(
             max(target_min - current_strain, 0),
             1
-        )
-
-        print(
-            "COACH EXTRA:",
-            strain_completion,
-            remaining_strain,
-            fatigue_warning
         )
 
         return jsonify({
