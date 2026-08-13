@@ -2743,6 +2743,173 @@ def api_whoop_training_advice():
             conn.close()
             
 
+@app.route("/api/whoop/coach-report", methods=["GET"])
+@require_chatgpt_api_key
+def api_whoop_coach_report():
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+
+        # 今日数据
+        cur.execute(
+            """
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                sleep_score,
+                cycle_strain
+            FROM daily_metrics
+            ORDER BY report_date DESC
+            LIMIT 1
+            """
+        )
+
+        today = cur.fetchone()
+
+
+        # 7天基线
+        cur.execute(
+            """
+            SELECT
+                AVG(recovery_score),
+                AVG(hrv),
+                AVG(resting_heart_rate),
+                AVG(sleep_duration),
+                AVG(cycle_strain)
+
+            FROM (
+                SELECT *
+                FROM daily_metrics
+                ORDER BY report_date DESC
+                LIMIT 7
+            )
+            """
+        )
+
+
+        baseline = cur.fetchone()
+
+
+        if not today:
+            return jsonify({
+                "success":False,
+                "message":"暂无今日数据"
+            })
+
+
+        recovery = today[1] or 0
+        hrv = today[2] or 0
+        rhr = today[3] or 0
+
+
+        avg_recovery = baseline[0] or 0
+        avg_hrv = baseline[1] or 0
+        avg_rhr = baseline[2] or 0
+
+
+        # 简单 Coach 判断
+
+        if recovery >= avg_recovery:
+            status = "恢复正常"
+        else:
+            status = "恢复低于个人平均"
+
+
+        if recovery < 45:
+            training = "低强度恢复训练"
+        elif recovery < 70:
+            training = "中等强度训练"
+        else:
+            training = "可以进行高强度训练"
+
+
+
+        return jsonify({
+
+            "success":True,
+
+            "coach_report":{
+
+                "today":{
+
+                    "date":today[0],
+
+                    "recovery":round(recovery,1),
+
+                    "hrv":round(hrv,1),
+
+                    "resting_heart_rate":round(rhr,1),
+
+                    "sleep_hours":round(today[4] or 0,2),
+
+                    "sleep_score":round(today[5] or 0,1),
+
+                    "strain":round(today[6] or 0,1)
+
+                },
+
+
+                "baseline":{
+
+                    "recovery_avg":round(avg_recovery,1),
+
+                    "hrv_avg":round(avg_hrv,1),
+
+                    "rhr_avg":round(avg_rhr,1)
+
+                },
+
+
+                "coach":{
+
+                    "status":status,
+
+                    "training_recommendation":training,
+
+                    "reason":[
+
+                        "基于个人7天恢复基线",
+
+                        "结合Recovery、HRV和静息心率判断"
+
+                    ]
+
+                }
+
+            }
+
+        })
+
+
+    except Exception as e:
+
+        return jsonify({
+
+            "success":False,
+
+            "error":str(e)
+
+        }),500
+
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
+
 
 @app.route("/whoop/weekly")
 def weekly():
