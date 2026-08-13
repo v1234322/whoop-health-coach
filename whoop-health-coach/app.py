@@ -5376,6 +5376,16 @@ def check_api_key():
         "CHATGPT_ACTION_API_KEY"
     )
 
+    print(
+        "API KEY CHECK:",
+        key is not None,
+        len(key) if key else 0,
+        api_secret is not None,
+        len(api_secret) if api_secret else 0
+    )
+
+
+    return key == api_secret
 
     return key == api_secret
     
