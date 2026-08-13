@@ -884,6 +884,35 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_coach_reports (
+
+        id SERIAL PRIMARY KEY,
+
+        report_date TEXT UNIQUE,
+
+        recovery REAL,
+
+        whoop_strain REAL,
+
+        climbing_load REAL,
+
+        hangboard_load REAL,
+
+        fatigue_score REAL,
+
+        training_advice TEXT,
+
+        risk_warning TEXT,
+
+        ai_report TEXT,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    );
+    """)
+    
+
     # ==============================
     # 攀岩训练日志
     # ==============================
@@ -5124,8 +5153,213 @@ REM
         )
 
         return "⚠️ AI教练暂时无法生成建议"
+        
 
 
+def calculate_training_load():
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor(
+        RealDictCursor
+    )
+
+
+    cursor.execute("""
+    SELECT
+        COUNT(*) AS sessions,
+        COALESCE(
+            SUM(duration),
+            0
+        ) AS total_duration,
+        COALESCE(
+            AVG(finger_fatigue),
+            0
+        ) AS avg_fatigue
+
+    FROM hangboard_training_log
+
+    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+
+    """)
+
+
+    hangboard = cursor.fetchone()
+
+
+    cursor.execute("""
+    SELECT
+        COUNT(*) AS sessions,
+        COALESCE(
+            SUM(duration),
+            0
+        ) AS total_duration
+
+    FROM climbing_training_log
+
+    WHERE training_date >= CURRENT_DATE - INTERVAL '7 days'
+
+    """)
+
+
+    climbing = cursor.fetchone()
+
+
+    cursor.close()
+    conn.close()
+
+
+    return {
+
+        "hangboard_sessions":
+            hangboard["sessions"],
+
+        "hangboard_duration":
+            hangboard["total_duration"],
+
+        "finger_fatigue":
+            hangboard["avg_fatigue"],
+
+
+        "climbing_sessions":
+            climbing["sessions"],
+
+        "climbing_duration":
+            climbing["total_duration"]
+
+    }
+
+
+def save_daily_coach_report(
+    metrics,
+    training,
+    ai_report
+):
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+
+    cursor.execute("""
+    INSERT INTO daily_coach_reports
+    (
+        report_date,
+        recovery,
+        whoop_strain,
+        climbing_load,
+        hangboard_load,
+        fatigue_score,
+        ai_report
+    )
+
+    VALUES
+    (
+        %s,%s,%s,%s,%s,%s,%s
+    )
+
+    ON CONFLICT(report_date)
+    DO UPDATE SET
+
+    ai_report = EXCLUDED.ai_report
+
+    """,
+
+    (
+
+        datetime.now().strftime("%Y-%m-%d"),
+
+        metrics.get(
+            "recovery_score",
+            0
+        ),
+
+        metrics.get(
+            "cycle_strain",
+            0
+        ),
+
+        training.get(
+            "climbing_duration",
+            0
+        ),
+
+        training.get(
+            "hangboard_duration",
+            0
+        ),
+
+        training.get(
+            "finger_fatigue",
+            0
+        ),
+
+        ai_report
+    ))
+
+    conn.commit()
+
+    cursor.close()
+
+    conn.close()
+
+
+    print(
+        "DAILY COACH REPORT SAVED"
+    )
+
+
+
+def generate_coach_prompt(
+    whoop,
+    training
+):
+
+    return f"""
+
+你是一名专业攀岩训练教练。
+
+根据以下数据制定今日建议：
+
+WHOOP:
+Recovery:
+{whoop['recovery']}
+
+Strain:
+{whoop['strain']}
+
+
+最近7天训练：
+
+攀岩次数:
+{training['climbing_sessions']}
+
+攀岩时间:
+{training['climbing_duration']}分钟
+
+
+指力板次数:
+{training['hangboard_sessions']}
+
+指力训练时间:
+{training['hangboard_duration']}分钟
+
+平均手指疲劳:
+{training['finger_fatigue']}
+
+
+请输出：
+
+1. 今日训练等级
+2. 推荐训练类型
+3. 是否需要恢复
+4. 手指风险
+5. 明日计划
+
+
+使用中文。
+"""
+    
 
 def generate_weekly_ai_summary(ai_prompt):
 
@@ -5796,6 +6030,7 @@ def extract_daily_metrics(data):
     )
 
     return result
+
 
 def save_daily_data(metrics):
 
@@ -7569,10 +7804,28 @@ def auto_report():
         # 6. AI健康教练
         # =========================
 
-        weekly = get_weekly_trend()
+        metrics = extract_daily_metrics(data)
 
-        training_load = get_training_load_summary()
+        training_load = calculate_training_load()
 
+
+        ai_prompt = generate_coach_prompt(
+            metrics,
+            training_load
+        )
+
+
+        coach_advice = generate_ai_summary(
+            ai_prompt
+        )
+
+        save_daily_coach_report(
+            metrics,
+            training_load,
+            coach_advice
+        )
+
+        
         ai_prompt = f"""
 
 你是 WHOOP 私人健康教练。
