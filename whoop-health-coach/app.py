@@ -971,7 +971,7 @@ def init_db():
 
     hangboard_columns = [
         ("protocol", "TEXT"),
-        ("session_type", "TEXT"),
+       ("session_type", "TEXT"),
         ("edge_size", "TEXT"),
         ("grip_type", "TEXT"),
         ("added_weight", "REAL"),
@@ -993,16 +993,20 @@ def init_db():
             cursor.execute(
                 f"""
                 ALTER TABLE hangboard_training_log
-                ADD COLUMN {column} {dtype}
+                ADD COLUMN IF NOT EXISTS {column} {dtype}
                 """
             )
 
             print(
-                f"HANGBOARD COLUMN ADDED: {column}"
+                f"HANGBOARD CHECK COLUMN: {column}"
             )
 
-        except Exception:
+        except Exception as e:
 
+            print(
+                "HANGBOARD MIGRATION ERROR:",
+                e
+            )
             conn.rollback()
 
     
@@ -1060,6 +1064,8 @@ def init_db():
     # =========================
     # 检查指力板训练表
     # =========================
+
+    conn.commit()
 
     cursor.execute(
         """
