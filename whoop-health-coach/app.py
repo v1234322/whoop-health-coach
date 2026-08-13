@@ -2941,6 +2941,73 @@ def api_whoop_coach_report():
                 "恢复指标下降，需要关注训练负荷"
             )
 
+        # 连续疲劳检测
+
+        continuous_fatigue = False
+
+
+        try:
+
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT
+                    recovery_score,
+                    hrv,
+                    resting_heart_rate
+
+                FROM daily_metrics
+
+                ORDER BY report_date DESC
+
+                LIMIT 3
+                """
+            )
+
+            recent_days = cur.fetchall()
+
+
+            if len(recent_days) == 3:
+
+                fatigue_days = 0
+
+
+                for day in recent_days:
+
+                    day_recovery = day[0]
+                    day_hrv = day[1]
+                    day_rhr = day[2]
+
+
+                    if (
+                        day_recovery < avg_recovery
+                        and day_hrv < avg_hrv
+                        and day_rhr > avg_rhr
+                    ):
+
+                        fatigue_days += 1
+
+
+                if fatigue_days >= 3:
+
+                    continuous_fatigue = True
+
+                    fatigue_warning = (
+                "连续3天恢复压力升高，建议安排恢复日"
+                    )
+
+
+            cur.close()
+
+
+        except Exception as e:
+
+            print(
+                "CONTINUOUS FATIGUE CHECK ERROR:",
+                e
+            )
+
 
         # Recovery明显下降超过15%
 
@@ -3040,6 +3107,8 @@ def api_whoop_coach_report():
                     "fatigue_warning": fatigue_warning,
 
                     "recovery_status": recovery_status,
+                    
+                    "continuous_fatigue": continuous_fatigue,
 
                 },
 
