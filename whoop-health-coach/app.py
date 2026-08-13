@@ -882,27 +882,59 @@ def init_db():
     )
     """)
 
-    # =========================
-    # 添加 health_score 字段
-    # =========================
+    # ==============================
+    # 攀岩训练日志
+    # ==============================
 
-    try:
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS climbing_training_log (
+
+        id SERIAL PRIMARY KEY,
+
+        training_date TEXT,
+
+        training_type TEXT,
+
+        duration INTEGER,
+
+        intensity TEXT,
+
+        climbing_grade TEXT,
+
+        boulder_count INTEGER,
+
+        hangboard_seconds INTEGER,
+
+        hangboard_weight REAL,
+
+        finger_fatigue INTEGER,
+
+        forearm_fatigue INTEGER,
+
+        notes TEXT,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    )
+    """)
+
+        # ==============================
+        # 检查攀岩训练表
+        # ==============================
 
         cursor.execute(
             """
-            ALTER TABLE daily_metrics
-            ADD COLUMN health_score REAL
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name='climbing_training_log'
+            ORDER BY ordinal_position
             """
         )
 
         print(
-            "HEALTH SCORE COLUMN ADDED"
+            "CLIMBING TABLE COLUMNS:",
+            cursor.fetchall()
         )
-
-    except Exception:
-
-        conn.rollback()
-
     
 
     # =========================
