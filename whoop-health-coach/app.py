@@ -3530,7 +3530,7 @@ def hangboard_history():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        RealDictCursor
+        cursor_factory=RealDictCursor
     )
 
     cursor.execute(
@@ -5161,7 +5161,7 @@ def calculate_training_load():
     conn = get_db_connection()
 
     cursor = conn.cursor(
-        RealDictCursor
+        cursor_factory=RealDictCursor
     )
 
 
