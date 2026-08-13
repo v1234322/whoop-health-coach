@@ -5216,8 +5216,16 @@ def calculate_training_load():
         "hangboard_duration":
             hangboard["total_duration"],
 
-        "finger_fatigue":
+
+        "avg_finger_fatigue":
             hangboard["avg_fatigue"],
+
+
+        "avg_forearm_fatigue":
+            hangboard.get(
+                "avg_elbow_fatigue",
+                0
+            ),
 
 
         "climbing_sessions":
@@ -7864,7 +7872,7 @@ def auto_report():
 - 次数: {training_load["climbing_sessions"]}
 - 总时长: {training_load["climbing_duration"]} 分钟
 - 平均手指疲劳: training_load["finger_fatigue"]
-- 平均前臂疲劳: {training_load["avg_forearm_fatigue"]}/10
+- 平均前臂疲劳: training_load.get("avg_forearm_fatigue",training_load.get("elbow_fatigue",0))
 
 
 指力板:
