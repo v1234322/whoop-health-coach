@@ -5833,7 +5833,9 @@ def save_hangboard_training(data):
 
     VALUES (
 
-        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+        %s,%s,%s,%s,%s,
+        %s,%s,%s,%s,%s,
+        %s,%s,%s,%s,%s
 
     )
 
