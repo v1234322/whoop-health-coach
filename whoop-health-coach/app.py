@@ -931,10 +931,10 @@ def init_db():
          """
      )
 
-     print(
-         "CLIMBING TABLE COLUMNS:",
-         cursor.fetchall()
-     )
+         print(
+             "CLIMBING TABLE COLUMNS:",
+             cursor.fetchall()
+         )
     
 
     # =========================
