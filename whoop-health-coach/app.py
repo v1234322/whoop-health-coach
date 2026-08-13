@@ -51,47 +51,6 @@ def require_chatgpt_api_key(func):
 
     return wrapper
 
-        expected_key = os.getenv(
-            "CHATGPT_ACTION_API_KEY"
-        )
-
-        if not expected_key:
-
-            return jsonify({
-                "success": False,
-                "error": "ChatGPT API authentication is not configured"
-            }), 503
-
-        authorization = request.headers.get(
-            "Authorization",
-            ""
-        )
-
-        if not authorization.startswith("Bearer "):
-
-            return jsonify({
-                "success": False,
-                "error": "Authorization header is required"
-            }), 401
-
-        provided_key = authorization[
-            len("Bearer "):
-        ].strip()
-
-        if not hmac.compare_digest(
-            provided_key,
-            expected_key
-        ):
-
-            return jsonify({
-                "success": False,
-                "error": "Invalid API key"
-            }), 403
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
 
 # =========================
 # 数据库连接
