@@ -2463,6 +2463,93 @@ def api_whoop_weekly():
             conn.close()
 
 
+@app.route("/api/whoop/profile", methods=["GET"])
+@require_chatgpt_api_key
+def api_whoop_profile():
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            SELECT
+                AVG(recovery_score),
+                AVG(hrv),
+                AVG(resting_heart_rate),
+                AVG(sleep_duration),
+                AVG(cycle_strain)
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 7
+            """
+        )
+
+
+        row = cur.fetchone()
+
+
+        if not row:
+            return jsonify({
+                "success": False,
+                "message": "暂无历史数据"
+            })
+
+
+        return jsonify({
+
+            "success": True,
+
+            "baseline": {
+
+                "avg_recovery_7d":
+                    round(row[0] or 0,1),
+
+                "avg_hrv_7d":
+                    round(row[1] or 0,1),
+
+                "avg_rhr_7d":
+                    round(row[2] or 0,1),
+
+                "avg_sleep_hours":
+                    round(row[3] or 0,2),
+
+                "avg_strain":
+                    round(row[4] or 0,1)
+            }
+
+        })
+
+
+    except Exception as e:
+
+        return jsonify({
+
+            "success": False,
+
+            "error": str(e)
+
+        }),500
+
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
+
+
 @app.route("/whoop/weekly")
 def weekly():
 
