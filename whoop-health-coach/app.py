@@ -2916,6 +2916,24 @@ def api_whoop_coach_report():
             )
 
 
+        # Strain 目标推荐
+
+
+        current_strain = today[9] or 0
+
+        if recovery >= 67:
+
+            recommended_strain = "12-15"
+
+        elif recovery >= 34:
+
+            recommended_strain = "8-12"
+
+        else:
+
+            recommended_strain = "0-6"
+    
+
         return jsonify({
 
             "success":True,
@@ -2973,12 +2991,16 @@ def api_whoop_coach_report():
                     "training_level": training_level,
 
                     "training_recommendation": training_advice,
-                    
+
+                    "current_strain": round(today[9] or 0,1),
+
+                    "recommended_strain": recommended_strain,
+
                     "reason":[
 
                         "基于个人7天恢复基线",
 
-                        "结合Recovery、HRV和静息心率判断"
+                        "结合Recovery、HRV、睡眠和训练负荷判断"
 
                     ]
 
