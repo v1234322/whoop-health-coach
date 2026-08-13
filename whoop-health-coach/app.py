@@ -5273,6 +5273,11 @@ def calculate_training_load():
                 0
             ),
 
+        "elbow_fatigue":
+            hangboard.get(
+                "avg_elbow_fatigue",
+                0
+            ),
 
         # ======================
         # 攀岩训练
