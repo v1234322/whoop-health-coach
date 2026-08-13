@@ -5373,7 +5373,7 @@ def check_api_key():
 
 
     api_secret = os.getenv(
-        "API_SECRET"
+        "CHATGPT_ACTION_API_KEY"
     )
 
 
@@ -7550,10 +7550,6 @@ def auto_report():
         # =========================
         # 6. AI健康教练
         # =========================
-
-        metrics = extract_daily_metrics(
-            data
-        )
 
         weekly = get_weekly_trend()
 
