@@ -7456,6 +7456,8 @@ def auto_save_daily():
 def auto_report():
 
 
+    print("ENTER AUTO REPORT FUNCTION")
+    
     if not check_api_key():
 
         return jsonify({
