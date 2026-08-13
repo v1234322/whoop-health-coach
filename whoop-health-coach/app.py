@@ -4609,7 +4609,7 @@ REM
 
             {
                 "role": "user",
-                "content": ai_prompt[:6000]
+                "content": ai_prompt
             }
 
         ],
