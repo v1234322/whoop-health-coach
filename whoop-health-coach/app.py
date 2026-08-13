@@ -8247,11 +8247,14 @@ def auto_report():
     except Exception as e:
 
 
+        import traceback
+        
         print(
             "AUTO REPORT ERROR:",
             e
         )
 
+        traceback.print_exc()
 
         return jsonify({
 
