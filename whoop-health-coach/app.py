@@ -1570,10 +1570,9 @@ def today():
 
         """
 
-
-        print("FINAL AI PROMPT DEBUG:")
+        print("===== AI PROMPT CHECK =====")
         print(ai_prompt)
-
+        print("==========================")
 
         ai_summary = generate_ai_summary(
             ai_prompt
