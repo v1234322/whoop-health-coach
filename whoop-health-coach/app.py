@@ -1499,23 +1499,6 @@ def today():
         {metrics.get("cycle_strain")}
 
 
-        训练负荷分析：
-
-        当前 Strain:
-        {current_strain}
-
-        目标 Strain:
-        {target_min}
-        
-        训练完成度:
-        {strain_completion}%
-
-        剩余建议负荷:
-        {remaining_strain}
-
-        疲劳趋势:
-        {fatigue_warning}
-
         最近7天趋势:
 
         平均 Recovery:
@@ -6378,6 +6361,23 @@ def generate_week_report(data):
 
 最近一次 Recovery:
 {latest_recovery:.1f}%
+
+训练负荷分析：
+
+当前 Strain:
+{current_strain}
+
+目标 Strain:
+{target_min}
+        
+训练完成度:
+{strain_completion}%
+
+剩余建议负荷:
+{remaining_strain}
+
+疲劳趋势:
+{fatigue_warning}
 
 
 Recovery趋势变化:
