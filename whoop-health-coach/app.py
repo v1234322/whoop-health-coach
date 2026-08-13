@@ -2848,21 +2848,72 @@ def api_whoop_coach_report():
         )
 
         
-        # 简单 Coach 判断
 
-        if recovery >= avg_recovery:
-            status = "恢复正常"
+        # Coach 训练决策模型
+
+        training_level = ""
+        training_advice = ""
+
+
+        # Recovery 基础判断
+
+        if recovery >= 67:
+        
+            if sleep_efficiency >= 90 and deep_sleep_ratio >= 20:
+
+                training_level = "高强度训练"
+
+                training_advice = (
+                    "恢复状态良好，睡眠结构支持训练。"
+                    "可以安排力量训练、间歇训练或较高强度训练。"
+                )
+
+            else:
+
+                training_level = "中高强度训练"
+
+                training_advice = (
+                    "Recovery 良好，但睡眠结构仍有提升空间。"
+                    "建议控制训练量，避免连续冲击极限。"
+                )
+
+
+        elif recovery >= 34:
+
+            training_level = "中等强度训练"
+
+            training_advice = (
+                "身体处于可训练状态，但恢复并未达到最佳。"
+                "建议进行中等强度训练，例如 Zone 2 有氧、技术训练或正常力量训练。"
+            )
+
+
         else:
-            status = "恢复低于个人平均"
+
+            training_level = "恢复训练"
+
+            training_advice = (
+                "Recovery 偏低，身体可能存在恢复压力。"
+                "建议降低训练强度，以恢复、拉伸、低强度活动为主。"
+            )
 
 
-        if recovery < 45:
-            training = "低强度恢复训练"
-        elif recovery < 70:
-            training = "中等强度训练"
-        else:
-            training = "可以进行高强度训练"
+        # HRV 额外修正
 
+        if hrv < avg_hrv * 0.85:
+
+            training_advice += (
+                " HRV 明显低于个人平均，今天应避免高强度刺激。"
+            )
+
+
+        # 静息心率压力修正
+
+        if rhr > avg_rhr + 5:
+
+            training_advice += (
+                " 静息心率偏高，提示恢复压力，建议进一步降低负荷。"
+            )
 
 
         return jsonify({
@@ -2898,6 +2949,10 @@ def api_whoop_coach_report():
                     "light_sleep_ratio": light_sleep_ratio,
                     
                     "strain": round(today[9] or 0,1)
+
+                    "training_level": training_level,
+
+                    "training_advice": training_advice,
 
                 },
 
