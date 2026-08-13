@@ -7948,6 +7948,16 @@ def auto_report():
             coach_advice
         )
 
+        print(
+            "DEBUG PROMPT TRAINING LOAD TYPE:",
+            type(training_load)
+        )
+
+        print(
+            "DEBUG PROMPT TRAINING LOAD VALUE:",
+            training_load
+        )
+
         
         ai_prompt = f"""
 
