@@ -6,6 +6,8 @@ print("WHOOP HEALTH COACH STARTED")
 
 import psycopg2
 
+from psycopg2.extras import RealDictCursor
+
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, jsonify, request, Response
