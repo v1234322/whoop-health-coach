@@ -933,6 +933,8 @@ def init_db():
 
         protocol TEXT,
 
+        session_type TEXT,
+
         edge_size TEXT,
 
         grip_type TEXT,
@@ -941,7 +943,7 @@ def init_db():
 
         hold_seconds INTEGER,
 
-        rest_seconds INTEGER,
+        duration INTEGER,
 
         sets INTEGER,
 
@@ -950,6 +952,10 @@ def init_db():
         intensity TEXT,
 
         finger_fatigue INTEGER,
+        
+        elbow_fatigue INTEGER,
+
+        recovery_after INTEGER,
 
         notes TEXT,
 
@@ -3416,46 +3422,45 @@ def training_hangboard():
 
         "message":"指力板训练已保存",
 
-        "data":data
-
     })
 
 
 @app.route("/training/hangboard/history")
 def hangboard_history():
 
-    conn=get_db_connection()
+    conn=get_db()
 
     cursor=conn.cursor()
 
 
-    cursor.execute("""
+    cursor.execute(
+    """
     SELECT
-
     training_date,
     protocol,
     edge_size,
     grip_type,
     added_weight,
-    hold_seconds,
+    duration,
     sets,
+    max_hang_seconds,
     finger_fatigue,
-    notes
+    elbow_fatigue
 
     FROM hangboard_training_log
 
-    ORDER BY id DESC
+    ORDER BY training_date DESC
 
     LIMIT 30
 
-    """)
+    """
+    )
 
 
     rows=cursor.fetchall()
 
 
     cursor.close()
-
     conn.close()
 
 
@@ -5789,23 +5794,25 @@ def save_hangboard_training(data):
     INSERT INTO hangboard_training_log (
 
         training_date,
-        protocol,
+        session_type,
         edge_size,
         grip_type,
         added_weight,
         hold_seconds,
-        rest_seconds,
+        duration,
         sets,
         total_hang_time,
         intensity,
         finger_fatigue,
+        elbow_fatigue,
+        recovery_after,
         notes
 
     )
 
     VALUES (
 
-        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
 
     )
 
@@ -5814,30 +5821,22 @@ def save_hangboard_training(data):
     (
 
         data.get("training_date"),
-
         data.get("protocol"),
-
+        data.get("session_type"),
         data.get("edge_size"),
-
         data.get("grip_type"),
-
         data.get("added_weight"),
-
         data.get("hold_seconds"),
-
-        data.get("rest_seconds"),
-
+        data.get("duration"),
         data.get("sets"),
-
         data.get("total_hang_time"),
-
         data.get("intensity"),
-
         data.get("finger_fatigue"),
-
+        data.get("elbow_fatigue"),
+        data.get("recovery_after"),
         data.get("notes")
-
-    ))
+    )
+    )
 
 
     conn.commit()
