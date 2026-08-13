@@ -2766,6 +2766,9 @@ def api_whoop_coach_report():
                 resting_heart_rate,
                 sleep_duration,
                 sleep_score,
+                sleep_efficiency,
+                deep_sleep_duration,
+                rem_sleep_duration,
                 cycle_strain
             FROM daily_metrics
             ORDER BY report_date DESC
@@ -2849,11 +2852,17 @@ def api_whoop_coach_report():
 
                     "resting_heart_rate":round(rhr,1),
 
-                    "sleep_hours":round(today[4] or 0,2),
+                    "sleep_hours": round(today[4] or 0,2),
 
-                    "sleep_score":round(today[5] or 0,1),
+                    "sleep_score": round(today[5] or 0,1),
 
-                    "strain":round(today[6] or 0,1)
+                    "sleep_efficiency": round(today[6] or 0,1),
+
+                    "deep_sleep_hours": round(today[7] or 0,2),
+
+                    "rem_sleep_hours": round(today[8] or 0,2),
+
+                    "strain": round(today[9] or 0,1)
 
                 },
 
