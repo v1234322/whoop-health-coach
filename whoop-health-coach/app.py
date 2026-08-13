@@ -7948,15 +7948,13 @@ def auto_report():
             coach_advice
         )
 
-        print(
-            "DEBUG PROMPT TRAINING LOAD TYPE:",
-            type(training_load)
-        )
 
-        print(
-            "DEBUG PROMPT TRAINING LOAD VALUE:",
-            training_load
-        )
+
+        print("DEBUG METRICS TYPE:", type(metrics))
+        print("DEBUG METRICS VALUE:", metrics)
+
+        print("DEBUG WEEKLY TYPE:", type(weekly))
+        print("DEBUG WEEKLY VALUE:", weekly)
 
         
         ai_prompt = f"""
