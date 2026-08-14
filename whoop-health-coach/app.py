@@ -7385,6 +7385,11 @@ def generate_weekly_analysis():
         conn = get_db_connection()
         cur = conn.cursor()
 
+
+        # =========================
+        # 1. 最近7天 WHOOP 数据
+        # =========================
+
         cur.execute(
             """
             SELECT
@@ -7404,7 +7409,9 @@ def generate_weekly_analysis():
             """
         )
 
+
         rows = cur.fetchall()
+
 
         print(
             "WEEKLY DATA:",
@@ -7413,25 +7420,43 @@ def generate_weekly_analysis():
 
 
         # =========================
-        # 没有数据
+        # 2. 没有 WHOOP 数据
         # =========================
 
         if not rows:
 
             return {
+
                 "success": False,
+
                 "valid_days": 0,
+
                 "is_complete": False,
+
                 "start_date": None,
+
                 "end_date": None,
+
                 "avg_recovery": 0,
+
                 "avg_hrv": 0,
+
                 "avg_resting_hr": 0,
+
                 "avg_sleep": 0,
+
                 "avg_sleep_score": 0,
+
                 "avg_strain": 0,
+
                 "records": [],
-                "prompt_text": "暂无 WHOOP 历史数据"
+
+                "training_load": {},
+
+                "climbing_fatigue": {},
+
+                "prompt_text":
+                    "暂无 WHOOP 历史数据"
             }
 
 
@@ -7444,7 +7469,7 @@ def generate_weekly_analysis():
 
 
         # =========================
-        # 工具函数
+        # 3. 工具函数
         # =========================
 
         def safe_float(value):
@@ -7453,22 +7478,35 @@ def generate_weekly_analysis():
                 return None
 
             try:
+
                 return float(value)
 
             except Exception:
+
                 return None
 
 
         def safe_avg(values):
 
-            valid = [
-                safe_float(v)
-                for v in values
-                if safe_float(v) is not None
-            ]
+            valid = []
+
+            for value in values:
+
+                converted = safe_float(
+                    value
+                )
+
+                if converted is not None:
+
+                    valid.append(
+                        converted
+                    )
+
 
             if not valid:
+
                 return 0
+
 
             return round(
                 sum(valid) / len(valid),
@@ -7482,13 +7520,14 @@ def generate_weekly_analysis():
         ):
 
             if value is None:
+
                 return "数据缺失"
 
             return f"{value}{suffix}"
 
 
         # =========================
-        # 整理每天数据
+        # 4. 整理每日 WHOOP 数据
         # =========================
 
         records = []
@@ -7515,22 +7554,34 @@ def generate_weekly_analysis():
                     str(report_date),
 
                 "recovery_score":
-                    safe_float(recovery_score),
+                    safe_float(
+                        recovery_score
+                    ),
 
                 "hrv":
-                    safe_float(hrv),
+                    safe_float(
+                        hrv
+                    ),
 
                 "resting_heart_rate":
-                    safe_float(resting_heart_rate),
+                    safe_float(
+                        resting_heart_rate
+                    ),
 
                 "sleep_duration":
-                    safe_float(sleep_duration),
+                    safe_float(
+                        sleep_duration
+                    ),
 
                 "sleep_score":
-                    safe_float(sleep_score),
+                    safe_float(
+                        sleep_score
+                    ),
 
                 "cycle_strain":
-                    safe_float(cycle_strain)
+                    safe_float(
+                        cycle_strain
+                    )
 
             }
 
@@ -7554,14 +7605,18 @@ Strain：{show_value(cycle_strain)}
 
 
         # =========================
-        # 周期信息
+        # 5. 周期信息
         # =========================
 
-        valid_days = len(records)
+        valid_days = len(
+            records
+        )
+
 
         start_date = records[0][
             "report_date"
         ]
+
 
         end_date = records[-1][
             "report_date"
@@ -7569,7 +7624,7 @@ Strain：{show_value(cycle_strain)}
 
 
         # =========================
-        # 平均数据
+        # 6. WHOOP 平均值
         # =========================
 
         avg_recovery = safe_avg([
@@ -7609,7 +7664,188 @@ Strain：{show_value(cycle_strain)}
 
 
         # =========================
-        # 给 Weekly AI 的数据文本
+        # 7. 最近7天攀岩/指力板负荷
+        # =========================
+
+        try:
+
+            training_load = (
+                calculate_training_load()
+            )
+
+
+            if not isinstance(
+                training_load,
+                dict
+            ):
+
+                training_load = {}
+
+
+        except Exception as e:
+
+            print(
+                "WEEKLY TRAINING LOAD ERROR:",
+                e
+            )
+
+            training_load = {}
+
+
+        print(
+            "WEEKLY TRAINING LOAD:",
+            training_load
+        )
+
+
+        # =========================
+        # 8. 局部攀岩疲劳分析
+        # =========================
+
+        try:
+
+            climbing_fatigue = (
+                analyze_climbing_fatigue(
+                    training_load
+                )
+            )
+
+
+            if not isinstance(
+                climbing_fatigue,
+                dict
+            ):
+
+                climbing_fatigue = {}
+
+
+        except Exception as e:
+
+            print(
+                "WEEKLY CLIMBING FATIGUE ERROR:",
+                e
+            )
+
+            climbing_fatigue = {}
+
+
+        print(
+            "WEEKLY CLIMBING FATIGUE:",
+            climbing_fatigue
+        )
+
+
+        # =========================
+        # 9. 提取训练负荷字段
+        # =========================
+
+        climbing_sessions_7d = (
+            training_load.get(
+                "climbing_sessions_7d",
+                training_load.get(
+                    "climbing_sessions",
+                    0
+                )
+            )
+        )
+
+
+        climbing_duration_7d = (
+            training_load.get(
+                "climbing_duration_7d",
+                training_load.get(
+                    "climbing_duration",
+                    0
+                )
+            )
+        )
+
+
+        hangboard_sessions_7d = (
+            training_load.get(
+                "hangboard_sessions_7d",
+                training_load.get(
+                    "hangboard_sessions",
+                    0
+                )
+            )
+        )
+
+
+        hangboard_duration_7d = (
+            training_load.get(
+                "hangboard_duration_7d",
+                training_load.get(
+                    "hangboard_duration",
+                    0
+                )
+            )
+        )
+
+
+        hang_time_7d = (
+            training_load.get(
+                "hang_time_7d",
+                0
+            )
+        )
+
+
+        avg_finger_fatigue_7d = (
+            training_load.get(
+                "avg_finger_fatigue_7d",
+                0
+            )
+        )
+
+
+        avg_elbow_fatigue_7d = (
+            training_load.get(
+                "avg_elbow_fatigue_7d",
+                0
+            )
+        )
+
+
+        latest_finger_fatigue = (
+            training_load.get(
+                "latest_finger_fatigue",
+                0
+            )
+        )
+
+
+        latest_elbow_fatigue = (
+            training_load.get(
+                "latest_elbow_fatigue",
+                0
+            )
+        )
+
+
+        latest_hangboard_date = (
+            training_load.get(
+                "latest_hangboard_date"
+            )
+        )
+
+
+        days_since_hangboard = (
+            training_load.get(
+                "days_since_hangboard"
+            )
+        )
+
+
+        latest_recovery_after = (
+            training_load.get(
+                "latest_recovery_after"
+            )
+        )
+
+
+        # =========================
+        # 10. WHOOP 数据文本
         # =========================
 
         weekly_data_text = "\n\n".join(
@@ -7617,21 +7853,34 @@ Strain：{show_value(cycle_strain)}
         )
 
 
-        prompt_text = f"""
-统计周期：{start_date} 至 {end_date}
+        # =========================
+        # 11. Weekly AI Prompt
+        # =========================
 
-有效记录：
+        prompt_text = f"""
+
+统计周期：
+{start_date} 至 {end_date}
+
+有效 WHOOP 记录：
 {valid_days}/7天
 
 数据完整性：
 {"完整7天数据" if valid_days >= 7 else "不足7天，仅代表阶段性趋势"}
 
-以下是按日期正序排列的 WHOOP 数据：
+
+==============================
+WHOOP 每日数据
+==============================
+
+以下数据按日期正序排列：
 
 {weekly_data_text}
 
 
-最近阶段平均值：
+==============================
+WHOOP 周平均
+==============================
 
 平均 Recovery：
 {avg_recovery}%
@@ -7652,40 +7901,193 @@ Strain：{show_value(cycle_strain)}
 {avg_strain}
 
 
-分析要求：
+==============================
+最近7天攀岩训练负荷
+==============================
+
+攀岩次数：
+{climbing_sessions_7d}
+
+攀岩总时长：
+{climbing_duration_7d} 分钟
+
+
+==============================
+最近7天指力板训练负荷
+==============================
+
+指力板次数：
+{hangboard_sessions_7d}
+
+指力板总时长：
+{hangboard_duration_7d} 分钟
+
+总悬挂时间：
+{hang_time_7d} 秒
+
+最近7天平均手指疲劳：
+{avg_finger_fatigue_7d}/10
+
+最近7天平均肘部疲劳：
+{avg_elbow_fatigue_7d}/10
+
+
+重要：
+
+最近7天平均手指疲劳和肘部疲劳，
+只代表历史训练记录的平均值。
+
+不得将其直接解释为今天当前疲劳。
+
+
+==============================
+最近一次指力板状态
+==============================
+
+最近一次训练日期：
+{latest_hangboard_date}
+
+距最近一次训练：
+{days_since_hangboard} 天
+
+最近一次手指疲劳：
+{latest_finger_fatigue}/10
+
+最近一次肘部疲劳：
+{latest_elbow_fatigue}/10
+
+训练后恢复评分：
+{latest_recovery_after}
+
+
+==============================
+攀岩专项疲劳模型
+==============================
+
+疲劳等级：
+{climbing_fatigue.get(
+    "fatigue_level",
+    "数据不足"
+)}
+
+模型建议：
+{climbing_fatigue.get(
+    "recommendations",
+    []
+)}
+
+
+==============================
+分析要求
+==============================
 
 1. 只能根据以上实际数据分析。
 
-2. 如果不足7天，
+2. 如果 WHOOP 数据不足7天，
 必须明确说明这是阶段性趋势。
 
-3. 不得推测缺失日期的数据。
+3. 不得推测缺失日期或缺失指标。
 
 4. 不得把没有训练记录解释为休息日。
 
-5. Recovery 必须结合 HRV、
-静息心率和睡眠判断。
+5. Recovery 必须结合：
+HRV、
+静息心率、
+睡眠、
+Strain
+综合判断。
 
 6. Strain 必须结合 Recovery
-和睡眠判断是否匹配。
+和睡眠判断负荷是否匹配。
 
-7. 单日变化不能直接定义为
+7. 单日变化不得直接定义为
 长期疲劳或恢复异常。
 
 8. 必须区分：
 短期波动
-和
+与
 连续趋势。
 
-9. 未来训练建议必须采用条件式建议，
-不得提前假设未来 Recovery。
+9. Weekly 训练建议必须同时结合：
+WHOOP恢复趋势、
+攀岩负荷、
+指力板负荷、
+手指疲劳、
+肘部疲劳。
 
-10. 不进行医学诊断。
+10. 最近7天指力板频率较高，
+本身不能证明过度使用或疲劳累积。
+
+11. 最近7天平均疲劳，
+不能等同于当前手指或肘部疲劳。
+
+12. 判断当前局部风险时，
+优先参考：
+最近一次疲劳评分、
+距离最近一次训练天数、
+recovery_after
+以及近期训练频率。
+
+13. 如果最近一次手指疲劳为4-6/10，
+应描述为中等局部疲劳或建议关注恢复，
+不得直接描述为疲劳累积、
+恢复不足或过度使用。
+
+14. 未来7天训练建议必须采用条件式建议。
+
+例如：
+
+如果 Recovery 较高、
+HRV稳定、
+睡眠充足、
+局部手指状态良好，
+可以安排中高强度攀岩。
+
+如果 Recovery 中等，
+建议技术训练或低至中等强度训练。
+
+如果 HRV明显下降、
+睡眠不足、
+或局部疲劳升高，
+降低训练负荷。
+
+15. Max Hang 属于高强度最大力量训练。
+
+只有在：
+整体恢复良好、
+局部手指疲劳较低、
+距离上次高强度指力训练足够、
+且无伤病信号时，
+才可以建议 Max Hang。
+
+16. 不得根据历史训练次数，
+直接假设用户今天存在疼痛、
+酸痛、
+僵硬、
+肌腱敏感或动作受限。
+
+17. 不进行医学诊断。
+
+18. WHOOP、睡眠、HRV和Strain之间
+只能描述可能关联。
+
+禁止使用：
+
+“直接导致”
+“证明”
+“一定因为”
+
+优先使用：
+
+“可能与……有关”
+“与……同时出现”
+“可能对恢复形成压力”
+“数据提示可能存在关联”
 """
 
 
         # =========================
-        # 返回统一 dict
+        # 12. 返回统一 dict
         # =========================
 
         return {
@@ -7725,6 +8127,34 @@ Strain：{show_value(cycle_strain)}
             "records":
                 records,
 
+            # 攀岩与指力板数据
+            "training_load":
+                training_load,
+
+            "climbing_fatigue":
+                climbing_fatigue,
+
+            "climbing_sessions_7d":
+                climbing_sessions_7d,
+
+            "climbing_duration_7d":
+                climbing_duration_7d,
+
+            "hangboard_sessions_7d":
+                hangboard_sessions_7d,
+
+            "hangboard_duration_7d":
+                hangboard_duration_7d,
+
+            "latest_finger_fatigue":
+                latest_finger_fatigue,
+
+            "latest_elbow_fatigue":
+                latest_elbow_fatigue,
+
+            "days_since_hangboard":
+                days_since_hangboard,
+
             "prompt_text":
                 prompt_text
 
@@ -7737,6 +8167,7 @@ Strain：{show_value(cycle_strain)}
             "WEEKLY ANALYSIS ERROR:",
             e
         )
+
 
         return {
 
@@ -7764,9 +8195,14 @@ Strain：{show_value(cycle_strain)}
 
             "records": [],
 
+            "training_load": {},
+
+            "climbing_fatigue": {},
+
             "prompt_text": "",
 
-            "error": str(e)
+            "error":
+                str(e)
 
         }
 
