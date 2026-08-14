@@ -8383,24 +8383,9 @@ def auto_report():
         print("===== AFTER SAVE DAILY DATA =====")
 
 
-        # =========================
-        # 5. 生成基础报告
-        # =========================
-
-        injury_data = get_latest_injury_data()
-
-        data["menstrual_data"] = menstrual_data
-
-        data["temperature_data"] = temperature_data
-
-        data["injury_data"] = injury_data
-
-        report = generate_health_report(data)
-
-
 
         # =========================
-        # 6. AI健康教练
+        # 5. 准备数据
         # =========================
 
         metrics = extract_daily_metrics(data)
@@ -8416,6 +8401,25 @@ def auto_report():
         temperature_data = get_latest_temperature_data()
 
         injury_data = get_latest_injury_data()
+
+        data["menstrual_data"] = menstrual_data
+
+        data["temperature_data"] = temperature_data
+
+        data["injury_data"] = injury_data
+
+
+        # =========================
+        # 6. 生成基础报告
+        # =========================
+
+        report = generate_health_report(data)
+
+
+        # =========================
+        # 7. AI健康教练
+        # =========================
+     
 
         print(
             "DEBUG CLIMBING FATIGUE:",
