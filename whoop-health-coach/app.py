@@ -6205,14 +6205,25 @@ def check_api_key():
 
     print(
         "HEADER EXISTS:",
-        key is not None
+        len(key) if key else None
     )
 
     print(
         "ENV EXISTS:",
-        api_secret is not None
+        len(key) if key else None
     )
-     
+
+    print(
+        "HEADER START:",
+        key[:5] if key else None
+    )
+
+
+    print(
+        "ENV START:",
+        api_secret[:5] if api_secret else None
+    )
+ 
 
     print(
         "COMPARE:",
