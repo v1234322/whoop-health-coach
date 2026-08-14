@@ -5646,6 +5646,17 @@ def save_daily_coach_report(
     cursor = conn.cursor()
 
 
+    print(
+        "SAVE TRAINING ADVICE:",
+        training_advice
+    )
+
+    print(
+        "SAVE RISK WARNING:",
+        risk_warning
+    )
+
+
     cursor.execute("""
         INSERT INTO daily_coach_reports
         (
