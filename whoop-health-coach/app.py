@@ -845,7 +845,7 @@ def init_db():
 
     print(
         "TOKENS COLUMNS:",
-        cursor.fetchall()
+        cur.fetchall()
     )
 
     # =========================
@@ -1110,7 +1110,7 @@ def init_db():
 
     print(
         "HANGBOARD TABLE COLUMNS:",
-        cursor.fetchall()
+        cur.fetchall()
     )
 
 
