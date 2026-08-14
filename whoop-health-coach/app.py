@@ -3357,7 +3357,7 @@ def api_whoop_coach_report():
 
                     "training_level": training_level,
 
-                    "training_recommendation": training_advice,
+                    "training_recommendation": training_advice[:2000],
 
                     "current_strain": round(today[9] or 0,1),
 
@@ -7651,6 +7651,7 @@ Strain
         ai_prompt
     )
 
+    coach_advice = coach_advice[:4000]
 
     return f"""
 
