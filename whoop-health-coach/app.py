@@ -5432,9 +5432,9 @@ def save_daily_coach_report(
 
 
 def generate_coach_prompt(
-    metrics.get()
-    training_load.get()
-    weekly.get()
+    metrics,
+    training_load,
+    weekly
 ):
 
     if not isinstance(metrics, dict):
