@@ -3325,12 +3325,6 @@ def api_whoop_coach_report():
 
                     "rem_sleep_hours": round(today[8] or 0,2),
                     
-                    "deep_sleep_ratio": deep_sleep_ratio,
-            
-                    "rem_sleep_ratio": rem_sleep_ratio,
-
-                    "light_sleep_ratio": light_sleep_ratio,
-                    
                     "strain": round(today[9] or 0,1),
 
                     "training_level": training_level,
@@ -3345,8 +3339,6 @@ def api_whoop_coach_report():
 
                     "recovery_status": recovery_status,
                     
-                    "continuous_fatigue": continuous_fatigue,
-
                 },
 
 
@@ -3376,12 +3368,6 @@ def api_whoop_coach_report():
                     "remaining_strain": remaining_strain,
 
                     "fatigue_warning": fatigue_warning,
-
-                    "reason":[
-
-                        "基于个人7天恢复基线",
-
-                        "结合Recovery、HRV、睡眠和训练负荷判断"
 
                     ]
 
