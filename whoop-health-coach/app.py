@@ -4998,17 +4998,29 @@ def analyze_climbing_fatigue(training_load):
 
     finger = training_load.get(
         "finger_fatigue",
-        0
+        training_load.get(
+            "hangboard_finger_fatigue",
+            training_load.get(
+                "avg_fatigue",
+                0
+            )
+        )
     )
 
     elbow = training_load.get(
         "elbow_fatigue",
-        0
+        training_load.get(
+            "avg_elbow_fatigue",
+            0
+        )
     )
 
     hang_sessions = training_load.get(
         "hangboard_sessions",
-        0
+        training_load.get(
+            "sessions",
+            0
+        )
     )
 
 
