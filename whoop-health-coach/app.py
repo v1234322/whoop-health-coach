@@ -5432,9 +5432,19 @@ def save_daily_coach_report(
 
 
 def generate_coach_prompt(
-    whoop,
-    training
+    metrics,
+    training_load,
+    weekly
 ):
+
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+    if not isinstance(training_load, dict):
+        training_load = {}
+
+    if not isinstance(weekly, dict):
+        weekly = {}
 
     return f"""
 
@@ -5443,17 +5453,42 @@ def generate_coach_prompt(
 根据以下数据制定今日建议：
 
 WHOOP:
+
 Recovery:
-{whoop.get('recovery', whoop.get('recovery_score', 0))}
+{metrics.get("recovery_score",0)}%
 
 HRV:
-{whoop.get('hrv', whoop.get('hrv_rmssd',0))}
+{metrics.get("hrv",0)} ms
+
+静息心率:
+{metrics.get("resting_heart_rate",0)} bpm
+
+睡眠:
+{metrics.get("sleep_duration",0)} 小时
+
+睡眠评分:
+{metrics.get("sleep_score",0)}%
 
 Strain:
-{whoop.get('strain', whoop.get('cycle_strain', 0))}
+{metrics.get("cycle_strain",0)}
 
 
-最近7天训练：
+最近7天趋势:
+
+平均Recovery:
+{weekly.get("avg_recovery",0)}
+
+平均HRV:
+{weekly.get("avg_hrv",0)}
+
+平均静息心率:
+{weekly.get("avg_resting_hr",0)}
+
+平均睡眠:
+{weekly.get("avg_sleep",0)} 小时
+
+
+攀岩训练历史：
 
 攀岩次数:
 {training.get('climbing_sessions',0)}
@@ -7937,6 +7972,7 @@ def auto_report():
         ai_prompt = generate_coach_prompt(
             metrics,
             training_load
+            weekly_data
         )
 
 
