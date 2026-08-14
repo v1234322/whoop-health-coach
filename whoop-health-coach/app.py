@@ -3060,7 +3060,10 @@ def api_whoop_coach_report():
         cur = conn.cursor()
 
 
-        # 今日数据
+        # =========================
+        # 1. 今日 WHOOP 数据
+        # =========================
+
         cur.execute(
             """
             SELECT
@@ -3073,7 +3076,10 @@ def api_whoop_coach_report():
                 sleep_efficiency,
                 deep_sleep_duration,
                 rem_sleep_duration,
-                cycle_strain
+                cycle_strain,
+                skin_temperature,
+                temperature_deviation,
+                temperature_status
             FROM daily_metrics
             ORDER BY report_date DESC
             LIMIT 1
@@ -3083,7 +3089,18 @@ def api_whoop_coach_report():
         today = cur.fetchone()
 
 
-        # 7天基线
+        if not today:
+
+            return jsonify({
+                "success": False,
+                "message": "暂无今日数据"
+            })
+
+
+        # =========================
+        # 2. 7天基线
+        # =========================
+
         cur.execute(
             """
             SELECT
@@ -3094,302 +3111,272 @@ def api_whoop_coach_report():
                 AVG(cycle_strain)
 
             FROM (
-                SELECT *
+                SELECT
+                    recovery_score,
+                    hrv,
+                    resting_heart_rate,
+                    sleep_duration,
+                    cycle_strain
+
                 FROM daily_metrics
+
                 ORDER BY report_date DESC
+
                 LIMIT 7
-            )
+            ) AS recent_metrics
             """
         )
-
 
         baseline = cur.fetchone()
 
 
-        if not today:
-            return jsonify({
-                "success":False,
-                "message":"暂无今日数据"
-            })
+        # =========================
+        # 3. 最新 AI Coach 报告
+        # =========================
+
+        cur.execute(
+            """
+            SELECT
+                ai_report,
+                training_advice,
+                risk_warning,
+                menstrual_data,
+                temperature_data,
+                injury_data
+
+            FROM daily_coach_reports
+
+            ORDER BY report_date DESC
+
+            LIMIT 1
+            """
+        )
+
+        saved_coach = cur.fetchone()
 
 
-        recovery = today[1] or 0
-        hrv = today[2] or 0
-        rhr = today[3] or 0
+        # =========================
+        # 4. 基础指标
+        # =========================
+
+        recovery = float(today[1] or 0)
+        hrv = float(today[2] or 0)
+        rhr = float(today[3] or 0)
+
+        sleep_hours = float(today[4] or 0)
+        sleep_score = float(today[5] or 0)
+        sleep_efficiency = float(today[6] or 0)
+
+        deep_sleep_hours = float(today[7] or 0)
+        rem_sleep_hours = float(today[8] or 0)
+
+        current_strain = float(today[9] or 0)
 
 
-        avg_recovery = baseline[0] or 0
-        avg_hrv = baseline[1] or 0
-        avg_rhr = baseline[2] or 0
+        avg_recovery = float(
+            baseline[0] or 0
+        )
+
+        avg_hrv = float(
+            baseline[1] or 0
+        )
+
+        avg_rhr = float(
+            baseline[2] or 0
+        )
+
+        avg_sleep = float(
+            baseline[3] or 0
+        )
+
+        avg_strain = float(
+            baseline[4] or 0
+        )
 
 
-
-        sleep_hours = today[4] or 0
-
-        deep_sleep_hours = today[7] or 0
-
-        rem_sleep_hours = today[8] or 0
-        
+        # =========================
+        # 5. 睡眠结构
+        # =========================
 
         deep_sleep_ratio = (
-            round(deep_sleep_hours / sleep_hours * 100, 1)
+            round(
+                deep_sleep_hours
+                / sleep_hours
+                * 100,
+                1
+            )
             if sleep_hours > 0
             else 0
         )
 
 
         rem_sleep_ratio = (
-            round(rem_sleep_hours / sleep_hours * 100, 1)
+            round(
+                rem_sleep_hours
+                / sleep_hours
+                * 100,
+                1
+            )
             if sleep_hours > 0
             else 0
         )
 
 
         light_sleep_ratio = (
-            round(100 - deep_sleep_ratio - rem_sleep_ratio, 1)
+            round(
+                max(
+                    100
+                    - deep_sleep_ratio
+                    - rem_sleep_ratio,
+                    0
+                ),
+                1
+            )
             if sleep_hours > 0
             else 0
         )
 
-        
 
-        # Coach 训练决策模型
-
-        training_level = ""
-        training_advice = ""
-
-
-        # Recovery 基础判断
+        # =========================
+        # 6. Recovery颜色等级
+        # =========================
 
         if recovery >= 67:
-        
-            if sleep_efficiency >= 90 and deep_sleep_ratio >= 20:
 
-                training_level = "高强度训练"
+            recovery_status = (
+                "🟢 绿色 - 恢复良好"
+            )
 
-                training_advice = (
+        elif recovery >= 34:
+
+            recovery_status = (
+                "🟡 黄色 - 需要控制训练"
+            )
+
+        else:
+
+            recovery_status = (
+                "🔴 红色 - 优先恢复"
+            )
+
+
+        # =========================
+        # 7. 基础训练决策
+        # =========================
+
+        if recovery >= 67:
+
+            if (
+                sleep_efficiency >= 90
+                and deep_sleep_ratio >= 20
+            ):
+
+                training_level = (
+                    "高强度训练"
+                )
+
+                calculated_training_advice = (
                     "恢复状态良好，睡眠结构支持训练。"
-                    "可以安排力量训练、间歇训练或较高强度训练。"
+                    "可以安排力量训练、间歇训练"
+                    "或较高强度训练。"
                 )
 
             else:
 
-                training_level = "中高强度训练"
+                training_level = (
+                    "中高强度训练"
+                )
 
-                training_advice = (
-                    "Recovery 良好，但睡眠结构仍有提升空间。"
-                    "建议控制训练量，避免连续冲击极限。"
+                calculated_training_advice = (
+                    "Recovery良好，"
+                    "但睡眠结构仍有提升空间。"
+                    "建议控制总训练量，"
+                    "避免连续冲击极限。"
                 )
 
 
         elif recovery >= 34:
 
-            training_level = "中等强度训练"
+            training_level = (
+                "中等强度训练"
+            )
 
-            training_advice = (
-                "身体处于可训练状态，但恢复并未达到最佳。"
-                "建议进行中等强度训练，例如 Zone 2 有氧、技术训练或正常力量训练。"
+            calculated_training_advice = (
+                "身体处于可训练状态，"
+                "但恢复未达到最佳。"
+                "建议中等强度训练，"
+                "如Zone 2、技术训练"
+                "或正常力量训练。"
             )
 
 
         else:
 
-            training_level = "恢复训练"
+            training_level = (
+                "恢复训练"
+            )
 
-            training_advice = (
-                "Recovery 偏低，身体可能存在恢复压力。"
-                "建议降低训练强度，以恢复、拉伸、低强度活动为主。"
+            calculated_training_advice = (
+                "Recovery偏低，"
+                "身体可能存在恢复压力。"
+                "建议降低训练强度，"
+                "以恢复、拉伸和低强度活动为主。"
             )
 
 
-        # HRV 额外修正
+        # HRV修正
 
-        if hrv < avg_hrv * 0.85:
+        if (
+            avg_hrv > 0
+            and hrv < avg_hrv * 0.85
+        ):
 
-            training_advice += (
-                " HRV 明显低于个人平均，今天应避免高强度刺激。"
+            calculated_training_advice += (
+                " HRV明显低于个人平均，"
+                "今天应避免高强度刺激。"
             )
 
 
-        # 静息心率压力修正
+        # RHR修正
 
-        if rhr > avg_rhr + 5:
+        if (
+            avg_rhr > 0
+            and rhr > avg_rhr + 5
+        ):
 
-            training_advice += (
-                " 静息心率偏高，提示恢复压力，建议进一步降低负荷。"
+            calculated_training_advice += (
+                " 静息心率偏高，"
+                "提示恢复压力，"
+                "建议进一步降低负荷。"
             )
 
 
-        # Strain 目标推荐
-
-
-        current_strain = today[9] or 0
+        # =========================
+        # 8. Strain目标
+        # =========================
 
         if recovery >= 67:
 
             recommended_strain = "12-15"
-
-        elif recovery >= 34:
-
-            recommended_strain = "8-12"
-
-        else:
-
-            recommended_strain = "0-6"
-
-
-       # 疲劳趋势判断
-
-        fatigue_warning = "正常"
-
-
-       # Recovery颜色等级
-
-        if recovery >= 67:
-
-            recovery_status = "🟢 绿色 - 恢复良好"
-
-        elif recovery >= 34:
-
-            recovery_status = "🟡 黄色 - 需要控制训练"
-       
-        else:
-
-            recovery_status = "🔴 红色 - 优先恢复"
-
-
-
-       # Recovery明显下降超过15%
-
-        if (
-            avg_recovery > 0
-            and recovery < avg_recovery * 0.85
-        ):
-
-            fatigue_warning = (
-                "Recovery明显下降，建议降低训练强度"
-            )
-
-
-
-       # Recovery + HRV + 静息心率同时恶化
-
-        elif (
-            recovery < avg_recovery
-            and hrv < avg_hrv
-            and rhr > avg_rhr
-        ):
-
-            fatigue_warning = (
-                "恢复压力升高，可能存在疲劳累积"
-            )
-
-
-
-       # Recovery和HRV下降
-
-        elif (
-            recovery < avg_recovery
-            and hrv < avg_hrv
-        ):
-
-            fatigue_warning = (
-                "恢复指标下降，需要关注训练负荷"
-            )
-
-
-
-       # 连续疲劳检测
-
-        continuous_fatigue = False
-
-
-        try:
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                SELECT
-                    recovery_score,
-                    hrv,
-                    resting_heart_rate
-       
-                FROM daily_metrics
-
-                ORDER BY report_date DESC
-
-                LIMIT 3
-                """
-            )
-
-            recent_days = cur.fetchall()
-
-
-            if len(recent_days) == 3:
-
-                fatigue_days = 0
-       
-
-                for day in recent_days:
-       
-                    day_recovery = day[0]
-                    day_hrv = day[1]
-                    day_rhr = day[2]
-
-
-                    if (
-                        day_recovery < avg_recovery
-                        and day_hrv < avg_hrv
-                        and day_rhr > avg_rhr
-                    ):
-
-                        fatigue_days += 1
-
-
-
-                if fatigue_days >= 3:
-
-                    continuous_fatigue = True
-
-                    fatigue_warning = (
-                        "连续3天恢复压力升高，建议安排恢复日"
-                    )
-
-
-            cur.close()
-
-
-
-        except Exception as e:
-
-            print(
-                "CONTINUOUS FATIGUE CHECK ERROR:",
-                e
-            )
-
-
-
-        # Strain 完成度
-
-
-        if recovery >= 67:
-
             target_min = 12
 
         elif recovery >= 34:
 
+            recommended_strain = "8-12"
             target_min = 8
 
         else:
 
+            recommended_strain = "0-6"
             target_min = 0
 
 
         if target_min > 0:
 
             strain_completion = round(
-                current_strain / target_min * 100,
+                current_strain
+                / target_min
+                * 100,
                 1
             )
 
@@ -3399,89 +3386,374 @@ def api_whoop_coach_report():
 
 
         remaining_strain = round(
-            max(target_min - current_strain, 0),
+            max(
+                target_min
+                - current_strain,
+                0
+            ),
             1
         )
 
 
+        # =========================
+        # 9. 疲劳趋势
+        # =========================
+
+        fatigue_warning = "正常"
+
+
+        if (
+            avg_recovery > 0
+            and recovery < avg_recovery * 0.85
+        ):
+
+            fatigue_warning = (
+                "Recovery明显下降，"
+                "建议降低训练强度"
+            )
+
+
+        elif (
+            avg_recovery > 0
+            and avg_hrv > 0
+            and avg_rhr > 0
+            and recovery < avg_recovery
+            and hrv < avg_hrv
+            and rhr > avg_rhr
+        ):
+
+            fatigue_warning = (
+                "恢复压力升高，"
+                "可能存在疲劳累积"
+            )
+
+
+        elif (
+            avg_recovery > 0
+            and avg_hrv > 0
+            and recovery < avg_recovery
+            and hrv < avg_hrv
+        ):
+
+            fatigue_warning = (
+                "恢复指标下降，"
+                "需要关注训练负荷"
+            )
+
+
+        # =========================
+        # 10. 连续3天疲劳
+        # =========================
+
+        continuous_fatigue = False
+
+
+        cur.execute(
+            """
+            SELECT
+                recovery_score,
+                hrv,
+                resting_heart_rate
+
+            FROM daily_metrics
+
+            ORDER BY report_date DESC
+
+            LIMIT 3
+            """
+        )
+
+        recent_days = cur.fetchall()
+
+
+        if (
+            len(recent_days) == 3
+            and avg_recovery > 0
+            and avg_hrv > 0
+            and avg_rhr > 0
+        ):
+
+            fatigue_days = 0
+
+
+            for day in recent_days:
+
+                day_recovery = float(
+                    day[0] or 0
+                )
+
+                day_hrv = float(
+                    day[1] or 0
+                )
+
+                day_rhr = float(
+                    day[2] or 0
+                )
+
+
+                if (
+                    day_recovery < avg_recovery
+                    and day_hrv < avg_hrv
+                    and day_rhr > avg_rhr
+                ):
+
+                    fatigue_days += 1
+
+
+            if fatigue_days >= 3:
+
+                continuous_fatigue = True
+
+                fatigue_warning = (
+                    "连续3天恢复压力升高，"
+                    "建议安排恢复日"
+                )
+
+
+        # =========================
+        # 11. 已保存AI结果
+        # =========================
+
+        saved_ai_report = ""
+        saved_training_advice = ""
+        saved_risk_warning = ""
+
+        menstrual_data = None
+        temperature_data = None
+        injury_data = None
+
+
+        if saved_coach:
+
+            saved_ai_report = (
+                saved_coach[0] or ""
+            )
+
+            saved_training_advice = (
+                saved_coach[1] or ""
+            )
+
+            saved_risk_warning = (
+                saved_coach[2] or ""
+            )
+
+            menstrual_data = saved_coach[3]
+            temperature_data = saved_coach[4]
+            injury_data = saved_coach[5]
+
+
+        # 优先使用AI已生成建议
+        final_training_advice = (
+            saved_training_advice
+            or calculated_training_advice
+        )
+
+
+        final_risk_warning = (
+            saved_risk_warning
+            or fatigue_warning
+        )
+
+
         print(
-           "COACH EXTRA:",
-           strain_completion,
-           remaining_strain,
-           fatigue_warning
-       )
-        
+            "COACH REPORT READY:",
+            today[0],
+            strain_completion,
+            remaining_strain
+        )
+
+
+        # =========================
+        # 12. 返回给GPT
+        # =========================
+
         return jsonify({
 
-            "success":True,
+            "success": True,
 
-            "coach_report":{
+            "coach_report": {
 
-                "today":{
+                "today": {
 
-                    "date":today[0],
+                    "date": today[0],
 
-                    "recovery":round(recovery,1),
+                    "recovery": round(
+                        recovery,
+                        1
+                    ),
 
-                    "hrv":round(hrv,1),
+                    "recovery_status":
+                    recovery_status,
 
-                    "resting_heart_rate":round(rhr,1),
+                    "hrv": round(
+                        hrv,
+                        1
+                    ),
 
-                    "sleep_hours": round(today[4] or 0,2),
+                    "resting_heart_rate":
+                    round(
+                        rhr,
+                        1
+                    ),
 
-                    "sleep_score": round(today[5] or 0,1),
+                    "sleep_hours":
+                    round(
+                        sleep_hours,
+                        2
+                    ),
 
-                    "sleep_efficiency": round(today[6] or 0,1),
+                    "sleep_score":
+                    round(
+                        sleep_score,
+                        1
+                    ),
 
-                    "deep_sleep_hours": round(today[7] or 0,2),
+                    "sleep_efficiency":
+                    round(
+                        sleep_efficiency,
+                        1
+                    ),
 
-                    "rem_sleep_hours": round(today[8] or 0,2),
-                    
-                    "strain": round(today[9] or 0,1),
+                    "deep_sleep_hours":
+                    round(
+                        deep_sleep_hours,
+                        2
+                    ),
 
-                    "training_level": training_level,
+                    "rem_sleep_hours":
+                    round(
+                        rem_sleep_hours,
+                        2
+                    ),
 
-                    "training_advice": training_advice,
+                    "deep_sleep_ratio":
+                    deep_sleep_ratio,
 
-                    "strain_completion": strain_completion,
+                    "rem_sleep_ratio":
+                    rem_sleep_ratio,
 
-                    "remaining_strain": remaining_strain,
+                    "light_sleep_ratio":
+                    light_sleep_ratio,
 
-                    "fatigue_warning": fatigue_warning,
+                    "strain":
+                    round(
+                        current_strain,
+                        1
+                    ),
 
-                    "recovery_status": recovery_status,
-                    
+                    "training_level":
+                    training_level,
+
+                    "training_advice":
+                    final_training_advice,
+
+                    "strain_completion":
+                    strain_completion,
+
+                    "remaining_strain":
+                    remaining_strain,
+
+                    "fatigue_warning":
+                    fatigue_warning
+
                 },
 
 
-                "baseline":{
+                "baseline": {
 
-                    "recovery_avg":round(avg_recovery,1),
+                    "recovery_avg":
+                    round(
+                        avg_recovery,
+                        1
+                    ),
 
-                    "hrv_avg":round(avg_hrv,1),
+                    "hrv_avg":
+                    round(
+                        avg_hrv,
+                        1
+                    ),
 
-                    "rhr_avg":round(avg_rhr,1)
+                    "rhr_avg":
+                    round(
+                        avg_rhr,
+                        1
+                    ),
+
+                    "sleep_avg":
+                    round(
+                        avg_sleep,
+                        2
+                    ),
+
+                    "strain_avg":
+                    round(
+                        avg_strain,
+                        1
+                    )
 
                 },
 
 
-                "coach":{
+                "temperature": {
 
-                    "training_level": training_level,
+                    "skin_temperature":
+                    today[10],
 
-                    "training_recommendation": training_advice[:2000],
+                    "temperature_deviation":
+                    today[11],
 
-                    "coach_report_text": "",
+                    "temperature_status":
+                    today[12],
 
-                    "current_strain": round(today[9] or 0,1),
+                    "saved_temperature_data":
+                    temperature_data
 
-                    "recommended_strain": recommended_strain,
+                },
 
-                    "strain_completion": strain_completion,
 
-                    "remaining_strain": remaining_strain,
+                "menstrual":
+                menstrual_data,
 
-                    "fatigue_warning": fatigue_warning,
+
+                "injury":
+                injury_data,
+
+
+                "coach": {
+
+                    "training_level":
+                    training_level,
+
+                    "training_recommendation":
+                    final_training_advice,
+
+                    "risk_warning":
+                    final_risk_warning,
+
+                    "coach_report_text":
+                    saved_ai_report,
+
+                    "current_strain":
+                    round(
+                        current_strain,
+                        1
+                    ),
+
+                    "recommended_strain":
+                    recommended_strain,
+
+                    "strain_completion":
+                    strain_completion,
+
+                    "remaining_strain":
+                    remaining_strain,
+
+                    "fatigue_warning":
+                    fatigue_warning,
+
+                    "continuous_fatigue":
+                    continuous_fatigue
+
                 }
 
             }
@@ -3498,11 +3770,11 @@ def api_whoop_coach_report():
 
         return jsonify({
 
-            "success":False,
+            "success": False,
 
-            "error":str(e)
+            "error": str(e)
 
-        }),500
+        }), 500
 
 
     finally:
