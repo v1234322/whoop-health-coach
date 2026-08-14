@@ -5556,6 +5556,10 @@ def get_latest_menstrual_data():
 
     data=cur.fetchone()
 
+    print(
+        "DEBUG DB MENSTRUAL ROW:",
+        data
+    )
 
     cur.close()
     conn.close()
