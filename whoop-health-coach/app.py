@@ -5636,7 +5636,9 @@ def save_daily_coach_report(
     coach_advice,
     menstrual_data,
     temperature_data,
-    injury_data
+    injury_data,
+    training_advice,
+    risk_warning
 ):
 
     conn = get_db_connection()
@@ -5656,12 +5658,14 @@ def save_daily_coach_report(
             ai_report,
             menstrual_data,
             temperature_data,
-            injury_data
+            injury_data,
+            training_advice,
+            risk_warning
         )
 
         VALUES
         (
-            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
         )
 
         ON CONFLICT(report_date)
@@ -5682,20 +5686,11 @@ def save_daily_coach_report(
 
         metrics.get("cycle_strain",0),
 
-        training_load.get(
-            "climbing_duration",
-            0
-        ),
+        training_load.get("climbing_duration",0),
 
-        training_load.get(
-            "hangboard_duration",
-            0
-        ),
+        training_load.get("hangboard_duration",0),
 
-        training_load.get(
-            "finger_fatigue",
-            0
-        ),
+        training_load.get("finger_fatigue",0),
 
         ai_report,
 
@@ -5703,7 +5698,11 @@ def save_daily_coach_report(
 
         str(temperature_data),
 
-        str(injury_data)
+        str(injury_data),
+
+        training_advice,
+
+        risk_warning
     ))
 
     conn.commit()
@@ -8534,7 +8533,9 @@ def auto_report():
             coach_advice,
             menstrual_data,
             temperature_data,
-            injury_data
+            injury_data,
+            training_advice,
+            risk_warning
         )
 
      
