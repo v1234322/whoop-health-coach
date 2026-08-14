@@ -5316,6 +5316,55 @@ REM
 17. 用普通用户能理解的语言。
 18. 语言像私人WHOOP Coach，而不是医学报告。
 19. 总长度控制在500字以内。
+
+==============================
+最终输出格式要求
+==============================
+
+你的最终回复必须只输出 JSON。
+
+禁止输出 JSON 以外的任何文字。
+
+严格使用以下格式：
+
+{
+  "ai_report": "完整WHOOP教练报告",
+  "training_advice": "今日训练建议",
+  "risk_warning": "今日风险提醒"
+}
+
+字段要求：
+
+ai_report:
+包含完整报告，包括：
+🟡 今日教练总结
+🧠 今日身体状态
+❤️ 恢复分析
+😴 睡眠分析
+🏋️ 今日训练建议
+📈 明日恢复预测
+
+training_advice:
+只填写今天训练行动建议。
+必须包含：
+推荐训练
+避免训练
+当前 Strain
+目标 Strain
+训练完成度
+剩余建议负荷
+
+risk_warning:
+填写今天需要注意的问题。
+例如：
+疲劳累积
+恢复不足
+手指/肘部风险
+睡眠不足
+训练过量风险
+
+如果没有风险：
+填写“暂无明显风险”。
 """
 },
 
@@ -5328,14 +5377,25 @@ REM
 
         temperature=0.4,
 
-        max_tokens=600
+        max_tokens=900
 
     )
 
 
-        return response.choices[0].message.content
+        import json
 
+        content = response.choices[0].message.content
 
+        try:
+
+            return json.loads(content)
+
+        except Exception:
+
+            return content
+
+ 
+ 
     except Exception as e:
 
         print(
@@ -8544,20 +8604,35 @@ def auto_report():
            "DEBUG PROMPT READY"
         )
 
-        coach_advice = generate_ai_summary(
-           ai_prompt
+        ai_result = generate_ai_summary(
+            ai_prompt
         )
 
 
-        print(
-            "DEBUG COACH TYPE:",
-            type(coach_advice)
-        )
+        if isinstance(ai_result, dict):
 
+            coach_advice = ai_result.get(
+                "ai_report",
+                ""
+            )
 
-        training_advice = ""
+            training_advice = ai_result.get(
+                "training_advice",
+                ""
+            )
 
-        risk_warning = ""
+            risk_warning = ai_result.get(
+                "risk_warning",
+                ""
+            )
+
+        else:
+
+            coach_advice = ai_result
+
+            training_advice = ""
+
+            risk_warning = ""
 
      
 
