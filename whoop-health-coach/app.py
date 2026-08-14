@@ -5538,7 +5538,7 @@ def get_latest_menstrual_data():
     cur.execute("""
     SELECT *
     FROM menstrual_cycle_log
-    ORDER BY record_date DESC
+    ORDER BY report_date DESC
     LIMIT 1
     """)
 
@@ -5566,7 +5566,7 @@ def get_latest_temperature_data():
     cur.execute("""
     SELECT *
     FROM body_temperature_log
-    ORDER BY record_date DESC
+    ORDER BY report_date DESC
     LIMIT 1
     """)
 
