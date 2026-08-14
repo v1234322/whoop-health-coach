@@ -8627,7 +8627,10 @@ def auto_report():
             menstrual_data,
 
             "temperature":
-            temperature_data
+            temperature_data,
+
+            "injury":
+            injury_data
 
         })
 
