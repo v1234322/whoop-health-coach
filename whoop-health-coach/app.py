@@ -5693,7 +5693,6 @@ def save_daily_coach_report(
     metrics,
     training_load,
     ai_report,
-    coach_advice,
     menstrual_data,
     temperature_data,
     injury_data,
@@ -8634,13 +8633,48 @@ def auto_report():
 
             risk_warning = ""
 
-     
+
+        import json
+
+
+        try:
+
+            coach_json = json.loads(coach_advice)
+
+
+            ai_report = coach_json.get(
+                "ai_report",
+                ""
+            )
+
+            training_advice = coach_json.get(
+                "training_advice",
+                ""
+            )
+
+            risk_warning = coach_json.get(
+                "risk_warning",
+                ""
+            )
+
+
+        except Exception as e:
+
+            print(
+                "JSON PARSE ERROR:",
+                e
+            )
+
+            ai_report = coach_advice
+            training_advice = ""
+            risk_warning = ""
+
+ 
 
         save_daily_coach_report(
             metrics,
             training_load,
-            coach_advice,
-            coach_advice,
+            ai_report,
             menstrual_data,
             temperature_data,
             injury_data,
