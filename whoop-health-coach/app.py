@@ -5877,73 +5877,185 @@ def calculate_training_load():
     )
 
 
+    # =========================
+    # 最近7天指力板负荷
+    # =========================
+
     cursor.execute("""
-    SELECT
-        COUNT(*) AS sessions,
+        SELECT
+            COUNT(*) AS sessions,
 
-        COALESCE(
-            SUM(duration),
-            0
-        ) AS total_duration,
+            COALESCE(
+                SUM(duration),
+                0
+            ) AS total_duration,
 
-        COALESCE(
-            SUM(total_hang_time),
-            0
-        ) AS total_hang_time,
+            COALESCE(
+                SUM(total_hang_time),
+                0
+            ) AS total_hang_time,
 
-        COALESCE(
-            AVG(finger_fatigue),
-            0
-        ) AS avg_fatigue,
+            COALESCE(
+                AVG(finger_fatigue),
+                0
+            ) AS avg_fatigue,
 
-        COALESCE(
-            AVG(elbow_fatigue),
-            0
-        ) AS avg_elbow_fatigue
+            COALESCE(
+                AVG(elbow_fatigue),
+                0
+            ) AS avg_elbow_fatigue
 
-    FROM hangboard_training_log
+        FROM hangboard_training_log
 
-    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
-
+        WHERE training_date::date
+        >= CURRENT_DATE - INTERVAL '7 days'
     """)
 
     hangboard = cursor.fetchone()
 
-    print("DEBUG HANGBOARD TYPE:", type(hangboard))
-    print("DEBUG HANGBOARD VALUE:", hangboard)
 
-    if not isinstance(hangboard, dict):
+    if hangboard is None:
+
+        hangboard = {
+            "sessions": 0,
+            "total_duration": 0,
+            "total_hang_time": 0,
+            "avg_fatigue": 0,
+            "avg_elbow_fatigue": 0
+        }
+
+    elif not isinstance(hangboard, dict):
 
         hangboard = dict(hangboard)
 
-    
+
+    # =========================
+    # 最近一次指力板训练
+    # =========================
+
     cursor.execute("""
-    SELECT
-        COUNT(*) AS sessions,
-        COALESCE(
-            SUM(duration),
-            0
-        ) AS total_duration
+        SELECT
+            training_date,
+            protocol,
+            session_type,
+            finger_fatigue,
+            elbow_fatigue,
+            recovery_after
 
-    FROM climbing_training_log
+        FROM hangboard_training_log
 
-    WHERE training_date::date >= CURRENT_DATE - INTERVAL '7 days'
+        ORDER BY training_date::date DESC,
+                 created_at DESC
 
+        LIMIT 1
     """)
 
+    latest_hangboard = cursor.fetchone()
+
+
+    if latest_hangboard is None:
+
+        latest_hangboard = {
+            "training_date": None,
+            "protocol": None,
+            "session_type": None,
+            "finger_fatigue": 0,
+            "elbow_fatigue": 0,
+            "recovery_after": None
+        }
+
+    elif not isinstance(latest_hangboard, dict):
+
+        latest_hangboard = dict(
+            latest_hangboard
+        )
+
+
+    # =========================
+    # 距离最近一次训练天数
+    # =========================
+
+    days_since_hangboard = None
+
+    latest_training_date = (
+        latest_hangboard.get(
+            "training_date"
+        )
+    )
+
+
+    if latest_training_date:
+
+        cursor.execute(
+            """
+            SELECT
+                CURRENT_DATE
+                - %s::date
+                AS days_since
+            """,
+            (
+                latest_training_date,
+            )
+        )
+
+        days_row = cursor.fetchone()
+
+        if days_row:
+
+            days_since_hangboard = (
+                days_row["days_since"]
+            )
+
+
+    # =========================
+    # 最近7天攀岩负荷
+    # =========================
+
+    cursor.execute("""
+        SELECT
+            COUNT(*) AS sessions,
+
+            COALESCE(
+                SUM(duration),
+                0
+            ) AS total_duration
+
+        FROM climbing_training_log
+
+        WHERE training_date::date
+        >= CURRENT_DATE - INTERVAL '7 days'
+    """)
 
     climbing = cursor.fetchone()
 
 
     if climbing is None:
+
         climbing = {
             "sessions": 0,
             "total_duration": 0
         }
 
+    elif not isinstance(climbing, dict):
+
+        climbing = dict(
+            climbing
+        )
+
+
     print(
-        "DEBUG CLIMBING TYPE:",
-        type(climbing)
+        "DEBUG HANGBOARD VALUE:",
+        hangboard
+    )
+
+    print(
+        "DEBUG LATEST HANGBOARD:",
+        latest_hangboard
+    )
+
+    print(
+        "DEBUG DAYS SINCE HANGBOARD:",
+        days_since_hangboard
     )
 
     print(
@@ -5959,7 +6071,103 @@ def calculate_training_load():
     return {
 
         # ======================
-        # Hangboard 基础
+        # 最近7天指力板负荷
+        # ======================
+
+        "hangboard_sessions_7d":
+            hangboard.get(
+                "sessions",
+                0
+            ),
+
+        "hangboard_duration_7d":
+            hangboard.get(
+                "total_duration",
+                0
+            ),
+
+        "hang_time_7d":
+            hangboard.get(
+                "total_hang_time",
+                0
+            ),
+
+        "avg_finger_fatigue_7d":
+            float(
+                hangboard.get(
+                    "avg_fatigue",
+                    0
+                ) or 0
+            ),
+
+        "avg_elbow_fatigue_7d":
+            float(
+                hangboard.get(
+                    "avg_elbow_fatigue",
+                    0
+                ) or 0
+            ),
+
+
+        # ======================
+        # 最近一次指力板状态
+        # ======================
+
+        "latest_hangboard_date":
+            latest_hangboard.get(
+                "training_date"
+            ),
+
+        "latest_hangboard_protocol":
+            latest_hangboard.get(
+                "protocol"
+            ),
+
+        "latest_hangboard_session_type":
+            latest_hangboard.get(
+                "session_type"
+            ),
+
+        "latest_finger_fatigue":
+            latest_hangboard.get(
+                "finger_fatigue",
+                0
+            ) or 0,
+
+        "latest_elbow_fatigue":
+            latest_hangboard.get(
+                "elbow_fatigue",
+                0
+            ) or 0,
+
+        "latest_recovery_after":
+            latest_hangboard.get(
+                "recovery_after"
+            ),
+
+        "days_since_hangboard":
+            days_since_hangboard,
+
+
+        # ======================
+        # 攀岩7天负荷
+        # ======================
+
+        "climbing_sessions_7d":
+            climbing.get(
+                "sessions",
+                0
+            ),
+
+        "climbing_duration_7d":
+            climbing.get(
+                "total_duration",
+                0
+            ),
+
+
+        # ======================
+        # 旧字段兼容
         # ======================
 
         "hangboard_sessions":
@@ -5974,73 +6182,29 @@ def calculate_training_load():
                 0
             ),
 
-
-        "hang_time":
-            hangboard.get(
-                "total_hang_time",
-                0
-            ),
-
-
-        # ======================
-        # 手指疲劳（兼容所有版本）
-        # ======================
-
         "finger_fatigue":
-            hangboard.get(
-                "avg_fatigue",
+            latest_hangboard.get(
+                "finger_fatigue",
                 0
-            ),
-
-        "avg_finger_fatigue":
-            hangboard.get(
-                "avg_fatigue",
-                0
-            ),
-
-        "hangboard_finger_fatigue":
-            hangboard.get(
-                "avg_fatigue",
-                0
-            ),
-
-
-        # ======================
-        # 前臂/肘部疲劳
-        # ======================
-
-        "avg_forearm_fatigue":
-            hangboard.get(
-                "avg_elbow_fatigue",
-                0
-            ),
-
-        "hangboard_forearm_fatigue":
-            hangboard.get(
-                "avg_elbow_fatigue",
-                0
-            ),
+            ) or 0,
 
         "elbow_fatigue":
-            hangboard.get(
-                "avg_elbow_fatigue",
+            latest_hangboard.get(
+                "elbow_fatigue",
+                0
+            ) or 0,
+
+        "climbing_sessions":
+            climbing.get(
+                "sessions",
                 0
             ),
 
-        # ======================
-        # 攀岩训练
-        # ======================
-
-        "climbing_sessions":
-            climbing["sessions"],
-
         "climbing_duration":
-            climbing["total_duration"],
-
-
-        # ======================
-        # 周期分析兼容
-        # ======================
+            climbing.get(
+                "total_duration",
+                0
+            ),
 
         "weekly_total_duration":
             climbing.get(
@@ -6053,10 +6217,7 @@ def calculate_training_load():
                 "sessions",
                 0
             )
-
     }
-
-
 
 def get_latest_menstrual_data():
 
