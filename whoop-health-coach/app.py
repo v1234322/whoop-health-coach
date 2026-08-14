@@ -5627,7 +5627,7 @@ def get_latest_injury_data():
 def save_daily_coach_report(
     metrics,
     training_load,
-    coach_advice,
+    ai_report,
     menstrual_data,
     temperature_data,
     injury_data
@@ -5661,7 +5661,10 @@ def save_daily_coach_report(
         ON CONFLICT(report_date)
         DO UPDATE SET
 
-        ai_report = EXCLUDED.ai_report
+        ai_report = EXCLUDED.ai_report,
+        menstrual_data = EXCLUDED.menstrual_data,
+        temperature_data = EXCLUDED.temperature_data,
+        injury_data = EXCLUDED.injury_data
 
     """,
     
@@ -5688,13 +5691,13 @@ def save_daily_coach_report(
             0
         ),
 
-        coach_advice,
+        ai_report,
 
-        json.dumps(menstrual_data),
+        str(menstrual_data),
 
-        json.dumps(temperature_data),
+        str(temperature_data),
 
-        json.dumps(injury_data)
+        str(injury_data)
     ))
 
     conn.commit()
@@ -8511,6 +8514,7 @@ def auto_report():
         save_daily_coach_report(
             metrics,
             training_load,
+            coach_advice,
             coach_advice,
             menstrual_data,
             temperature_data,
