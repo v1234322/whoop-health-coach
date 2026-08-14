@@ -7348,6 +7348,28 @@ def generate_health_report(data):
 
     training_advice = "根据 Recovery 调整训练强度"
 
+
+    # =========================
+    # 额外健康数据
+    # =========================
+
+    menstrual_data = data.get(
+        "menstrual_data",
+        None
+    )
+
+
+    temperature_data = data.get(
+        "temperature_data",
+        None
+    )
+
+
+    injury_data = data.get(
+        "injury_data",
+        []
+    )
+
     print(
         "Recovery:",
         recovery_score,
@@ -7398,7 +7420,13 @@ def generate_health_report(data):
 
         "awake_minutes": awake_time,
 
-        "training_advice": training_advice
+        "training_advice": training_advice,
+
+        "menstrual_data": menstrual_data,
+
+        "temperature_data": temperature_data,
+
+        "injury_data": injury_data
 
     }
 
@@ -8388,6 +8416,7 @@ def auto_report():
         # 5. 准备数据
         # =========================
 
+   
         metrics = extract_daily_metrics(data)
 
         weekly_data = generate_weekly_analysis()
