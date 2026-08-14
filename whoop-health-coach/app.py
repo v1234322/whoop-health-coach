@@ -5549,7 +5549,7 @@ def get_latest_menstrual_data():
     cur.execute("""
     SELECT *
     FROM menstrual_cycle_log
-    ORDER BY cycle_date DESC
+    ORDER BY id DESC
     LIMIT 1
     """)
 
