@@ -7971,7 +7971,7 @@ def auto_report():
 
         ai_prompt = generate_coach_prompt(
             metrics,
-            training_load
+            training_load,
             weekly_data
         )
 
