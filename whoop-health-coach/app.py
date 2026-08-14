@@ -3456,7 +3456,7 @@ def api_whoop_coach_report():
 
                     "training_recommendation": training_advice[:2000],
 
-                    "coach_report_text": coach_report_text,
+                    "coach_report_text": "",
 
                     "current_strain": round(today[9] or 0,1),
 
