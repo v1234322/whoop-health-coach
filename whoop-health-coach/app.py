@@ -5688,7 +5688,7 @@ def save_daily_coach_report(
             0
         ),
 
-        ai_report,
+        coach_advice,
 
         json.dumps(menstrual_data),
 
