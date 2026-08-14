@@ -6198,19 +6198,11 @@ def check_api_key():
         "X-API-Key"
     )
 
+    if key and key.startswith("Bearer "):
+        key = key.replace("Bearer ", "")
+
     api_secret = os.getenv(
         "CHATGPT_ACTION_API_KEY"
-    )
-
-
-    print(
-        "HEADER EXISTS:",
-        len(key) if key else None
-    )
-
-    print(
-        "ENV EXISTS:",
-        len(key) if key else None
     )
 
     print(
@@ -6218,18 +6210,15 @@ def check_api_key():
         key[:5] if key else None
     )
 
-
     print(
         "ENV START:",
         api_secret[:5] if api_secret else None
     )
- 
 
     print(
         "COMPARE:",
         key == api_secret
     )
-
 
     return key == api_secret
     
