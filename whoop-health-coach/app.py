@@ -5548,8 +5548,15 @@ def get_latest_menstrual_data():
 
     cur.execute("""
     SELECT *
+    cycle_date,
+    cycle_day,
+    phase,
+    symptoms,
+    pain_level,
+    energy_level,
+    notes
     FROM menstrual_cycle_log
-    ORDER BY id DESC
+    ORDER BY cycle_date DESC
     LIMIT 1
     """)
 
