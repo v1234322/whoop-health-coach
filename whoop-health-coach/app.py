@@ -5640,32 +5640,32 @@ def save_daily_coach_report(
 
 
     cursor.execute("""
-    INSERT INTO daily_coach_reports
-    (
-        report_date,
-        recovery,
-        whoop_strain,
-        climbing_load,
-        hangboard_load,
-        fatigue_score,
-        ai_report,
-        menstrual_data,
-        temperature_data,
-        injury_data
-    )
+        INSERT INTO daily_coach_reports
+        (
+            report_date,
+            recovery,
+            whoop_strain,
+            climbing_load,
+            hangboard_load,
+            fatigue_score,
+            ai_report,
+            menstrual_data,
+            temperature_data,
+            injury_data
+        )
 
-    VALUES
-    (
-        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
-    )
+        VALUES
+        (
+            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+        )
 
-    ON CONFLICT(report_date)
-    DO UPDATE SET
+        ON CONFLICT(report_date)
+        DO UPDATE SET
 
-    ai_report = EXCLUDED.ai_report
+        ai_report = EXCLUDED.ai_report
 
     """,
-
+    
     (
 
         datetime.now().strftime("%Y-%m-%d"),
@@ -5696,7 +5696,7 @@ def save_daily_coach_report(
         json.dumps(temperature_data),
 
         json.dumps(injury_data)
-    )
+    ))
 
     conn.commit()
 
