@@ -5291,6 +5291,9 @@ def analyze_climbing_fatigue(training_load):
 
 def generate_ai_summary(ai_prompt):
 
+    import json
+
+
     try:
 
         response = client.chat.completions.create(
@@ -5300,51 +5303,54 @@ def generate_ai_summary(ai_prompt):
             messages=[
 
                 {
-                    "role":"system",
-                    "content":
-                    """
-                    
-输出格式要求：
+                    "role": "system",
+                    "content": """
 
 你是一名 WHOOP 风格私人健康教练。
 
-不要输出总标题，直接开始今日分析。
+你的任务：
+根据用户提供的 WHOOP 数据、训练记录、睡眠、恢复、经期、体温、伤病信息，
+生成简洁、专业、可执行的私人教练建议。
 
-强制要求：
 
-今日训练建议章节必须包含：
+重要规则：
 
-1. 当前 Strain
-2. 今日目标 Strain
-3. 训练完成度百分比
-4. 剩余建议训练负荷
-5. 疲劳趋势判断
+1. 只能使用提供的数据。
+2. 不允许编造不存在的信息。
+3. 数据缺失必须说明“数据缺失，无法判断”。
+4. 不做医学诊断。
+5. 使用谨慎表达，例如：
+   “可能”
+   “建议关注”
+   “建议调整”。
 
-如果数据存在，禁止省略。
-不要只输出训练类型建议。
 
-请严格按照以下结构输出：
+你的分析必须包含：
 
-<strong>🟡 今日教练总结</strong>
 
-用1-2句话总结今天身体状态。
+🟡 今日教练总结
+
+总结今天身体状态。
 告诉用户今天最重要的一件事。
 
-<strong>🧠 今日身体状态</strong>
 
-总结今天身体恢复情况。
-结合近期趋势分析，不要只重复数据。
+🧠 今日身体状态
 
-<strong>❤️ 恢复分析</strong>
+结合 Recovery、HRV、静息心率、
+近期趋势判断身体状态。
+
+
+❤️ 恢复分析
 
 分析：
 Recovery
 HRV
 静息心率
 
-解释身体可能出现的信号。
+解释身体信号。
 
-<strong>😴 睡眠分析</strong>
+
+😴 睡眠分析
 
 分析：
 睡眠时间
@@ -5352,19 +5358,20 @@ HRV
 深睡
 REM
 
-说明睡眠对恢复的影响，并给出改善建议。
+给出睡眠改善建议。
 
-<strong>🏋️ 今日训练建议</strong>
 
-必须明确：
+🏋️ 今日训练建议
 
-✅ 推荐：
-今天适合做什么训练。
+必须包含：
 
-❌ 避免：
-今天不建议做什么训练。
+推荐：
+今天适合进行的训练。
 
-训练负荷信息必须单独显示：
+避免：
+今天不建议进行的训练。
+
+训练负荷：
 
 当前 Strain：
 目标 Strain：
@@ -5372,59 +5379,57 @@ REM
 剩余建议负荷：
 疲劳趋势：
 
-不要合并到其他章节。
-不要省略任何一项。
 
-<strong>📈 明日恢复预测</strong>
+📈 明日恢复预测
 
-根据今天状态预测未来趋势。
+预测未来趋势。
 
-说明：
-如果今晚恢复良好，明天可能如何变化。
+说明如果今晚恢复良好，
+明天可能出现什么变化。
 
 
-回答规则：
 
-1. 使用中文简体。
-2. 使用emoji作为章节标识。
-3. 不使用Markdown符号。
-4. 不使用 **。
-5. 不使用 ---。
-6. 不输出代码。
-7. 不重复罗列大量数据。
-8. 重点解释身体信号。
-9. 给明确可执行建议。
-10. 使用第二人称“你”。
-11. 每个章节控制2-3句话。
-12. 每句话控制25-35字。
-13. 优先给行动建议。
-14. 避免长篇解释。
-15. 重点解释身体信号，并给行动建议
-16. 不要使用专业术语堆叠，例如不要连续解释交感神经、自主神经机制。
-17. 用普通用户能理解的语言。
-18. 语言像私人WHOOP Coach，而不是医学报告。
-19. 总长度控制在500字以内。
+语言要求：
+
+- 中文简体
+- 使用emoji
+- 第二人称“你”
+- 像私人WHOOP Coach
+- 不像医学报告
+- 不输出代码
+- 不使用Markdown
+- 总长度500字以内
+
+
 
 ==============================
-最终输出格式要求
+最终输出格式
 ==============================
 
-你的最终回复必须只输出 JSON。
 
-禁止输出 JSON 以外的任何文字。
+必须只输出JSON。
 
-严格使用以下格式：
+禁止输出JSON以外任何内容。
+
+
+严格返回：
 
 {
-  "ai_report": "完整WHOOP教练报告",
-  "training_advice": "今日训练建议",
-  "risk_warning": "今日风险提醒"
+  "ai_report": "",
+  "training_advice": "",
+  "risk_warning": ""
 }
 
-字段要求：
 
-ai_report:
-包含完整报告，包括：
+字段说明：
+
+
+ai_report：
+
+填写完整WHOOP教练报告。
+
+必须包含：
+
 🟡 今日教练总结
 🧠 今日身体状态
 ❤️ 恢复分析
@@ -5432,67 +5437,142 @@ ai_report:
 🏋️ 今日训练建议
 📈 明日恢复预测
 
-training_advice:
-只填写今天训练行动建议。
+
+training_advice：
+
+只填写行动建议。
+
 必须包含：
-推荐训练
-避免训练
-当前 Strain
-目标 Strain
-训练完成度
-剩余建议负荷
 
-risk_warning:
-填写今天需要注意的问题。
+推荐训练：
+避免训练：
+当前 Strain：
+目标 Strain：
+训练完成度：
+剩余建议负荷：
+
+
+risk_warning：
+
+填写风险提醒。
+
 例如：
-疲劳累积
+
 恢复不足
-手指/肘部风险
+疲劳累积
 睡眠不足
-训练过量风险
+手指疲劳
+肘部风险
 
-如果没有风险：
-填写“暂无明显风险”。
+如果没有明显风险：
+
+填写：
+
+暂无明显风险
+
 """
-},
 
-            {
-                "role": "user",
-                "content": ai_prompt
-            }
-
-        ],
-
-        temperature=0.4,
-
-        max_tokens=900
-
-    )
+                },
 
 
-        import json
+                {
+                    "role": "user",
+                    "content": ai_prompt
+                }
+
+            ],
+
+            temperature=0.4,
+
+            max_tokens=900
+
+        )
+
 
         content = response.choices[0].message.content
 
+
+        print(
+            "DEBUG AI RAW:",
+            repr(content)
+        )
+
+
+        # 去除markdown代码块
+
+        content = content.strip()
+
+
+        if content.startswith("```"):
+
+            content = content.replace(
+                "```json",
+                ""
+            )
+
+            content = content.replace(
+                "```",
+                ""
+            )
+
+            content = content.strip()
+
+
+
         try:
 
-            return json.loads(content)
+            result = json.loads(
+                content
+            )
 
-        except Exception:
 
-            return content
+            return result
 
- 
- 
+
+
+        except Exception as e:
+
+
+            print(
+                "JSON LOAD ERROR:",
+                e
+            )
+
+
+            return {
+
+                "ai_report": content,
+
+                "training_advice": "",
+
+                "risk_warning": ""
+
+            }
+
+
+
     except Exception as e:
+
 
         print(
             "AI SUMMARY ERROR:",
             e
         )
 
-        return "⚠️ AI教练暂时无法生成建议"
-        
+
+        return {
+
+            "ai_report":
+            "⚠️ AI教练暂时无法生成建议",
+
+            "training_advice":
+            "",
+
+            "risk_warning":
+            ""
+
+        }
+
 
 
 def calculate_training_load():
@@ -5788,109 +5868,247 @@ def save_daily_coach_report(
     risk_warning
 ):
 
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-
-    print(
-        "SAVE TRAINING ADVICE:",
-        training_advice
-    )
-
-    print(
-        "SAVE RISK WARNING:",
-        risk_warning
-    )
+    conn = None
+    cursor = None
 
 
-    cursor.execute("""
-        INSERT INTO daily_coach_reports
-        (
-            report_date,
-            recovery,
-            whoop_strain,
-            climbing_load,
-            hangboard_load,
-            fatigue_score,
-            training_advice,
-            risk_warning,
-            ai_report,
-            menstrual_data,
-            temperature_data,
-            injury_data
+    try:
+
+
+        conn = get_db_connection()
+
+        cursor = conn.cursor()
+
+
+
+        report_date = datetime.now().strftime(
+            "%Y-%m-%d"
         )
 
-        VALUES
-        (
-            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+
+        # 防止 None
+
+        ai_report = ai_report or ""
+
+        training_advice = training_advice or ""
+
+        risk_warning = risk_warning or ""
+
+
+
+        print(
+            "SAVE DATE:",
+            report_date
         )
 
-        ON CONFLICT(report_date)
-        DO UPDATE SET
 
-                recovery = EXCLUDED.recovery,
-
-                whoop_strain = EXCLUDED.whoop_strain,
-
-                climbing_load = EXCLUDED.climbing_load,
-
-                hangboard_load = EXCLUDED.hangboard_load,
-
-                fatigue_score = EXCLUDED.fatigue_score,
-
-                training_advice = EXCLUDED.training_advice,
-
-                risk_warning = EXCLUDED.risk_warning,
-
-                ai_report = EXCLUDED.ai_report,
-
-                menstrual_data = EXCLUDED.menstrual_data,
-
-                temperature_data = EXCLUDED.temperature_data,
-
-                injury_data = EXCLUDED.injury_data
-
-    """,
-    
-    (
-
-        datetime.now().strftime("%Y-%m-%d"),
-
-        metrics.get("recovery_score",0),
-
-        metrics.get("cycle_strain",0),
-
-        training_load.get("climbing_duration",0),
-
-        training_load.get("hangboard_duration",0),
-
-        training_load.get("finger_fatigue",0),
-
-        training_advice,
-
-        risk_warning,
-
-        ai_report,
-
-        str(menstrual_data),
-
-        str(temperature_data),
-
-        str(injury_data)
-
-    ))
-
-    conn.commit()
-
-    cursor.close()
-
-    conn.close()
+        print(
+            "SAVE AI LENGTH:",
+            len(ai_report)
+        )
 
 
-    print(
-        "DAILY COACH REPORT SAVED"
-    )
+        print(
+            "SAVE TRAINING ADVICE:",
+            training_advice
+        )
+
+
+        print(
+            "SAVE RISK WARNING:",
+            risk_warning
+        )
+
+
+
+        cursor.execute(
+            """
+
+            INSERT INTO daily_coach_reports
+
+            (
+                report_date,
+
+                recovery,
+
+                whoop_strain,
+
+                climbing_load,
+
+                hangboard_load,
+
+                fatigue_score,
+
+                training_advice,
+
+                risk_warning,
+
+                ai_report,
+
+                menstrual_data,
+
+                temperature_data,
+
+                injury_data
+            )
+
+
+            VALUES
+
+            (
+                %s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s
+            )
+
+
+            ON CONFLICT(report_date)
+
+            DO UPDATE SET
+
+
+                recovery =
+                EXCLUDED.recovery,
+
+
+                whoop_strain =
+                EXCLUDED.whoop_strain,
+
+
+                climbing_load =
+                EXCLUDED.climbing_load,
+
+
+                hangboard_load =
+                EXCLUDED.hangboard_load,
+
+
+                fatigue_score =
+                EXCLUDED.fatigue_score,
+
+
+                training_advice =
+                EXCLUDED.training_advice,
+
+
+                risk_warning =
+                EXCLUDED.risk_warning,
+
+
+                ai_report =
+                EXCLUDED.ai_report,
+
+
+                menstrual_data =
+                EXCLUDED.menstrual_data,
+
+
+                temperature_data =
+                EXCLUDED.temperature_data,
+
+
+                injury_data =
+                EXCLUDED.injury_data
+
+            """,
+
+            (
+
+                report_date,
+
+
+                metrics.get(
+                    "recovery_score",
+                    0
+                ),
+
+
+                metrics.get(
+                    "cycle_strain",
+                    0
+                ),
+
+
+                training_load.get(
+                    "climbing_duration",
+                    0
+                ),
+
+
+                training_load.get(
+                    "hangboard_duration",
+                    0
+                ),
+
+
+                training_load.get(
+                    "finger_fatigue",
+                    0
+                ),
+
+
+                training_advice,
+
+
+                risk_warning,
+
+
+                ai_report,
+
+
+                str(
+                    menstrual_data
+                ),
+
+
+                str(
+                    temperature_data
+                ),
+
+
+                str(
+                    injury_data
+                )
+
+            )
+
+        )
+
+
+        conn.commit()
+
+
+        print(
+            "DAILY COACH REPORT SAVED"
+        )
+
+
+
+    except Exception as e:
+
+
+        print(
+            "SAVE DAILY COACH REPORT ERROR:",
+            e
+        )
+
+
+        if conn:
+
+            conn.rollback()
+
+
+
+    finally:
+
+
+        if cursor:
+
+            cursor.close()
+
+
+        if conn:
+
+            conn.close()
 
 
 
@@ -8736,13 +8954,13 @@ def auto_report():
         # 6. 生成基础报告
         # =========================
 
-        report = generate_health_report(data)
+        report = generate_health_ai_report(data)
 
 
         # =========================
         # 7. AI健康教练
         # =========================
-     
+
 
         print(
             "DEBUG CLIMBING FATIGUE:",
@@ -8769,7 +8987,6 @@ def auto_report():
             type(data)
         )
 
-     
         ai_prompt = generate_coach_prompt(
             metrics,
             training_load,
@@ -8780,60 +8997,82 @@ def auto_report():
             injury_data
         )
 
-
         print(
             "DEBUG PROMPT READY"
         )
-
 
         ai_result = generate_ai_summary(
             ai_prompt
         )
 
+        print(
+            "DEBUG RAW AI:",
+            repr(ai_result)
+        )
+
 
         import json
 
+        # 默认值
+        ai_report = ""
+        training_advice = ""
+        risk_warning = ""
 
         try:
 
-            # 情况1：已经是dict
+            # =====================
+            # AI返回dict
+            # =====================
+
             if isinstance(ai_result, dict):
 
                 coach_json = ai_result
 
 
-            # 情况2：AI返回JSON字符串
+            # =====================
+            # AI返回字符串
+            # =====================
+
             else:
 
-                raw = ai_result.strip()
+                raw = str(ai_result).strip()
 
-                # 去掉代码块
+                # 去除markdown代码块
+
                 if raw.startswith("```"):
-                    raw = raw.replace("```json", "")
-                    raw = raw.replace("```", "")
+
+                    raw = raw.replace(
+                        "```json",
+                        ""
+                    )
+
+                    raw = raw.replace(
+                        "```",
+                        ""
+                    )
+
                     raw = raw.strip()
 
-                coach_json = json.loads(raw)
-
+                coach_json = json.loads(
+                    raw
+                )
 
             ai_report = coach_json.get(
                 "ai_report",
                 ""
             )
 
-
             training_advice = coach_json.get(
                 "training_advice",
                 ""
             )
-
 
             risk_warning = coach_json.get(
                 "risk_warning",
                 ""
             )
 
-        
+
         except Exception as e:
 
             print(
@@ -8842,136 +9081,58 @@ def auto_report():
             )
 
             print(
-                "RAW AI RESULT:",
+                "FAILED AI:",
                 repr(ai_result)
             )
 
+            # 如果AI不是JSON
+            # 整体作为报告保存
 
             ai_report = str(ai_result)
 
-            training_advice = ""
 
-            risk_warning = ""
-
-
+        print(
+            "SAVE AI REPORT LENGTH:",
+            len(ai_report)
+        )
 
         print(
             "SAVE TRAINING ADVICE:",
             training_advice
         )
 
-
         print(
             "SAVE RISK WARNING:",
             risk_warning
         )
 
-
-
         save_daily_coach_report(
-            metrics,
-            training_load,
-            ai_report,
-            menstrual_data,
-            temperature_data,
-            injury_data,
-            training_advice,
-            risk_warning
-        )
 
+            metrics,
+
+            training_load,
+
+            ai_report,
+
+            menstrual_data,
+
+            temperature_data,
+
+            injury_data,
+
+            training_advice,
+
+            risk_warning
+
+        )
 
         print(
             "AI COACH GENERATED"
         )
 
-
         print(
             "========== DAILY REPORT SUCCESS =========="
         )
-
-
-        success_time = (
-            datetime.utcnow()
-            + timedelta(hours=8)
-        ).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-
-
-        conn = get_db_connection()
-
-        cur = conn.cursor()
-
-
-        cur.execute("""
-        SELECT table_name, column_name
-        FROM information_schema.columns
-        WHERE column_name='report_date'
-                ORDER BY table_name
-        """)
-
-        print(
-            "REPORT_DATE TABLES:",
-            cur.fetchall()
-        )
-
-
-        cur.execute(
-            """
-            DELETE FROM system_status
-            """
-        )
-
-
-        cur.execute(
-            """
-            INSERT INTO system_status
-            (last_success_time)
-
-            VALUES
-            (%s)
-            """,
-            (
-                success_time,
-            )
-        )
-
-
-        conn.commit()
-
-        print(
-                "SYSTEM STATUS UPDATED:",
-                success_time
-            )
-
-
-        conn.commit()
-
-        cur.close()
-
-        conn.close()
-
-
-        print(
-            "SYSTEM STATUS UPDATED:",
-            success_time
-        )
-
-    
-
-        print(
-            {
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "recovery": metrics.get("recovery_score"),
-                "hrv": metrics.get("hrv"),
-                "sleep": metrics.get("sleep_duration"),
-                "strain": metrics.get("cycle_strain"),
-                "ai": "OK",
-                "database": "OK"
-            }
-        )
-
-        
         
         # =========================
         # 7. 返回
@@ -8988,7 +9149,15 @@ def auto_report():
 
 
             "coach":
-            coach_advice,
+            ai_report,
+
+
+            "training_advice":
+            training_advice,
+
+
+            "risk_warning":
+            risk_warning,
 
 
             "metrics":
