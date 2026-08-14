@@ -8555,6 +8555,12 @@ def auto_report():
         )
 
 
+        training_advice = ""
+
+        risk_warning = ""
+
+     
+
         save_daily_coach_report(
             metrics,
             training_load,
