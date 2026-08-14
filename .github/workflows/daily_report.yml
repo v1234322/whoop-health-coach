@@ -25,5 +25,5 @@ jobs:
                --retry-delay 10 \
                --retry-all-errors \
                --max-time 180 \
-               -H "X-API-Key: ${{ secrets.CHATGPT_ACTION_API_KEY }}" \
+               -H "Authorization: Bearer ${{ secrets.CHATGPT_ACTION_API_KEY }}"
                https://whoop-health-coach.onrender.com/whoop/auto-report
