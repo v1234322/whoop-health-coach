@@ -5627,7 +5627,6 @@ def get_latest_injury_data():
 def save_daily_coach_report(
     metrics,
     training_load,
-    ai_report,
     coach_advice,
     menstrual_data,
     temperature_data,
