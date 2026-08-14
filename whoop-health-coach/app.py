@@ -8954,7 +8954,7 @@ def auto_report():
         # 6. 生成基础报告
         # =========================
 
-        report = generate_health_ai_summary(data)
+        report = generate_ai_summary(data)
 
 
         # =========================
