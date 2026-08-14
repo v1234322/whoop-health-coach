@@ -7274,33 +7274,110 @@ def generate_weekly_analysis():
                 report_date,
                 recovery_score,
                 hrv,
+                resting_heart_rate,
                 sleep_duration,
                 sleep_score,
                 cycle_strain
+
             FROM daily_metrics
+
             ORDER BY report_date DESC
+
             LIMIT 7
             """
         )
 
         rows = cur.fetchall()
 
-        print("WEEKLY DATA:", rows)
+        print(
+            "WEEKLY DATA:",
+            rows
+        )
 
-        if len(rows) < 3:
-            return "历史数据不足3天，暂无法生成可靠趋势分析"
 
-        # 数据库查询为倒序，这里转换成日期正序
-        rows = list(reversed(rows))
+        # =========================
+        # 没有数据
+        # =========================
 
-        def show_value(value, suffix=""):
+        if not rows:
 
-            if value is None or value == "":
+            return {
+                "success": False,
+                "valid_days": 0,
+                "is_complete": False,
+                "start_date": None,
+                "end_date": None,
+                "avg_recovery": 0,
+                "avg_hrv": 0,
+                "avg_resting_hr": 0,
+                "avg_sleep": 0,
+                "avg_sleep_score": 0,
+                "avg_strain": 0,
+                "records": [],
+                "prompt_text": "暂无 WHOOP 历史数据"
+            }
+
+
+        # 数据库是 DESC
+        # 转换成日期正序
+
+        rows = list(
+            reversed(rows)
+        )
+
+
+        # =========================
+        # 工具函数
+        # =========================
+
+        def safe_float(value):
+
+            if value is None:
+                return None
+
+            try:
+                return float(value)
+
+            except Exception:
+                return None
+
+
+        def safe_avg(values):
+
+            valid = [
+                safe_float(v)
+                for v in values
+                if safe_float(v) is not None
+            ]
+
+            if not valid:
+                return 0
+
+            return round(
+                sum(valid) / len(valid),
+                2
+            )
+
+
+        def show_value(
+            value,
+            suffix=""
+        ):
+
+            if value is None:
                 return "数据缺失"
 
             return f"{value}{suffix}"
 
+
+        # =========================
+        # 整理每天数据
+        # =========================
+
+        records = []
+
         data_lines = []
+
 
         for row in rows:
 
@@ -7308,102 +7385,234 @@ def generate_weekly_analysis():
                 report_date,
                 recovery_score,
                 hrv,
+                resting_heart_rate,
                 sleep_duration,
                 sleep_score,
                 cycle_strain
             ) = row
+
+
+            record = {
+
+                "report_date":
+                    str(report_date),
+
+                "recovery_score":
+                    safe_float(recovery_score),
+
+                "hrv":
+                    safe_float(hrv),
+
+                "resting_heart_rate":
+                    safe_float(resting_heart_rate),
+
+                "sleep_duration":
+                    safe_float(sleep_duration),
+
+                "sleep_score":
+                    safe_float(sleep_score),
+
+                "cycle_strain":
+                    safe_float(cycle_strain)
+
+            }
+
+
+            records.append(
+                record
+            )
+
 
             data_lines.append(
                 f"""
 日期：{report_date}
 Recovery：{show_value(recovery_score, "%")}
 HRV：{show_value(hrv, " ms")}
+静息心率：{show_value(resting_heart_rate, " bpm")}
 睡眠时长：{show_value(sleep_duration, " 小时")}
 睡眠评分：{show_value(sleep_score, " 分")}
 Strain：{show_value(cycle_strain)}
 """.strip()
             )
 
-        valid_days = len(rows)
-        start_date = rows[0][0]
-        end_date = rows[-1][0]
 
-        weekly_data_text = "\n\n".join(data_lines)
+        # =========================
+        # 周期信息
+        # =========================
 
-        prompt = f"""
+        valid_days = len(records)
+
+        start_date = records[0][
+            "report_date"
+        ]
+
+        end_date = records[-1][
+            "report_date"
+        ]
+
+
+        # =========================
+        # 平均数据
+        # =========================
+
+        avg_recovery = safe_avg([
+            r["recovery_score"]
+            for r in records
+        ])
+
+
+        avg_hrv = safe_avg([
+            r["hrv"]
+            for r in records
+        ])
+
+
+        avg_resting_hr = safe_avg([
+            r["resting_heart_rate"]
+            for r in records
+        ])
+
+
+        avg_sleep = safe_avg([
+            r["sleep_duration"]
+            for r in records
+        ])
+
+
+        avg_sleep_score = safe_avg([
+            r["sleep_score"]
+            for r in records
+        ])
+
+
+        avg_strain = safe_avg([
+            r["cycle_strain"]
+            for r in records
+        ])
+
+
+        # =========================
+        # 给 Weekly AI 的数据文本
+        # =========================
+
+        weekly_data_text = "\n\n".join(
+            data_lines
+        )
+
+
+        prompt_text = f"""
 统计周期：{start_date} 至 {end_date}
-有效记录：{valid_days}/7天
 
-以下是按日期排列的 WHOOP 数据：
+有效记录：
+{valid_days}/7天
+
+数据完整性：
+{"完整7天数据" if valid_days >= 7 else "不足7天，仅代表阶段性趋势"}
+
+以下是按日期正序排列的 WHOOP 数据：
 
 {weekly_data_text}
 
-请严格按照指定的六个标题生成周报。
 
-特别要求：
+最近阶段平均值：
 
-- 当前只有{valid_days}天记录。
-- 如果不足7天，说明当前结论属于阶段性趋势。
-- 不得对缺失日期和缺失指标进行推测。
-- 不得把“无训练数据”解释为休息或高强度训练。
-- 重点分析Recovery、HRV、睡眠和Strain之间的关系。
-- 未来7天采用条件式建议，根据每日Recovery和睡眠决定强度。
+平均 Recovery：
+{avg_recovery}%
+
+平均 HRV：
+{avg_hrv} ms
+
+平均静息心率：
+{avg_resting_hr} bpm
+
+平均睡眠：
+{avg_sleep} 小时
+
+平均睡眠评分：
+{avg_sleep_score}
+
+平均 Strain：
+{avg_strain}
+
+
+分析要求：
+
+1. 只能根据以上实际数据分析。
+
+2. 如果不足7天，
+必须明确说明这是阶段性趋势。
+
+3. 不得推测缺失日期的数据。
+
+4. 不得把没有训练记录解释为休息日。
+
+5. Recovery 必须结合 HRV、
+静息心率和睡眠判断。
+
+6. Strain 必须结合 Recovery
+和睡眠判断是否匹配。
+
+7. 单日变化不能直接定义为
+长期疲劳或恢复异常。
+
+8. 必须区分：
+短期波动
+和
+连续趋势。
+
+9. 未来训练建议必须采用条件式建议，
+不得提前假设未来 Recovery。
+
+10. 不进行医学诊断。
 """
 
-        result = generate_weekly_ai_summary(prompt)
-
 
         # =========================
-        # 计算7天平均数据
+        # 返回统一 dict
         # =========================
-
-        valid_recovery = [
-            row[1] for row in rows
-            if row[1] is not None
-        ]
-
-        valid_hrv = [
-            row[2] for row in rows
-            if row[2] is not None
-        ]
-
-        valid_sleep = [
-            row[3] for row in rows
-            if row[3] is not None
-        ]
-
-
-        avg_recovery = (
-            sum(valid_recovery) / len(valid_recovery)
-            if valid_recovery
-            else 0
-        )
-
-
-        avg_hrv = (
-            sum(valid_hrv) / len(valid_hrv)
-            if valid_hrv
-            else 0
-        )
-
-
-        avg_sleep = (
-            sum(valid_sleep) / len(valid_sleep)
-            if valid_sleep
-            else 0
-        )
-
-
-        avg_resting_hr = 0
-
 
         return {
-             "avg_recovery": round(avg_recovery,2),
-             "avg_hrv": round(avg_hrv,2),
-             "avg_resting_hr": avg_resting_hr,
-             "avg_sleep": round(avg_sleep,2),
-             "report": result
+
+            "success": True,
+
+            "valid_days":
+                valid_days,
+
+            "is_complete":
+                valid_days >= 7,
+
+            "start_date":
+                start_date,
+
+            "end_date":
+                end_date,
+
+            "avg_recovery":
+                avg_recovery,
+
+            "avg_hrv":
+                avg_hrv,
+
+            "avg_resting_hr":
+                avg_resting_hr,
+
+            "avg_sleep":
+                avg_sleep,
+
+            "avg_sleep_score":
+                avg_sleep_score,
+
+            "avg_strain":
+                avg_strain,
+
+            "records":
+                records,
+
+            "prompt_text":
+                prompt_text
+
         }
+
 
     except Exception as e:
 
@@ -7412,7 +7621,38 @@ Strain：{show_value(cycle_strain)}
             e
         )
 
-        return "⚠️ 周报告暂时无法生成"
+        return {
+
+            "success": False,
+
+            "valid_days": 0,
+
+            "is_complete": False,
+
+            "start_date": None,
+
+            "end_date": None,
+
+            "avg_recovery": 0,
+
+            "avg_hrv": 0,
+
+            "avg_resting_hr": 0,
+
+            "avg_sleep": 0,
+
+            "avg_sleep_score": 0,
+
+            "avg_strain": 0,
+
+            "records": [],
+
+            "prompt_text": "",
+
+            "error": str(e)
+
+        }
+
 
     finally:
 
