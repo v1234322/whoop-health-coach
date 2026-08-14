@@ -8470,6 +8470,11 @@ def auto_report():
             injury_data
         )
 
+        print(
+            "DEBUG DATA EXISTS:",
+            type(data)
+        )
+
      
         ai_prompt = generate_coach_prompt(
             metrics,
