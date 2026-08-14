@@ -3969,14 +3969,6 @@ import json
 
 @app.route("/whoop/weekly")
 def weekly():
-
-
-    if not check_api_key():
-
-        return jsonify({
-            "error": "unauthorized"
-        }), 401
-
  
     try:
 
