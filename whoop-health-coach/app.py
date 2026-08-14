@@ -5666,12 +5666,12 @@ def save_daily_coach_report(
             climbing_load,
             hangboard_load,
             fatigue_score,
+            training_advice,
+            risk_warning,
             ai_report,
             menstrual_data,
             temperature_data,
-            injury_data,
-            training_advice,
-            risk_warning
+            injury_data
         )
 
         VALUES
@@ -5682,12 +5682,27 @@ def save_daily_coach_report(
         ON CONFLICT(report_date)
         DO UPDATE SET
 
-        ai_report = EXCLUDED.ai_report,
-        menstrual_data = EXCLUDED.menstrual_data,
-        temperature_data = EXCLUDED.temperature_data,
-        injury_data = EXCLUDED.injury_data,
-        training_advice = EXCLUDED.training_advice,
-        risk_warning = EXCLUDED.risk_warning
+                recovery = EXCLUDED.recovery,
+
+                whoop_strain = EXCLUDED.whoop_strain,
+
+                climbing_load = EXCLUDED.climbing_load,
+
+                hangboard_load = EXCLUDED.hangboard_load,
+
+                fatigue_score = EXCLUDED.fatigue_score,
+
+                training_advice = EXCLUDED.training_advice,
+
+                risk_warning = EXCLUDED.risk_warning,
+
+                ai_report = EXCLUDED.ai_report,
+
+                menstrual_data = EXCLUDED.menstrual_data,
+
+                temperature_data = EXCLUDED.temperature_data,
+
+                injury_data = EXCLUDED.injury_data
 
     """,
     
@@ -5705,17 +5720,18 @@ def save_daily_coach_report(
 
         training_load.get("finger_fatigue",0),
 
+        training_advice,
+
+        risk_warning,
+
         ai_report,
 
         str(menstrual_data),
 
         str(temperature_data),
 
-        str(injury_data),
+        str(injury_data)
 
-        training_advice,
-
-        risk_warning
     ))
 
     conn.commit()
