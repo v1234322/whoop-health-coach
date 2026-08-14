@@ -5816,13 +5816,13 @@ training_load.get("elbow_fatigue",0))}
 
 
 🌸 经期状态：
-{menstrual_data}
+{data.get("menstrual_data")}
 
 🌡️ 身体温度：
-{temperature_data}
+{data.get("temperature_data")}
 
 🩹 最近伤病记录：
-{injury_data}
+{data.get("injury_data")}
 
 
 
@@ -8387,9 +8387,15 @@ def auto_report():
         # 5. 生成基础报告
         # =========================
 
-        report = generate_health_report(
-            data
-        )
+        injury_data = get_latest_injury_data()
+
+        data["menstrual_data"] = menstrual_data
+
+        data["temperature_data"] = temperature_data
+
+        data["injury_data"] = injury_data
+
+        report = generate_health_report(data)
 
 
 
