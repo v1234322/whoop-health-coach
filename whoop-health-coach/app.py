@@ -1162,7 +1162,7 @@ def init_db():
     )
     """)
 
-     print("MENSTRUAL TABLE READY")
+    print("MENSTRUAL TABLE READY")
 
 
 
