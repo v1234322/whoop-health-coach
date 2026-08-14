@@ -5547,7 +5547,7 @@ def get_latest_menstrual_data():
 
 
     cur.execute("""
-        SELECT 
+        SELECT *
             cycle_date,
             cycle_day,
             phase,
