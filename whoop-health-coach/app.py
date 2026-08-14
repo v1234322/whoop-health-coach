@@ -5685,7 +5685,9 @@ def save_daily_coach_report(
         ai_report = EXCLUDED.ai_report,
         menstrual_data = EXCLUDED.menstrual_data,
         temperature_data = EXCLUDED.temperature_data,
-        injury_data = EXCLUDED.injury_data
+        injury_data = EXCLUDED.injury_data,
+        training_advice = EXCLUDED.training_advice,
+        risk_warning = EXCLUDED.risk_warning
 
     """,
     
