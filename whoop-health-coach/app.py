@@ -1130,6 +1130,83 @@ def init_db():
     """)
 
 
+    # =========================
+    # 健康扩展模块
+    # 经期 / 身体温度 / 伤病管理
+    # =========================
+
+
+    # 经期记录
+    
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS menstrual_cycle_log(
+
+        id SERIAL PRIMARY KEY,
+
+        cycle_date DATE NOT NULL,
+
+        cycle_day INTEGER,
+
+        phase TEXT,
+
+        symptoms TEXT,
+
+        pain_level INTEGER DEFAULT 0,
+
+        energy_level INTEGER DEFAULT 0,
+
+        notes TEXT,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    )
+    """)
+
+
+    # 身体温度监测
+
+    cur.execute("""
+    ALTER TABLE daily_metrics
+    ADD COLUMN IF NOT EXISTS skin_temperature REAL
+    """)
+
+
+    cur.execute("""
+    ALTER TABLE daily_metrics
+    ADD COLUMN IF NOT EXISTS temperature_deviation REAL
+    """)
+
+
+    # 伤病记录
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS injury_log(
+
+        id SERIAL PRIMARY KEY,
+
+        injury_date DATE,
+
+        body_part TEXT,
+
+        injury_type TEXT,
+
+        pain_level INTEGER DEFAULT 0,
+
+        description TEXT,
+
+        movement_limit TEXT,
+
+        training_effect TEXT,
+
+        notes TEXT,
+    
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    )
+    """)  
+
+
+
     try:
 
         conn.commit()
@@ -3358,6 +3435,8 @@ def api_whoop_coach_report():
                     "training_level": training_level,
 
                     "training_recommendation": training_advice[:2000],
+
+                    "coach_report_text": coach_report_text,
 
                     "current_strain": round(today[9] or 0,1),
 
