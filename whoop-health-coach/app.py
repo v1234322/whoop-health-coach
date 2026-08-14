@@ -5473,19 +5473,40 @@ Strain:
 {metrics.get("cycle_strain",0)}
 
 
-最近7天趋势:
+最近7天训练历史：
 
-平均Recovery:
-{weekly.get("avg_recovery",0)}
 
-平均HRV:
-{weekly.get("avg_hrv",0)}
+攀岩：
 
-平均静息心率:
-{weekly.get("avg_resting_hr",0)}
+次数:
+{training_load.get("climbing_sessions",0)}
 
-平均睡眠:
-{weekly.get("avg_sleep",0)} 小时
+总时长:
+{training_load.get("climbing_duration",0)} 分钟
+
+平均手指疲劳:
+{training_load.get("finger_fatigue",0)}
+
+平均前臂疲劳:
+{training_load.get("avg_forearm_fatigue",
+training_load.get("elbow_fatigue",0))}
+
+
+
+指力板：
+
+次数:
+{training_load.get("hangboard_sessions",0)}
+
+总悬挂时间:
+{training_load.get("hang_time",0)} 秒
+
+手指疲劳:
+{training_load.get("hangboard_finger_fatigue",0)}/10
+
+肘部疲劳:
+{training_load.get("elbow_fatigue",0)}/10
+
 
 
 攀岩训练历史：
@@ -5504,6 +5525,23 @@ Strain:
 
 手指疲劳:
 {training_load.get('finger_fatigue',0)}
+
+
+
+最近7天趋势:
+
+平均Recovery:
+{weekly.get("avg_recovery",0)}
+
+平均HRV:
+{weekly.get("avg_hrv",0)}
+
+平均静息心率:
+{weekly.get("avg_resting_hr",0)}
+
+平均睡眠:
+{weekly.get("avg_sleep",0)} 小时
+
 
 
 请输出：
@@ -8048,188 +8086,7 @@ def auto_report():
             coach_advice
         )
 
-
-        ai_prompt = f"""
-
-你是 WHOOP 私人健康教练。
-
-
-今日数据：
-
-💚 Recovery:
-{metrics.get("recovery_score",0)}%
-
-
-❤️ HRV:
-{metrics.get("hrv",0)} ms
-
-
-❤️‍🔥 静息心率:
-{metrics.get("resting_heart_rate",0)} bpm
-
-
-😴 睡眠时间:
-{metrics.get("sleep_duration",0)} 小时
-
-
-🌙 睡眠评分:
-{metrics.get("sleep_score",0)}%
-
-
-🔥 Strain:
-{metrics.get("cycle_strain",0)}
-
-
-最近7天训练历史：
-
-攀岩:
-- 次数: {training_load["climbing_sessions"]}
-- 总时长: {training_load["climbing_duration"]} 分钟
-- 平均手指疲劳: training_load["finger_fatigue"]
-- 平均前臂疲劳: training_load.get("avg_forearm_fatigue",training_load.get("elbow_fatigue",0))
-
-
-指力板:
-- 次数: {training_load["hangboard_sessions"]}
-- 总悬挂时间: {training_load["hang_time"]} 秒
-- 手指疲劳: {training_load["hangboard_finger_fatigue"]}/10
-- 肘部疲劳: {training_load["elbow_fatigue"]}/10
-
-
-📊 最近7天趋势：
-
-平均Recovery:
-{weekly_data.get("avg_recovery",0)}
-
-平均HRV:
-{weekly_data.get("avg_hrv",0)}
-
-平均静息心率:
-{weekly_data.get("avg_resting_hr",0)}
-
-平均睡眠:
-{weekly_data.get("avg_sleep",0)} 小时
-
-
-
-
-
-请生成：
-
-🟢 今日身体状态
-
-用1-2句话总结今天最重要的身体信号。
-不要简单重复数字，要解释身体状态。
-
-
-💚 Recovery分析
-
-结合：
-
-- Recovery
-- HRV
-- 静息心率
-- 最近7天平均趋势
-
-解释恢复能力和压力状态。
-
-
-😴 睡眠分析
-
-分析：
-
-- 睡眠时间
-- 睡眠评分
-- 睡眠质量
-
-说明睡眠对今天训练能力的影响。
-
-
-🔥 训练建议
-
-结合：
-
-- WHOOP Recovery
-- Strain
-- 最近7天攀岩训练
-- 指力板训练历史
-- 手指疲劳
-- 前臂疲劳
-
-明确建议：
-
-✅ 推荐：
-今天适合什么训练。
-
-❌ 避免：
-今天不建议什么训练。
-
-
-如果适合攀岩，请说明：
-
-- 技术训练
-- Boulder
-- 项目线路
-- 耐力训练
-
-哪一种更适合。
-
-
-如果适合指力板，请说明：
-
-- 是否适合最大力量
-- 是否适合耐力训练
-- 是否建议恢复
-
-
-⚠️ 风险提醒
-
-如果发现：
-
-- Recovery下降
-- HRV下降
-- 静息心率升高
-- 连续训练负荷增加
-- 手指疲劳升高
-
-提醒疲劳风险。
-
-不要医学诊断。
-
-
-📅 未来1-3天建议
-
-根据：
-
-- 今日恢复状态
-- 最近训练负荷
-- 疲劳趋势
-
-给出未来训练安排。
-
-
-要求：
-
-中文简体。
-
-使用emoji。
-
-400字以内。
-
-不要编造不存在的数据。
-
-不要机械罗列指标。
-
-像专业WHOOP私人健康教练一样解释身体信号。
-
-"""
-
-
-        coach_advice = generate_ai_summary(
-            ai_prompt
-        )
-
-
+     
         print(
             "AI COACH GENERATED"
         )
