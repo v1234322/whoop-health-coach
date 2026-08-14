@@ -3973,12 +3973,12 @@ def weekly():
 
     if not check_api_key():
 
-            return jsonify({
-                    "error": "unauthorized"
+        return jsonify({
+            "error": "unauthorized"
         }), 401
 
  
-        try:
+    try:
 
         print(
             "========== WEEKLY PAGE START =========="
