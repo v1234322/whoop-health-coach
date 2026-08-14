@@ -820,7 +820,7 @@ def init_db():
     # WHOOP TOKEN
     # =========================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS tokens(
 
         id SERIAL PRIMARY KEY,
@@ -837,7 +837,7 @@ def init_db():
     """)
 
    
-    cursor.execute("""
+    cur.execute("""
     SELECT column_name, data_type
     FROM information_schema.columns
     WHERE table_name='tokens'
@@ -852,7 +852,7 @@ def init_db():
     # 重建 daily_metrics
     # =========================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS daily_metrics (
 
         id SERIAL PRIMARY KEY,
@@ -884,7 +884,7 @@ def init_db():
     )
     """)
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS daily_coach_reports (
 
         id SERIAL PRIMARY KEY,
@@ -917,7 +917,7 @@ def init_db():
     # 攀岩训练日志
     # ==============================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS climbing_training_log (
 
         id SERIAL PRIMARY KEY,
@@ -955,7 +955,7 @@ def init_db():
     # 指力板训练日志
     # ==============================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS hangboard_training_log (
 
         id SERIAL PRIMARY KEY,
@@ -1021,7 +1021,7 @@ def init_db():
 
         try:
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 ALTER TABLE hangboard_training_log
                 ADD COLUMN IF NOT EXISTS {column} {dtype}
@@ -1046,7 +1046,7 @@ def init_db():
     # 训练周期分析
     # ==============================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS training_cycle_analysis (
 
         id SERIAL PRIMARY KEY,
@@ -1077,7 +1077,7 @@ def init_db():
     # 检查攀岩训练表
     # ==============================
 
-    cursor.execute(
+    cur.execute(
         """
         SELECT column_name, data_type
         FROM information_schema.columns
@@ -1098,7 +1098,7 @@ def init_db():
 
     conn.commit()
 
-    cursor.execute(
+    cur.execute(
         """
         SELECT column_name, data_type
         FROM information_schema.columns
@@ -1119,7 +1119,7 @@ def init_db():
     # 系统状态表
     # =========================
 
-    cursor.execute("""
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS system_status (
 
         id SERIAL PRIMARY KEY,
