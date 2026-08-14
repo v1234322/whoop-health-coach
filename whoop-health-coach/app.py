@@ -5815,7 +5815,7 @@ training_load.get("elbow_fatigue",0))}
 {training_load.get('finger_fatigue',0)}
 
 
-🩸 经期状态：
+🌸 经期状态：
 {menstrual_data}
 
 🌡️ 身体温度：
@@ -8577,7 +8577,13 @@ def auto_report():
 
 
             "metrics":
-            metrics
+            metrics,
+
+            "menstrual":
+            menstrual_data,
+
+            "temperature":
+            temperature_data
 
         })
 
