@@ -3543,17 +3543,32 @@ def api_whoop_coach_report():
 
 
         # 优先使用AI已生成建议
-        final_training_advice = (
-            saved_training_advice
-            or calculated_training_advice
-        )
+        if saved_training_advice:
+
+            final_training_advice = (
+                saved_training_advice
+            )
+
+        else:
+
+            final_training_advice = (
+                calculated_training_advice
+            )
 
 
-        final_risk_warning = (
-            saved_risk_warning
-            or fatigue_warning
-        )
+        if saved_risk_warning:
 
+            final_risk_warning = (
+                saved_risk_warning
+            )
+
+        else:
+
+            final_risk_warning = (
+                fatigue_warning
+            )
+
+     
 
         print(
             "COACH REPORT READY:",
@@ -3647,6 +3662,9 @@ def api_whoop_coach_report():
                     "training_advice":
                     final_training_advice,
 
+                    "risk_warning":
+                    final_risk_warning,
+
                     "strain_completion":
                     strain_completion,
 
@@ -3724,14 +3742,14 @@ def api_whoop_coach_report():
                     "training_level":
                     training_level,
 
+                    "coach_report_text":
+                    saved_ai_report,
+
                     "training_recommendation":
                     final_training_advice,
 
                     "risk_warning":
                     final_risk_warning,
-
-                    "coach_report_text":
-                    saved_ai_report,
 
                     "current_strain":
                     round(
