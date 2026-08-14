@@ -9,7 +9,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 from datetime import datetime, timedelta, timezone
-
+ 
 from flask import Flask, jsonify, request, Response
 
 from functools import wraps
@@ -5491,19 +5491,19 @@ Strain:
 攀岩训练历史：
 
 攀岩次数:
-{training.get('climbing_sessions',0)}
+{training_load.get('climbing_sessions',0)}
 
 攀岩时间:
-{training.get('climbing_duration',0)}
+{training_load.get('climbing_duration',0)}
 
 指力板次数:
-{training.get('hangboard_sessions',0)}
+{training_load.get('hangboard_sessions',0)}
 
 指力训练:
-{training.get('hangboard_duration',0)}
+{training_load.get('hangboard_duration',0)}
 
 手指疲劳:
-{training.get('finger_fatigue',0)}
+{training_load.get('finger_fatigue',0)}
 
 
 请输出：
