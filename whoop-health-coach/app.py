@@ -5712,7 +5712,13 @@ Strain：{show_value(cycle_strain)}
 
         result = generate_weekly_ai_summary(prompt)
 
-        return result
+        return {
+            "avg_recovery": avg_recovery,
+            "avg_hrv": avg_hrv,
+            "avg_resting_hr": avg_resting_hr,
+            "avg_sleep": avg_sleep,
+            "report": weekly_report
+        }
 
     except Exception as e:
 
@@ -7979,24 +7985,7 @@ def auto_report():
         print(
             "DEBUG PROMPT READY"
         )
-
-
-        coach_advice = generate_ai_summary(
-            ai_prompt
-        )
-
-
-        print(
-            "DEBUG COACH TYPE:",
-            type(coach_advice)
-        )
-
-
-        save_daily_coach_report(
-            metrics,
-            training_load,
-            coach_advice
-        )
+     
         
         ai_prompt = f"""
 
