@@ -3368,9 +3368,6 @@ def api_whoop_coach_report():
                     "remaining_strain": remaining_strain,
 
                     "fatigue_warning": fatigue_warning,
-
-                    ]
-
                 }
 
             }
