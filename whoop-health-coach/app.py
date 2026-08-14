@@ -1088,7 +1088,7 @@ def init_db():
 
     print(
         "CLIMBING TABLE COLUMNS:",
-        cursor.fetchall()
+        cur.fetchall()
     )
 
 
