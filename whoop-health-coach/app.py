@@ -7929,6 +7929,8 @@ def auto_report():
 
         metrics = extract_daily_metrics(data)
 
+        weekly_data = generate_weekly_analysis()
+
         training_load = calculate_training_load()
 
 
@@ -7953,8 +7955,8 @@ def auto_report():
         print("DEBUG METRICS TYPE:", type(metrics))
         print("DEBUG METRICS VALUE:", metrics)
 
-        print("DEBUG WEEKLY TYPE:", type(weekly))
-        print("DEBUG WEEKLY VALUE:", weekly)
+        print("DEBUG WEEKLY_DATA TYPE:", type(weekly_data))
+        print("DEBUG WEEKLY_DATA VALUE:", weekly_data)
 
         print("DEBUG BEFORE PROMPT WEEKLY:",type(weekly),weekly)
         
@@ -8008,16 +8010,16 @@ def auto_report():
 📊 最近7天趋势：
 
 平均Recovery:
-{weekly.get("avg_recovery",0)}
+{weekly_data.get("avg_recovery",0)}
 
 平均HRV:
-{weekly.get("avg_hrv",0)}
+{weekly_data.get("avg_hrv",0)}
 
 平均静息心率:
-{weekly.get("avg_resting_hr",0)}
+{weekly_data.get("avg_resting_hr",0)}
 
 平均睡眠:
-{weekly.get("avg_sleep",0)} 小时
+{weekly_data.get("avg_sleep",0)} 小时
 
 
 
