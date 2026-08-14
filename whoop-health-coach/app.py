@@ -1162,6 +1162,9 @@ def init_db():
     )
     """)
 
+     print("MENSTRUAL TABLE READY")
+
+
 
     # 身体温度监测
 
@@ -1175,6 +1178,8 @@ def init_db():
     ALTER TABLE daily_metrics
     ADD COLUMN IF NOT EXISTS temperature_deviation REAL
     """)
+
+    print("TEMPERATURE FIELD READY")
 
 
     # 伤病记录
@@ -1205,17 +1210,15 @@ def init_db():
     )
     """)  
 
-
-    conn.commit()
-
-
-    cur.close()
-
-    conn.close()
+    print("INJURY TABLE READY")
 
     try:
 
         conn.commit()
+
+        print(
+            "DATABASE INIT SUCCESS"
+        )
 
     except Exception as e:
 
@@ -1227,18 +1230,29 @@ def init_db():
         conn.rollback()
 
 
-    conn.close()
+    finally:
+
+        cur.close()
+
+        conn.close()
 
 
-    print("DATABASE READY")
-
-    clean_duplicate_daily_metrics()
-
-    ensure_refresh_token()
+    print(
+        "DATABASE READY"
+    )
 
 
-    
+
+# 启动初始化
+
 init_db()
+
+
+# 数据维护任务
+
+clean_duplicate_daily_metrics()
+
+ensure_refresh_token()
 
 
 @app.route("/callback")
