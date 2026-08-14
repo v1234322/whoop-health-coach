@@ -7976,25 +7976,27 @@ def auto_report():
         )
 
 
+        print(
+            "DEBUG PROMPT READY"
+        )
+
+
         coach_advice = generate_ai_summary(
             ai_prompt
         )
+
+
+        print(
+            "DEBUG COACH TYPE:",
+            type(coach_advice)
+        )
+
 
         save_daily_coach_report(
             metrics,
             training_load,
             coach_advice
         )
-
-
-
-        print("DEBUG METRICS TYPE:", type(metrics))
-        print("DEBUG METRICS VALUE:", metrics)
-
-        print("DEBUG WEEKLY_DATA TYPE:", type(weekly_data))
-        print("DEBUG WEEKLY_DATA VALUE:", weekly_data)
-
-        print("DEBUG AFTER WEEKLY_DATA:",type(weekly_data),weekly_data)
         
         ai_prompt = f"""
 
