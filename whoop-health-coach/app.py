@@ -5480,7 +5480,7 @@ risk_warning：
                     "content": json.dumps(
                         ai_prompt,
                         ensure_ascii=False
-                    }
+                    )
                 }
 
             ],
