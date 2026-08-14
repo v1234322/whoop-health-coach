@@ -5816,13 +5816,13 @@ training_load.get("elbow_fatigue",0))}
 
 
 🌸 经期状态：
-{data.get("menstrual_data")}
+{menstrual_data}
 
 🌡️ 身体温度：
-{data.get("temperature_data")}
+{temperature_data}
 
 🩹 最近伤病记录：
-{data.get("injury_data")}
+{injury_data}
 
 
 
