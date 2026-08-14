@@ -1173,6 +1173,10 @@ def init_db():
     ADD COLUMN IF NOT EXISTS skin_temperature REAL
     """)
 
+    cur.execute("""
+    ALTER TABLE daily_metrics
+    ADD COLUMN IF NOT EXISTS temperature_status TEXT
+    """)
 
     cur.execute("""
     ALTER TABLE daily_metrics
@@ -5521,6 +5525,91 @@ def calculate_training_load():
     }
 
 
+
+def get_latest_menstrual_data():
+
+    conn=get_db_connection()
+
+    cur=conn.cursor(
+        cursor_factory=RealDictCursor
+    )
+
+
+    cur.execute("""
+    SELECT *
+    FROM menstrual_cycle_log
+    ORDER BY record_date DESC
+    LIMIT 1
+    """)
+
+
+    data=cur.fetchone()
+
+
+    cur.close()
+    conn.close()
+
+
+    return data
+
+
+
+def get_latest_temperature_data():
+
+    conn=get_db_connection()
+
+    cur=conn.cursor(
+        cursor_factory=RealDictCursor
+    )
+
+
+    cur.execute("""
+    SELECT *
+    FROM body_temperature_log
+    ORDER BY record_date DESC
+    LIMIT 1
+    """)
+
+
+    data=cur.fetchone()
+
+
+    cur.close()
+    conn.close()
+
+
+    return data
+
+
+
+def get_latest_injury_data():
+
+    conn=get_db_connection()
+
+    cur=conn.cursor(
+        cursor_factory=RealDictCursor
+    )
+
+
+    cur.execute("""
+    SELECT *
+    FROM injury_log
+    ORDER BY injury_date DESC
+    LIMIT 3
+    """)
+
+
+    data=cur.fetchall()
+
+
+    cur.close()
+    conn.close()
+
+
+    return data
+
+
+
 def save_daily_coach_report(
     metrics,
     training,
@@ -5709,6 +5798,16 @@ training_load.get("elbow_fatigue",0))}
 {training_load.get('finger_fatigue',0)}
 
 
+🩸 经期状态：
+{menstrual_data}
+
+🌡️ 身体温度：
+{temperature_data}
+
+🩹 最近伤病记录：
+{injury_data}
+
+
 
 最近7天趋势:
 
@@ -5760,15 +5859,21 @@ def generate_weekly_ai_summary(ai_prompt):
 
 必须严格使用以下标题，标题文字和emoji不能改变：
 
-🟢【恢复趋势】
+🟢【今日状态】
 
-❤️【HRV趋势】
+❤️【Recovery分析】
 
-😴【睡眠趋势】
+😴【睡眠分析】
 
-🔥【训练负荷】
+🔥【训练睡眠分析】
 
-⚠️【风险提醒】
+🩸【经期状态】
+
+🌡️【身体温度】
+
+🩹【伤病风险】
+
+⚠️【疲劳风险】
 
 📅【未来7天建议】
 
@@ -5785,6 +5890,7 @@ def generate_weekly_ai_summary(ai_prompt):
 9. 训练建议必须结合 Recovery、HRV、睡眠和 Strain。
 10. 未来7天建议必须是条件式建议，不得预先安排固定的HIIT或高强度训练。
 
+
 训练建议标准：
 
 - Recovery较低或睡眠不足6小时：
@@ -5796,12 +5902,34 @@ def generate_weekly_ai_summary(ai_prompt):
 - Recovery较高、HRV稳定且睡眠充足：
   才可以建议中高强度训练。
 
+
 风险表达规则：
 
 - 使用“可能”“建议关注”等谨慎表达。
 - 不得诊断疾病。
 - 不得声称一定会受伤或生病。
 - 如出现持续异常，建议咨询医疗专业人员。
+
+
+额外分析：
+
+如果存在：
+
+- 经期阶段影响
+- 体温异常变化
+- 疼痛记录
+- 动作限制
+
+请分析：
+
+🩸 生理状态影响
+🌡️ 身体恢复信号
+🩹 伤病风险
+
+给出训练调整建议。
+
+不要医学诊断。
+
 
 输出要求：
 
@@ -8259,6 +8387,12 @@ def auto_report():
         training_load = calculate_training_load()
 
         climbing_fatigue = analyze_climbing_fatigue(training_load)
+
+        menstrual_data = get_latest_menstrual_data()
+
+        temperature_data = get_latest_temperature_data()
+
+        injury_data = get_latest_injury_data()
 
         print(
             "DEBUG CLIMBING FATIGUE:",
