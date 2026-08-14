@@ -6804,133 +6804,182 @@ def generate_coach_prompt(
     if not isinstance(weekly, dict):
         weekly = {}
 
+    if not isinstance(climbing_fatigue, dict):
+        climbing_fatigue = {}
+
+
     return f"""
 
-你是一名专业攀岩训练教练。
+你是一名专业的 WHOOP 攀岩训练教练。
 
-根据以下数据制定今日建议：
+请根据以下最新数据，制定今天的训练和恢复建议。
 
-WHOOP:
+重要判断原则：
+
+1. 不得只根据 Recovery 判断训练。
+2. 最近7天训练频率较高，不等于今天一定存在疲劳累积。
+3. 最近7天平均疲劳只是历史负荷背景，不能当作今天当前疲劳。
+4. 判断手指和肘部风险时，优先参考：
+   - 最近一次指力板训练的疲劳评分
+   - 距离最近一次指力板训练的天数
+   - 最近一次训练后的恢复评分
+   - 最近7天指力板频率
+   - 当前 WHOOP Recovery、HRV、睡眠和 Strain
+   - 当前是否有伤病或不适记录
+5. 不得仅因为最近7天指力板次数较多，就判断“过度使用”“恢复不足”或“必须完全休息”。
+6. 如果没有当前疼痛、僵硬、肌腱敏感或功能受限记录，不要假设这些症状存在。
+7. 如果最近一次训练已过去数天、局部疲劳较低、恢复评分良好，应相应降低局部风险判断。
+8. 使用谨慎表达，不做医学诊断。
+
+==============================
+WHOOP 今日状态
+==============================
 
 Recovery:
-{metrics.get("recovery_score",0)}%
+{metrics.get("recovery_score", 0)}%
 
 HRV:
-{metrics.get("hrv",0)} ms
+{metrics.get("hrv", 0)} ms
 
 静息心率:
-{metrics.get("resting_heart_rate",0)} bpm
+{metrics.get("resting_heart_rate", 0)} bpm
 
 睡眠:
-{metrics.get("sleep_duration",0)} 小时
+{metrics.get("sleep_duration", 0)} 小时
 
 睡眠评分:
-{metrics.get("sleep_score",0)}%
+{metrics.get("sleep_score", 0)}%
 
 Strain:
-{metrics.get("cycle_strain",0)}
+{metrics.get("cycle_strain", 0)}
 
 
-最近7天训练历史：
-
-
-攀岩：
-
-次数:
-{training_load.get("climbing_sessions",0)}
-
-总时长:
-{training_load.get("climbing_duration",0)} 分钟
-
-平均手指疲劳:
-{training_load.get("finger_fatigue",0)}
-
-平均前臂疲劳:
-{training_load.get("avg_forearm_fatigue",
-training_load.get("elbow_fatigue",0))}
-
-
-
-🧗 攀岩专项疲劳分析：
-
-疲劳等级:
-{climbing_fatigue.get("fatigue_level")}
-
-建议:
-{climbing_fatigue.get("recommendations")}
-
-
-
-
-指力板：
-
-次数:
-{training_load.get("hangboard_sessions",0)}
-
-总悬挂时间:
-{training_load.get("hang_time",0)} 秒
-
-手指疲劳:
-{training_load.get("hangboard_finger_fatigue",0)}/10
-
-肘部疲劳:
-{training_load.get("elbow_fatigue",0)}/10
-
-
-
-攀岩训练历史：
+==============================
+最近7天攀岩负荷
+==============================
 
 攀岩次数:
-{training_load.get('climbing_sessions',0)}
+{training_load.get("climbing_sessions_7d",
+training_load.get("climbing_sessions", 0))}
 
-攀岩时间:
-{training_load.get('climbing_duration',0)}
+攀岩总时长:
+{training_load.get("climbing_duration_7d",
+training_load.get("climbing_duration", 0))} 分钟
+
+
+==============================
+最近7天指力板负荷
+==============================
 
 指力板次数:
-{training_load.get('hangboard_sessions',0)}
+{training_load.get("hangboard_sessions_7d",
+training_load.get("hangboard_sessions", 0))}
 
-指力训练:
-{training_load.get('hangboard_duration',0)}
+指力板总时长:
+{training_load.get("hangboard_duration_7d",
+training_load.get("hangboard_duration", 0))} 分钟
 
-手指疲劳:
-{training_load.get('finger_fatigue',0)}
+总悬挂时间:
+{training_load.get("hang_time_7d", 0)} 秒
+
+最近7天平均手指疲劳:
+{training_load.get("avg_finger_fatigue_7d", 0)}/10
+
+最近7天平均肘部疲劳:
+{training_load.get("avg_elbow_fatigue_7d", 0)}/10
+
+注意：
+以上两个“7天平均疲劳”只代表历史训练记录平均值，
+不能直接解释为今天当前疲劳。
 
 
-🌸 经期状态：
+==============================
+最近一次指力板训练
+==============================
+
+日期:
+{training_load.get("latest_hangboard_date")}
+
+训练协议:
+{training_load.get("latest_hangboard_protocol")}
+
+训练类型:
+{training_load.get("latest_hangboard_session_type")}
+
+最近一次手指疲劳:
+{training_load.get("latest_finger_fatigue", 0)}/10
+
+最近一次肘部疲劳:
+{training_load.get("latest_elbow_fatigue", 0)}/10
+
+训练后恢复评分:
+{training_load.get("latest_recovery_after")}
+
+距最近一次指力板训练:
+{training_load.get("days_since_hangboard")} 天
+
+
+==============================
+攀岩专项疲劳分析
+==============================
+
+疲劳等级:
+{climbing_fatigue.get("fatigue_level", "正常")}
+
+建议:
+{climbing_fatigue.get("recommendations", [])}
+
+
+==============================
+身体附加信息
+==============================
+
+经期状态:
 {menstrual_data}
 
-🌡️ 身体温度：
+身体温度:
 {temperature_data}
 
-🩹 最近伤病记录：
+最近伤病记录:
 {injury_data}
 
 
+==============================
+最近7天 WHOOP 趋势
+==============================
 
-最近7天趋势:
+平均 Recovery:
+{weekly.get("avg_recovery", 0)}
 
-平均Recovery:
-{weekly.get("avg_recovery",0)}
-
-平均HRV:
-{weekly.get("avg_hrv",0)}
+平均 HRV:
+{weekly.get("avg_hrv", 0)}
 
 平均静息心率:
-{weekly.get("avg_resting_hr",0)}
+{weekly.get("avg_resting_hr", 0)}
 
 平均睡眠:
-{weekly.get("avg_sleep",0)} 小时
+{weekly.get("avg_sleep", 0)} 小时
 
 
+==============================
+输出要求
+==============================
 
-请输出：
+请结合所有数据判断：
 
 1. 今日训练等级
 2. 推荐训练类型
 3. 是否需要恢复
-4. 手指风险
-5. 明日计划
+4. 手指和肘部风险
+5. 是否适合 Max Hang / Repeaters / 技术攀岩 / 极限抱石
+6. 明日训练条件
 
+风险判断要求：
+
+- 如果只是“最近7天频率较高”，但最近一次局部疲劳较低、已经休息数天、恢复评分良好，不要直接判断过度使用。
+- 如果最近一次手指疲劳 >= 7，或肘部疲劳 >= 6，或训练间隔很短且疲劳仍高，应明显降低指力训练强度。
+- 如果没有明确疼痛或伤病记录，不要写“酸痛”“肌腱敏感”等未提供症状。
+- “恢复不足”必须有 Recovery、HRV、睡眠、训练间隔或 recovery_after 的数据依据。
 
 使用中文。
 """
