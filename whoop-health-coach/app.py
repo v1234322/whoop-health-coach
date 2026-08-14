@@ -3672,26 +3672,110 @@ def hangboard_history():
 
 
 
+
+import re
+import json
+
+
 @app.route("/whoop/weekly")
 def weekly():
 
     try:
 
-        weekly_report = generate_weekly_analysis()
+        weekly_prompt = build_weekly_prompt()
 
-        print("WEEKLY REPORT RAW:")
-        print(weekly_report)
 
-        import re
+        weekly_result = generate_weekly_ai_summary(
+            weekly_prompt
+        )
 
-        # 压缩AI输出中的多余空行
+
+        # ==========================
+        # 解析 AI JSON
+        # ==========================
+
+        try:
+
+            if isinstance(weekly_result, dict):
+
+                weekly_json = weekly_result
+
+
+            else:
+
+                raw = weekly_result.strip()
+
+
+                if raw.startswith("```"):
+
+                    raw = raw.replace(
+                        "```json",
+                        ""
+                    )
+
+                    raw = raw.replace(
+                        "```",
+                        ""
+                    )
+
+                    raw = raw.strip()
+
+
+                weekly_json = json.loads(
+                    raw
+                )
+
+
+        except Exception as e:
+
+            print(
+                "WEEKLY JSON ERROR:",
+                e
+            )
+
+            print(
+                "RAW WEEKLY AI:",
+                repr(weekly_result)
+            )
+
+
+            weekly_json = {
+                "weekly_report": str(weekly_result),
+                "weekly_training_advice": "",
+                "weekly_risk_warning": ""
+            }
+
+
+
+        weekly_report = weekly_json.get(
+            "weekly_report",
+            ""
+        )
+
+
+        weekly_training_advice = weekly_json.get(
+            "weekly_training_advice",
+            ""
+        )
+
+
+        weekly_risk_warning = weekly_json.get(
+            "weekly_risk_warning",
+            ""
+        )
+
+
         weekly_report = re.sub(
             r'\n\s*\n+',
             '\n',
             weekly_report
         )
 
-        weekly_report = format_weekly_report(weekly_report)
+
+        weekly_report = format_weekly_report(
+            weekly_report
+        )
+
 
         conn = get_db_connection()
 
@@ -4760,15 +4844,9 @@ h
 
 </div>
 
-
 </div>
 
-
-
 </div>
-
-
-
 
 
 <!-- CHARTS -->
@@ -4789,9 +4867,6 @@ h
 </div>
 
 
-
-
-
 <h2>
 ❤️ HRV趋势
 </h2>
@@ -4802,9 +4877,6 @@ h
 <canvas id="hrvChart"></canvas>
 
 </div>
-
-
-
 
 
 
@@ -4821,9 +4893,6 @@ h
 
 
 
-
-
-
 <h2>
 🔥 Strain趋势
 </h2>
@@ -4836,12 +4905,7 @@ h
 </div>
 
 
-
-
 </div>
-
-
-
 
 
 
@@ -4864,6 +4928,30 @@ h
 <div class="ai-content">
 
 {weekly_report}
+
+
+<div class="ai-item">
+
+<div class="ai-item-title">
+🏋️ 未来7天训练建议
+</div>
+
+<div class="ai-content">
+{weekly_training_advice}
+</div>
+
+</div>
+
+
+<h2>
+⚠️ 未来7天风险提醒
+</h2>
+
+<div class="summary-card">
+
+{weekly_risk_warning}
+
+</div>
 
 </div>
 
@@ -6058,6 +6146,44 @@ def generate_weekly_ai_summary(ai_prompt):
 - 不输出代码
 - 不使用Markdown表格
 - 像谨慎、专业的WHOOP私人教练
+
+==============================
+最终输出格式
+==============================
+
+必须只输出JSON。
+
+禁止输出JSON以外任何文字。
+
+格式：
+
+{
+ "weekly_report":"完整7天趋势分析",
+ "weekly_training_advice":"未来7天训练建议",
+ "weekly_risk_warning":"未来7天风险提醒"
+}
+
+要求：
+
+weekly_report:
+包含：
+🟢【今日状态】
+❤️【Recovery分析】
+😴【睡眠分析】
+🔥【训练睡眠分析】
+🩸【经期状态】
+🌡️【身体温度】
+🩹【伤病风险】
+⚠️【疲劳风险】
+📅【未来7天建议】
+
+weekly_training_advice:
+填写未来训练行动建议。
+
+weekly_risk_warning:
+填写需要关注的问题。
+如果没有：
+填写“暂无明显风险”。
 """
                 },
 
@@ -6074,7 +6200,15 @@ def generate_weekly_ai_summary(ai_prompt):
 
         )
 
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+
+        print(
+            "DEBUG AI RAW:",
+            repr(content)
+        )
+
+        return content
+ 
 
     except Exception as e:
 
@@ -8040,7 +8174,55 @@ Strain
         ai_prompt
     )
 
-    coach_advice = coach_advice[:4000]
+    print(
+        "DEBUG RAW AI:",
+        repr(coach_advice)
+    )
+
+    import json
+
+    try:
+
+        raw = coach_advice.strip()
+
+        if raw.startswith("```"):
+            raw = raw.replace("```json", "")
+            raw = raw.replace("```", "")
+            raw = raw.strip()
+
+
+        coach_json = json.loads(raw)
+
+
+        ai_report = coach_json.get(
+            "ai_report",
+            ""
+        )
+
+        training_advice = coach_json.get(
+            "training_advice",
+            ""
+        )
+
+        risk_warning = coach_json.get(
+            "risk_warning",
+            ""
+        )
+
+
+    except Exception as e:
+
+        print(
+            "JSON PARSE ERROR:",
+            e
+        )
+
+        ai_report = coach_advice
+        training_advice = ""
+        risk_warning = ""
+
+ 
+    ai_report = ai_report[:4000]
 
     return f"""
 
@@ -8600,38 +8782,13 @@ def auto_report():
 
 
         print(
-           "DEBUG PROMPT READY"
+            "DEBUG PROMPT READY"
         )
+
 
         ai_result = generate_ai_summary(
             ai_prompt
         )
-
-
-        if isinstance(ai_result, dict):
-
-            coach_advice = ai_result.get(
-                "ai_report",
-                ""
-            )
-
-            training_advice = ai_result.get(
-                "training_advice",
-                ""
-            )
-
-            risk_warning = ai_result.get(
-                "risk_warning",
-                ""
-            )
-
-        else:
-
-            coach_advice = ai_result
-
-            training_advice = ""
-
-            risk_warning = ""
 
 
         import json
@@ -8639,7 +8796,24 @@ def auto_report():
 
         try:
 
-            coach_json = json.loads(coach_advice)
+            # 情况1：已经是dict
+            if isinstance(ai_result, dict):
+
+                coach_json = ai_result
+
+
+            # 情况2：AI返回JSON字符串
+            else:
+
+                raw = ai_result.strip()
+
+                # 去掉代码块
+                if raw.startswith("```"):
+                    raw = raw.replace("```json", "")
+                    raw = raw.replace("```", "")
+                    raw = raw.strip()
+
+                coach_json = json.loads(raw)
 
 
             ai_report = coach_json.get(
@@ -8647,17 +8821,19 @@ def auto_report():
                 ""
             )
 
+
             training_advice = coach_json.get(
                 "training_advice",
                 ""
             )
+
 
             risk_warning = coach_json.get(
                 "risk_warning",
                 ""
             )
 
-
+        
         except Exception as e:
 
             print(
@@ -8665,11 +8841,32 @@ def auto_report():
                 e
             )
 
-            ai_report = coach_advice
+            print(
+                "RAW AI RESULT:",
+                repr(ai_result)
+            )
+
+
+            ai_report = str(ai_result)
+
             training_advice = ""
+
             risk_warning = ""
 
- 
+
+
+        print(
+            "SAVE TRAINING ADVICE:",
+            training_advice
+        )
+
+
+        print(
+            "SAVE RISK WARNING:",
+            risk_warning
+        )
+
+
 
         save_daily_coach_report(
             metrics,
@@ -8682,7 +8879,7 @@ def auto_report():
             risk_warning
         )
 
-     
+
         print(
             "AI COACH GENERATED"
         )
