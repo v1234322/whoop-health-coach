@@ -5708,7 +5708,10 @@ def generate_coach_prompt(
     metrics,
     training_load,
     weekly,
-    climbing_fatigue
+    climbing_fatigue,
+    menstrual_data,
+    temperature_data,
+    injury_data
 ):
 
     if not isinstance(metrics, dict):
@@ -8413,11 +8416,30 @@ def auto_report():
             climbing_fatigue
         )
 
+        print(
+            "DEBUG MENSTRUAL:",
+            menstrual_data
+        )
+
+        print(
+            "DEBUG TEMPERATURE:",
+            temperature_data
+        )
+
+        print(
+            "DEBUG INJURY:",
+            injury_data
+        )
+
+     
         ai_prompt = generate_coach_prompt(
             metrics,
             training_load,
             weekly_data,
-            climbing_fatigue
+            climbing_fatigue,
+            menstrual_data,
+            temperature_data,
+            injury_data
         )
 
 
