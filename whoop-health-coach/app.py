@@ -3970,90 +3970,162 @@ import json
 @app.route("/whoop/weekly")
 def weekly():
 
-    try:
 
-        weekly_prompt = build_weekly_prompt()
+    if not check_api_key():
 
+            return jsonify({
+                    "error": "unauthorized"
+        }), 401
+
+ 
+        try:
+
+        print(
+            "========== WEEKLY PAGE START =========="
+        )
+
+
+        # ==========================
+        # 1. 获取 Weekly 数据
+        # ==========================
+
+        weekly_data = generate_weekly_analysis()
+
+
+        if not isinstance(
+            weekly_data,
+            dict
+        ):
+
+            raise ValueError(
+                "generate_weekly_analysis 返回类型错误"
+            )
+        
+        
+        print(
+            "WEEKLY DATA READY:",
+            weekly_data.get(
+                "valid_days",
+                0
+            )
+        )
+
+
+        if not weekly_data.get(
+            "success",
+            False
+        ):
+
+            error_message = weekly_data.get(
+                "error",
+                "暂无足够的 WHOOP 周数据"
+            )
+
+            return f"""
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1.0"
+                >
+            </head>
+
+            <body
+                style="
+                    font-family:Arial;
+                    padding:30px;
+                "
+            >
+                <h2>
+                    ⚠️ WHOOP 周报告暂时无法生成
+                </h2>
+
+                <p>
+                    {error_message}
+                </p>
+
+            </body>
+            </html>
+            """
+
+
+        # ==========================
+        # 3. 获取 AI Prompt
+        # ==========================
+
+        weekly_prompt = weekly_data.get(
+            "prompt_text",
+            ""
+        )
+
+
+        if not weekly_prompt:
+
+            raise ValueError(
+                "Weekly prompt 为空"
+            )
+
+
+        print(
+            "WEEKLY PROMPT READY"
+        )
+
+
+        # ==========================
+        # 4. 调用 Weekly AI
+        # ==========================
 
         weekly_result = generate_weekly_ai_summary(
             weekly_prompt
         )
 
 
+        print(
+            "WEEKLY AI RESULT:",
+            weekly_result
+        )
+
+
         # ==========================
-        # 解析 AI JSON
+        # 5. 检查 AI 返回
         # ==========================
 
-        try:
+        if not isinstance(
+            weekly_result,
+            dict
+        ):
 
-            if isinstance(weekly_result, dict):
-
-                weekly_json = weekly_result
-
-
-            else:
-
-                raw = weekly_result.strip()
-
-
-                if raw.startswith("```"):
-
-                    raw = raw.replace(
-                        "```json",
-                        ""
-                    )
-
-                    raw = raw.replace(
-                        "```",
-                        ""
-                    )
-
-                    raw = raw.strip()
-
-
-                weekly_json = json.loads(
-                    raw
-                )
-
-
-        except Exception as e:
-
-            print(
-                "WEEKLY JSON ERROR:",
-                e
-            )
-
-            print(
-                "RAW WEEKLY AI:",
-                repr(weekly_result)
+            raise ValueError(
+                "generate_weekly_ai_summary 返回类型错误"
             )
 
 
-            weekly_json = {
-                "weekly_report": str(weekly_result),
-                "weekly_training_advice": "",
-                "weekly_risk_warning": ""
-            }
+        # ==========================
+        # 6. 获取 AI 三个字段
+        # ==========================
 
-
-
-        weekly_report = weekly_json.get(
+        weekly_report = weekly_result.get(
             "weekly_report",
             ""
         )
 
 
-        weekly_training_advice = weekly_json.get(
+        weekly_training_advice = weekly_result.get(
             "weekly_training_advice",
             ""
         )
 
 
-        weekly_risk_warning = weekly_json.get(
+        weekly_risk_warning = weekly_result.get(
             "weekly_risk_warning",
-            ""
+            "暂无明显风险"
         )
 
+
+        # ==========================
+        # 7. 清理报告格式
+        # ==========================
 
         weekly_report = re.sub(
             r'\n\s*\n+',
@@ -4067,106 +4139,108 @@ def weekly():
         )
 
 
-        conn = get_db_connection()
-
-        cur = conn.cursor()
-
-
-        cur.execute(
-            """
-            SELECT
-                report_date,
-                recovery_score,
-                hrv,
-                sleep_duration,
-                cycle_strain
-
-            FROM daily_metrics
-
-            ORDER BY report_date DESC
-
-            LIMIT 7
-            """
+        print(
+            "WEEKLY REPORT READY"
         )
 
 
-        rows = cur.fetchall()
+        # ==========================
+        # 8. 直接使用 weekly_data
+        # ==========================
 
-
-        cur.close()
-
-        conn.close()
-
-
-        rows = list(
-            reversed(rows)
+        records = weekly_data.get(
+            "records",
+            []
         )
 
-        valid_days = len(rows)
+
+        valid_days = weekly_data.get(
+            "valid_days",
+            len(records)
+        )
+
 
         if valid_days < 7:
-            score_period_text = f"{valid_days}天阶段性综合状态"
+
+            score_period_text = (
+                f"{valid_days}天阶段性综合状态"
+            )
+
         else:
-            score_period_text = "近7天综合状态"
 
-        
-        dates = [
-            r[0]
-            for r in rows
-        ]
-            
+            score_period_text = (
+                "近7天综合状态"
+            )
 
-        sleep_valid_days = sum(
-            1 for r in rows
-            if r[3] is not None
+
+        start_date = weekly_data.get(
+            "start_date"
         )
 
-        if dates:
-            report_period = f"{dates[0]} 至 {dates[-1]}"
+
+        end_date = weekly_data.get(
+            "end_date"
+        )
+
+
+        if start_date and end_date:
+
+            report_period = (
+                f"{start_date} 至 {end_date}"
+            )
+
         else:
-            report_period = "暂无数据"
-            
+
+            report_period = (
+                "暂无数据"
+            )
+
+
+        dates = [
+            record.get(
+                "report_date"
+            )
+            for record in records
+        ]
+
 
         recovery_values = [
-            r[1]
-            for r in rows
-        ]
+            record.get(
+                "recovery_score"
+            )
+            for record in records
+                ]
 
 
         hrv_values = [
-            r[2]
-            for r in rows
+            record.get(
+                "hrv"
+            )
+            for record in records
         ]
 
 
         sleep_values = [
-            r[3]
-            for r in rows
+            record.get(
+                "sleep_duration"
+            )
+            for record in records
         ]
 
 
         strain_values = [
-            r[4]
-            for r in rows
-        ]
-
-
-        def safe_avg(values):
-
-            valid_values = [
-                float(v)
-                for v in values
-                if v is not None
-            ]
-
-            if not valid_values:
-                return None
-
-            return round(
-                sum(valid_values) / len(valid_values),
-                1
+            record.get(
+                "cycle_strain"
             )
-    
+            for record in records
+                ]
+
+
+        sleep_valid_days = sum(
+            1
+            for value in sleep_values
+            if value is not None
+        )
 
         def recovery_status(value):
 
@@ -4276,54 +4350,39 @@ def weekly():
             return "训练负荷过高"
     
     
-        avg_recovery = safe_avg(
-            recovery_values
+        avg_recovery = weekly_data.get(
+            "avg_recovery",
+            0
+        )
+
+        avg_hrv = weekly_data.get(
+            "avg_hrv",
+            0
         )
 
 
-        avg_hrv = safe_avg(
-            hrv_values
-        )
-
-        valid_hrv_values = [
-            float(v)
-            for v in hrv_values
-            if v is not None
-        ]
-
-        hrv_color = "gray"
-        hrv_text = "数据不足"
-
-        if len(valid_hrv_values) >= 2:
-
-            first_hrv = valid_hrv_values[0]
-            latest_hrv = valid_hrv_values[-1]
-
-            if first_hrv > 0:
-                hrv_change = (
-                    latest_hrv - first_hrv
-                ) / first_hrv * 100
-
-                if hrv_change >= 5:
-                    hrv_color = "green"
-                    hrv_text = "较期初上升"
-
-                elif hrv_change <= -5:
-                    hrv_color = "red"
-                    hrv_text = "较期初下降"
-
-                else:
-                    hrv_color = "orange"
-                    hrv_text = "整体稳定"
-            
-
-        avg_sleep = safe_avg(
-            sleep_values
+        hrv_color = hrv_status(
+            avg_hrv
         )
 
 
-        avg_strain = safe_avg(
-            strain_values
+        if not avg_hrv:
+
+            hrv_text = "暂无数据"
+
+        else:
+
+            hrv_text = "近7天平均 HRV"
+
+
+        avg_sleep = weekly_data.get(
+            "avg_sleep",
+            0
+        )
+
+        avg_strain = weekly_data.get(
+            "avg_strain",
+            0
         )
 
         
@@ -4332,29 +4391,42 @@ def weekly():
         health_score = 0
 
 
-        # Recovery 权重40%
+        # Recovery 50%
         if avg_recovery is not None:
-            health_score += avg_recovery * 0.4
+
+            health_score += (
+                avg_recovery * 0.5
+            )
 
 
-        # HRV 权重30%
+        # HRV 30%
         if avg_hrv is not None:
-            health_score += min(avg_hrv,100) * 0.3
+
+            health_score += (
+                min(
+                    avg_hrv,
+                    100
+                )
+                * 0.3
+            )
 
 
-        # 睡眠权重20%
+        # 睡眠 20%
         if avg_sleep is not None:
-            sleep_score = min(avg_sleep / 8 * 100, 100)
-            health_score += sleep_score * 0.2
+        
+            sleep_component = min(
+                avg_sleep / 8 * 100,
+                100
+            )
 
+            health_score += (
+                sleep_component * 0.2
+            )
 
-        # Strain权重10%
-        if avg_strain is not None:
-            strain_score = max(0,100-avg_strain*5)
-            health_score += strain_score * 0.1
-
-
-        health_score = round(health_score)
+        
+        health_score = round(
+            health_score
+        )
 
 
         recovery_color = recovery_status(
@@ -4699,6 +4771,33 @@ color:#dc2626;
 color:#2563eb;
 
 }}
+
+
+.ai-risk-box {{
+
+background:#fafafa;
+
+border-radius:16px;
+
+padding:14px 18px;
+
+margin-bottom:12px;
+
+}}
+
+
+.ai-risk-title {{
+
+font-size:22px;
+
+font-weight:bold;
+
+margin-bottom:8px;
+
+color:#dc2626;
+
+}}
+
 
 
 .health-score-card {{
@@ -5215,35 +5314,59 @@ h
 </div>
 
 
+
+<!-- Weekly 主报告 -->
+
+<div class="ai-item">
+
 <div class="ai-content">
 
 {weekly_report}
 
+</div>
+
+</div>
+
+
+
+<!-- 未来7天训练建议 -->
 
 <div class="ai-item">
 
 <div class="ai-item-title">
+
 🏋️ 未来7天训练建议
+
 </div>
 
 <div class="ai-content">
+
 {weekly_training_advice}
-</div>
 
 </div>
 
+</div>
 
-<h2>
+
+
+<!-- 风险提醒 -->
+
+<div class="ai-risk-box">
+
+<div class="ai-risk-title">
+
 ⚠️ 未来7天风险提醒
-</h2>
 
-<div class="summary-card">
+</div>
+
+<div class="ai-content">
 
 {weekly_risk_warning}
 
 </div>
 
 </div>
+
 
 </div>
 
