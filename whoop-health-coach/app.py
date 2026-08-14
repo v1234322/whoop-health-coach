@@ -5712,12 +5712,57 @@ Strain：{show_value(cycle_strain)}
 
         result = generate_weekly_ai_summary(prompt)
 
+
+        # =========================
+        # 计算7天平均数据
+        # =========================
+
+        valid_recovery = [
+            row[1] for row in rows
+            if row[1] is not None
+        ]
+
+        valid_hrv = [
+            row[2] for row in rows
+            if row[2] is not None
+        ]
+
+        valid_sleep = [
+            row[3] for row in rows
+            if row[3] is not None
+        ]
+
+
+        avg_recovery = (
+            sum(valid_recovery) / len(valid_recovery)
+            if valid_recovery
+            else 0
+        )
+
+
+        avg_hrv = (
+            sum(valid_hrv) / len(valid_hrv)
+            if valid_hrv
+            else 0
+        )
+
+
+        avg_sleep = (
+            sum(valid_sleep) / len(valid_sleep)
+            if valid_sleep
+            else 0
+        )
+
+
+        avg_resting_hr = 0
+
+
         return {
-            "avg_recovery": avg_recovery,
-            "avg_hrv": avg_hrv,
-            "avg_resting_hr": avg_resting_hr,
-            "avg_sleep": avg_sleep,
-            "report": weekly_report
+             "avg_recovery": round(avg_recovery,2),
+             "avg_hrv": round(avg_hrv,2),
+             "avg_resting_hr": avg_resting_hr,
+             "avg_sleep": round(avg_sleep,2),
+             "report": result
         }
 
     except Exception as e:
@@ -7976,9 +8021,9 @@ def auto_report():
 
 
         ai_prompt = generate_coach_prompt(
-            metrics,
-            training_load,
-            weekly_data
+            metrics.get()
+            training_load.get()
+            weekly.get()
         )
 
 
