@@ -5585,7 +5585,8 @@ def get_latest_temperature_data():
     SELECT 
         report_date,
         skin_temperature,
-        temperature_deviation
+        temperature_deviation,
+        temperature_status
     FROM daily_metrics
     ORDER BY report_date DESC
     LIMIT 1
