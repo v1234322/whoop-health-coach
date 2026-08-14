@@ -5432,9 +5432,9 @@ def save_daily_coach_report(
 
 
 def generate_coach_prompt(
-    metrics,
-    training_load,
-    weekly
+    metrics.get()
+    training_load.get()
+    weekly.get()
 ):
 
     if not isinstance(metrics, dict):
@@ -8021,17 +8021,34 @@ def auto_report():
 
 
         ai_prompt = generate_coach_prompt(
-            metrics.get()
-            training_load.get()
-            weekly.get()
+            metrics
+            training_load
+            weekly
         )
 
 
         print(
-            "DEBUG PROMPT READY"
+           "DEBUG PROMPT READY"
         )
-     
-        
+
+        coach_advice = generate_ai_summary(
+           ai_prompt
+        )
+
+
+        print(
+            "DEBUG COACH TYPE:",
+            type(coach_advice)
+        )
+
+
+        save_daily_coach_report(
+            metrics,
+            training_load,
+            coach_advice
+        )
+
+
         ai_prompt = f"""
 
 你是 WHOOP 私人健康教练。
