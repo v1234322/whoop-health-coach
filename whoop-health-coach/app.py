@@ -4994,6 +4994,77 @@ def get_training_load_summary():
     }
 
 
+def analyze_climbing_fatigue(training_load):
+
+    finger = training_load.get(
+        "finger_fatigue",
+        0
+    )
+
+    elbow = training_load.get(
+        "elbow_fatigue",
+        0
+    )
+
+    hang_sessions = training_load.get(
+        "hangboard_sessions",
+        0
+    )
+
+
+    risk = "正常"
+
+    advice = []
+
+
+    # 手指高疲劳
+    if finger >= 7:
+
+        risk = "手指专项疲劳升高"
+
+        advice.append(
+            "避免最大力量指力板"
+        )
+
+        advice.append(
+            "避免极限抱石"
+        )
+
+
+    # 肘部疲劳
+    if elbow >= 6:
+
+        risk = "肘部局部疲劳风险"
+
+        advice.append(
+            "降低拉力训练"
+        )
+
+
+    # 最近大量指力板
+    if hang_sessions >= 3:
+
+        advice.append(
+            "近期指力板频率较高"
+        )
+
+
+    if not advice:
+
+        advice.append(
+            "可以正常技术训练"
+        )
+
+
+    return {
+
+        "fatigue_level":risk,
+
+        "recommendations":advice
+
+    }
+
+
 
 # ==============================
 # AI 教练总结
@@ -5473,6 +5544,17 @@ Strain:
 平均前臂疲劳:
 {training_load.get("avg_forearm_fatigue",
 training_load.get("elbow_fatigue",0))}
+
+
+
+🧗 攀岩专项疲劳分析：
+
+疲劳等级:
+{climbing_fatigue.get("fatigue_level")}
+
+建议:
+{climbing_fatigue.get("recommendations")}
+
 
 
 
@@ -7493,21 +7575,39 @@ Strain
 建议强度
 
 
+🧗🏻‍♀️ 攀岩专项训练判断：
+
+1. 攀岩训练不能只根据WHOOP Recovery判断。
+2. 必须结合手指疲劳、肘部疲劳、指力板训练历史。
+3. Max Hang属于高强度力量训练，需要更长恢复时间。
+4. 如果手指疲劳较高，即使Recovery正常，也降低最大力量训练。
+5. 优先保护手指肌腱和肘部健康。
+6. 如果Recovery正常，但最近7天存在高强度指力板训练：
+   优先安排技术攀岩、线路熟悉、低强度训练。
+7. 如果手指疲劳 >=7/10：
+   禁止Max Hang、极限抱石、极限项目冲刺。
+8. 如果肘部疲劳 >=6/10：
+   降低大幅度拉力动作和高强度抱石。
+9. 攀岩训练建议优先级：
+   技术训练 > 容量训练 > 力量训练 > 极限训练。
+
+
+
 ⚠️ 【未来3天行动计划】
 
+未来训练安排必须考虑：
+1. WHOOP恢复状态
+2. 最近7天训练负荷
+3. 手指疲劳趋势
+4. 肘部疲劳趋势
 
 第1天：
-
 训练建议
 
-
 第2天：
-
 恢复建议
 
-
 第3天：
-
 训练调整建议
 
 
@@ -8039,6 +8139,8 @@ def auto_report():
         weekly_data = generate_weekly_analysis()
 
         training_load = calculate_training_load()
+
+        climbing_fatigue = analyze_climbing_fatigue(training_load)
 
 
         ai_prompt = generate_coach_prompt(
