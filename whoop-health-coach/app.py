@@ -5575,9 +5575,12 @@ def get_latest_temperature_data():
 
 
     cur.execute("""
-    SELECT *
-    FROM body_temperature_log
-    ORDER BY temperature_date DESC
+    SELECT 
+        report_date,
+        skin_temperature,
+        temperature_deviation
+    FROM daily_metrics
+    ORDER BY report_date DESC
     LIMIT 1
     """)
 
