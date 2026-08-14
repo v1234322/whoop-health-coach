@@ -5477,7 +5477,9 @@ risk_warning：
 
                 {
                     "role": "user",
-                    "content": ai_prompt
+                    "content": json.dumps(
+                        ai_prompt,
+                        ensure_ascii=False
                 }
 
             ],
@@ -8999,6 +9001,11 @@ def auto_report():
 
         print(
             "DEBUG PROMPT READY"
+        )
+
+        print(
+            "DEBUG PROMPT TYPE:",
+            type(ai_prompt)
         )
 
         ai_result = generate_ai_summary(
