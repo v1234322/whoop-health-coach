@@ -8463,6 +8463,19 @@ def auto_report():
         cur = conn.cursor()
 
 
+        cur.execute("""
+        SELECT table_name, column_name
+        FROM information_schema.columns
+        WHERE column_name='report_date'
+                ORDER BY table_name
+        """)
+
+        print(
+            "REPORT_DATE TABLES:",
+            cur.fetchall()
+        )
+
+
         cur.execute(
             """
             DELETE FROM system_status
