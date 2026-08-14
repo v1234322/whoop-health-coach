@@ -6203,6 +6203,16 @@ def check_api_key():
     )
 
 
+    print(
+        "HEADER EXISTS:",
+        key is not None
+    )
+
+    print(
+        "ENV EXISTS:",
+        api_secret is not None
+    )
+     
 
     print(
         "COMPARE:",
