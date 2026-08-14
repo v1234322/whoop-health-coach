@@ -5500,7 +5500,8 @@ def save_daily_coach_report(
 def generate_coach_prompt(
     metrics,
     training_load,
-    weekly
+    weekly,
+    climbing_fatigue
 ):
 
     if not isinstance(metrics, dict):
@@ -5562,10 +5563,10 @@ training_load.get("elbow_fatigue",0))}
 🧗 攀岩专项疲劳分析：
 
 疲劳等级:
-{climbing_fatigue.get("fatigue_level")}
+{climbing_fatigue_data.get("fatigue_level")}
 
 建议:
-{climbing_fatigue.get("recommendations")}
+{climbing_fatigue_data.get("recommendations")}
 
 
 
@@ -8158,6 +8159,8 @@ def auto_report():
             "DEBUG CLIMBING FATIGUE:",
             climbing_fatigue
         )
+
+        climbing_fatigue_data = climbing_fatigue
 
         ai_prompt = generate_coach_prompt(
             metrics,
