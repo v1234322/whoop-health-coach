@@ -5493,31 +5493,103 @@ def get_training_load_summary():
 
 def analyze_climbing_fatigue(training_load):
 
-    finger = training_load.get(
-        "finger_fatigue",
+    # =========================
+    # 1. 读取最新局部疲劳
+    # =========================
+
+    finger = float(
         training_load.get(
-            "hangboard_finger_fatigue",
+            "latest_finger_fatigue",
             training_load.get(
-                "avg_fatigue",
+                "finger_fatigue",
                 0
             )
-        )
+        ) or 0
     )
 
-    elbow = training_load.get(
-        "elbow_fatigue",
+
+    elbow = float(
         training_load.get(
-            "avg_elbow_fatigue",
-            0
-        )
+            "latest_elbow_fatigue",
+            training_load.get(
+                "elbow_fatigue",
+                0
+            )
+        ) or 0
     )
 
-    hang_sessions = training_load.get(
-        "hangboard_sessions",
+
+    # =========================
+    # 2. 最近7天训练频率
+    # =========================
+
+    hang_sessions = int(
         training_load.get(
-            "sessions",
+            "hangboard_sessions_7d",
+            training_load.get(
+                "hangboard_sessions",
+                0
+            )
+        ) or 0
+    )
+
+
+    # =========================
+    # 3. 距最近一次指力板时间
+    # =========================
+
+    days_since = training_load.get(
+        "days_since_hangboard"
+    )
+
+
+    if days_since is not None:
+
+        try:
+            days_since = int(days_since)
+
+        except Exception:
+            days_since = None
+
+
+    # =========================
+    # 4. 最近一次恢复评分
+    # =========================
+
+    recovery_after = training_load.get(
+        "latest_recovery_after"
+    )
+
+
+    if recovery_after is not None:
+
+        try:
+            recovery_after = float(
+                recovery_after
+            )
+
+        except Exception:
+            recovery_after = None
+
+
+    # =========================
+    # 5. 最近7天平均疲劳
+    # 仅用于背景，不当作当前疲劳
+    # =========================
+
+    avg_finger_7d = float(
+        training_load.get(
+            "avg_finger_fatigue_7d",
             0
-        )
+        ) or 0
+    )
+
+
+    avg_elbow_7d = float(
+        training_load.get(
+            "avg_elbow_fatigue_7d",
+            0
+        ) or 0
     )
 
 
@@ -5526,53 +5598,200 @@ def analyze_climbing_fatigue(training_load):
     advice = []
 
 
-    # 手指高疲劳
+    # =========================
+    # 6. 手指当前局部疲劳
+    # =========================
+
     if finger >= 7:
 
-        risk = "手指专项疲劳升高"
+        risk = "手指专项疲劳较高"
 
         advice.append(
-            "避免最大力量指力板"
+            "避免 Max Hang 和高强度 Repeaters"
         )
 
         advice.append(
-            "避免极限抱石"
+            "避免极限抱石和高负荷抓握"
         )
 
 
-    # 肘部疲劳
+    elif finger >= 5:
+
+        risk = "手指局部疲劳需要关注"
+
+        advice.append(
+            "今天不建议最大力量指力训练"
+        )
+
+        advice.append(
+            "攀岩以技术或中低强度为主"
+        )
+
+
+    # =========================
+    # 7. 肘部疲劳
+    # =========================
+
     if elbow >= 6:
 
-        risk = "肘部局部疲劳风险"
+        risk = "肘部局部疲劳风险较高"
 
         advice.append(
-            "降低拉力训练"
+            "降低拉力训练和高强度锁定动作"
         )
 
 
-    # 最近大量指力板
-    if hang_sessions >= 3:
+    elif elbow >= 4:
+
+        if risk == "正常":
+            risk = "肘部轻度疲劳"
 
         advice.append(
-            "近期指力板频率较高"
+            "控制拉力训练量，观察肘部反应"
         )
 
+
+    # =========================
+    # 8. 指力板频率判断
+    # 频率高 ≠ 当前一定疲劳
+    # =========================
+
+    if hang_sessions >= 4:
+
+        if days_since is not None and days_since <= 1:
+
+            advice.append(
+                "最近7天指力板频率较高，且最近一次训练距今不足48小时"
+            )
+
+        else:
+
+            advice.append(
+                "最近7天指力板频率较高，但需结合当前手指状态判断"
+            )
+
+
+    elif hang_sessions == 3:
+
+        advice.append(
+            "最近7天指力板训练频率偏高，今天不建议额外叠加高强度指力训练"
+        )
+
+
+    # =========================
+    # 9. 距最近一次训练时间修正
+    # =========================
+
+    if days_since is not None:
+
+        if days_since == 0:
+
+            advice.append(
+                "今天已有指力板负荷，不建议再次安排高强度指力训练"
+            )
+
+
+        elif days_since == 1:
+
+            if finger >= 5:
+
+                advice.append(
+                    "距上次指力板仅1天且手指疲劳仍存在，建议继续恢复"
+                )
+
+
+        elif days_since >= 3:
+
+            if (
+                finger < 5
+                and elbow < 4
+            ):
+
+                advice.append(
+                    "距最近一次指力板已至少3天，若热身后无不适，可重新评估指力训练"
+                )
+
+
+    # =========================
+    # 10. 恢复后评分修正
+    # =========================
+
+    if recovery_after is not None:
+
+        if recovery_after < 60:
+
+            if risk == "正常":
+                risk = "最近一次指力训练恢复不足"
+
+            advice.append(
+                "最近一次指力训练恢复评分偏低，建议延长恢复"
+            )
+
+
+        elif recovery_after >= 80:
+
+            if (
+                finger < 5
+                and elbow < 4
+                and days_since is not None
+                and days_since >= 2
+            ):
+
+                advice.append(
+                    "最近一次训练后恢复良好，可根据热身状态决定是否恢复指力训练"
+                )
+
+
+    # =========================
+    # 11. 默认建议
+    # =========================
 
     if not advice:
 
         advice.append(
-            "可以正常技术训练"
+            "近期局部疲劳信号不明显，可以正常技术训练"
         )
 
 
     return {
 
-        "fatigue_level":risk,
+        "fatigue_level":
+        risk,
 
-        "recommendations":advice
+
+        "recommendations":
+        advice,
+
+
+        # 提供给AI解释，不把7天平均当当前疲劳
+        "latest_finger_fatigue":
+        finger,
+
+
+        "latest_elbow_fatigue":
+        elbow,
+
+
+        "hangboard_sessions_7d":
+        hang_sessions,
+
+
+        "days_since_hangboard":
+        days_since,
+
+
+        "latest_recovery_after":
+        recovery_after,
+
+
+        "avg_finger_fatigue_7d":
+        avg_finger_7d,
+
+
+        "avg_elbow_fatigue_7d":
+        avg_elbow_7d
 
     }
-
 
 
 # ==============================
