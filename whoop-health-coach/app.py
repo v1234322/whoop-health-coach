@@ -8154,6 +8154,10 @@ def auto_report():
 
         climbing_fatigue = analyze_climbing_fatigue(training_load)
 
+        print(
+            "DEBUG CLIMBING FATIGUE:",
+            climbing_fatigue
+        )
 
         ai_prompt = generate_coach_prompt(
             metrics,
