@@ -815,6 +815,17 @@ def init_db():
 
     cur = conn.cursor()
 
+    cur.execute("""
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name='daily_metrics'
+    """)
+
+    print(
+        "DAILY METRICS COLUMNS:",
+        cur.fetchall()
+    )    
+
 
     # =========================
     # WHOOP TOKEN
