@@ -3476,6 +3476,11 @@ def api_whoop_coach_report():
 
     except Exception as e:
 
+        print(
+            "COACH REPORT ERROR:",
+            str(e)
+        )
+
         return jsonify({
 
             "success":False,
