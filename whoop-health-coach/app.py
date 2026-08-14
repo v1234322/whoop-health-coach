@@ -7958,7 +7958,7 @@ def auto_report():
         print("DEBUG WEEKLY_DATA TYPE:", type(weekly_data))
         print("DEBUG WEEKLY_DATA VALUE:", weekly_data)
 
-        print("DEBUG BEFORE PROMPT WEEKLY:",type(weekly),weekly)
+        print("DEBUG AFTER WEEKLY_DATA:",type(weekly_data),weekly_data)
         
         ai_prompt = f"""
 
