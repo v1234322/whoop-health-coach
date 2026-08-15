@@ -8209,7 +8209,7 @@ def generate_coach_prompt(
  
     metrics,
     training_load,
-    weekly,
+    weekly_data,
     climbing_fatigue,
     menstrual_data,
     temperature_data,
@@ -8258,16 +8258,16 @@ def generate_coach_prompt(
         "skin_temperature"
     )
 
-    skin_temperature_avg = weekly.get(
+    skin_temperature_avg = weekly_data.get(
         "skin_temperature_avg"
     )
 
-    skin_temperature_valid_days = weekly.get(
+    skin_temperature_valid_days = weekly_data.get(
         "skin_temperature_valid_days",
         0
     )
 
-    temperature_deviation = weekly.get(
+    temperature_deviation = weekly_data.get(
         "temperature_deviation"
     )
 
@@ -8306,16 +8306,16 @@ def generate_coach_prompt(
         "spo2_percentage"
     )
 
-    spo2_avg = weekly.get(
+    spo2_avg = weekly_data.get(
         "spo2_avg"
     )
 
-    spo2_valid_days = weekly.get(
+    spo2_valid_days = weekly_data.get(
         "spo2_valid_days",
         0
     )
 
-    spo2_deviation = weekly.get(
+    spo2_deviation = weekly_data.get(
         "spo2_deviation"
     )
 
@@ -9130,31 +9130,31 @@ training_advice、
 ==============================
 
 平均 Recovery：
-{weekly.get(
+{weekly_data.get(
     "avg_recovery",
     0
 )}
 
 平均 HRV：
-{weekly.get(
+{weekly_data.get(
     "avg_hrv",
     0
 )}
 
 平均静息心率：
-{weekly.get(
+{weekly_data.get(
     "avg_resting_hr",
     0
 )} bpm
 
 平均睡眠：
-{weekly.get(
+{weekly_data.get(
     "avg_sleep",
     0
 )} 小时
 
 平均 Strain：
-{weekly.get(
+{weekly_data.get(
     "avg_strain",
     0
 )}
