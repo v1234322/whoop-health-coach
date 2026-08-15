@@ -2533,78 +2533,265 @@ padding:30px;
 
 def format_weekly_report(report):
 
+    import html
+    import re
+
     if not report:
         return "暂无 AI 健康分析"
 
+
+    # =========================
+    # Weekly AI 当前正式标题
+    # =========================
+
     sections = {
-        "🟢【恢复趋势】": "ai-green",
-        "❤️【HRV趋势】": "ai-heart",
-        "😴【睡眠趋势】": "ai-sleep",
-        "🔥【训练负荷】": "ai-fire",
-        "⚠️【风险提醒】": "ai-warning",
-        "📅【未来7天建议】": "ai-plan"
+
+        "🟢【今日状态】":
+            "ai-green",
+
+        "❤️【Recovery分析】":
+            "ai-heart",
+
+        "😴【睡眠分析】":
+            "ai-sleep",
+
+        "🔥【训练与负荷分析】":
+            "ai-fire",
+
+        "🩸【经期状态】":
+            "ai-period",
+
+        "🌡️【身体温度】":
+            "ai-temperature",
+
+        "🩹【伤病风险】":
+            "ai-injury",
+
+        "⚠️【疲劳风险】":
+            "ai-warning",
+
+        "📅【未来7天建议】":
+            "ai-plan"
     }
 
-    html_parts = []
-    section_open = False
 
-    # 删除 AI 返回内容中的空白行
+    # =========================
+    # 兼容旧标题
+    # =========================
+
+    aliases = {
+
+        "🟢【恢复趋势】":
+            "🟢【今日状态】",
+
+        "❤️【HRV趋势】":
+            "❤️【Recovery分析】",
+
+        "😴【睡眠趋势】":
+            "😴【睡眠分析】",
+
+        "🔥【训练负荷】":
+            "🔥【训练与负荷分析】",
+
+        "🔥【训练睡眠分析】":
+            "🔥【训练与负荷分析】",
+
+        "⚠️【风险提醒】":
+            "⚠️【疲劳风险】"
+    }
+
+
+    # =========================
+    # 清理 AI Markdown
+    # =========================
+
+    report = str(report)
+
+    report = report.replace(
+        "**",
+        ""
+    )
+
+    report = report.replace(
+        "```",
+        ""
+    )
+
+
+    # 删除过多空行
+    report = re.sub(
+        r'\n\s*\n+',
+        '\n',
+        report
+    )
+
+
     lines = [
         line.strip()
         for line in report.splitlines()
         if line.strip()
     ]
 
+
+    html_parts = []
+
+    current_content = []
+
+    current_title = None
+
+    current_css = None
+
+
+    # =========================
+    # 输出一个完整 section
+    # =========================
+
+    def flush_section():
+
+        nonlocal current_content
+        nonlocal current_title
+        nonlocal current_css
+
+
+        if current_title is None:
+
+            return
+
+
+        content_html = "".join(
+            f"""
+            <div class="ai-item-content">
+                {html.escape(text)}
+            </div>
+            """
+            for text in current_content
+        )
+
+
+        html_parts.append(
+            f"""
+            <div class="ai-item">
+
+                <div class="ai-item-title {current_css}">
+                    {html.escape(current_title)}
+                </div>
+
+                <div class="ai-section-content">
+                    {content_html}
+                </div>
+
+            </div>
+            """
+        )
+
+
+        current_content = []
+
+
+    # =========================
+    # 逐行解析
+    # =========================
+
     for line in lines:
 
         matched_title = None
 
-        for title in sections:
+        display_title = None
+
+        css_class = None
+
+
+        # 正式标题
+        for title, css in sections.items():
+
             if line.startswith(title):
+
                 matched_title = title
+                display_title = title
+                css_class = css
                 break
+
+
+        # 兼容旧标题
+        if matched_title is None:
+
+            for old_title, new_title in aliases.items():
+
+                if line.startswith(old_title):
+
+                    matched_title = old_title
+                    display_title = new_title
+                    css_class = sections[
+                        new_title
+                    ]
+                    break
+
+
+        # =========================
+        # 找到新标题
+        # =========================
 
         if matched_title:
 
-            if section_open:
-                html_parts.append("</div>")
+            flush_section()
 
-            css = sections[matched_title]
 
-            html_parts.append(
-                f"""
-                <div class="ai-item">
-                    <div class="ai-item-title {css}">
-                        {matched_title}
-                    </div>
-                """
+            current_title = (
+                display_title
             )
 
-            section_open = True
+            current_css = (
+                css_class
+            )
 
-            # 保留标题后面可能存在的正文
-            remaining_text = line[len(matched_title):].strip()
+            current_content = []
+
+
+            # 标题同行后面的正文
+            remaining_text = (
+                line[
+                    len(matched_title):
+                ].strip()
+            )
+
 
             if remaining_text:
-                html_parts.append(
-                    f'<div class="ai-item-content">{remaining_text}</div>'
+
+                current_content.append(
+                    remaining_text
                 )
+
+
+        # =========================
+        # 普通正文
+        # =========================
 
         else:
 
-            if section_open:
-                html_parts.append(
-                    f'<div class="ai-item-content">{line}</div>'
-                )
-            else:
-                html_parts.append(
-                    f'<div class="ai-item-content">{line}</div>'
+            # 如果 AI 开头没有标题
+            if current_title is None:
+
+                current_title = (
+                    "📊 周期分析"
                 )
 
-    if section_open:
-        html_parts.append("</div>")
+                current_css = (
+                    "ai-default"
+                )
 
-    return "".join(html_parts)
+
+            current_content.append(
+                line
+            )
+
+
+    # 最后一段
+    flush_section()
+
+
+    return "".join(
+        html_parts
+    )
 
 
 @app.route("/api/whoop/today", methods=["GET"])
@@ -4711,22 +4898,35 @@ margin-bottom:12px;
 
 .ai-item-title {{
 
-font-size:28px;
+font-size:22px;
 
-font-weight:bold;
+font-weight:700;
 
-margin-bottom:4px;
+margin-bottom:8px;
 
 color:#111;
 
 }}
 
 
-.ai-content {{
+.ai-item-content {{
 
 font-size:16px;
 
-line-height:1.6;
+line-height:1.75;
+
+margin-bottom:6px;
+
+color:#222;
+
+}}
+
+
+.ai-section-content {{
+
+font-size:16px;
+
+line-height:1.75;
 
 }}
 
@@ -4767,6 +4967,21 @@ color:#2563eb;
 
 }}
 
+.ai-period {{
+color:#be185d;
+}}
+
+.ai-temperature {{
+color:#0891b2;
+}}
+
+.ai-injury {{
+color:#7c3aed;
+}}
+
+.ai-default {{
+color:#111;
+}}
 
 .ai-risk-box {{
 
@@ -4785,7 +5000,7 @@ margin-bottom:12px;
 
 font-size:22px;
 
-font-weight:bold;
+font-weight:700;
 
 margin-bottom:8px;
 
@@ -4973,14 +5188,20 @@ body {{
     }}
 
     .ai-item-title {{
-        font-size: 21px;
-        line-height: 1.4;
-        margin-bottom: 6px;
+        font-size:19px;
+        line-height:1.4;
+        margin-bottom:8px;
     }}
 
     .ai-item-content {{
-        font-size: 15px;
-        line-height: 1.7;
+        font-size:15px;
+        line-height:1.7;
+    }}
+
+    .ai-risk-title {{
+        font-size:19px;
+        line-height:1.4;
+        margin-bottom:8px;
     }}
 }}
 
@@ -5018,11 +5239,15 @@ body {{
     }}
 
     .ai-item-title {{
-        font-size: 19px;
+        font-size: 18px;
     }}
 
     .ai-item-content {{
         font-size: 14px;
+    }}
+
+    .ai-risk-title {{
+        font-size:18px;
     }}
 }}
 
@@ -5346,9 +5571,9 @@ h
 
 <!-- 风险提醒 -->
 
-<div class="ai-risk-box">
+<div class="ai-item">
 
-<div class="ai-risk-title">
+<div class="ai-item-title">
 
 ⚠️ 未来7天风险提醒
 
