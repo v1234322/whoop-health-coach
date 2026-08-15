@@ -10850,7 +10850,7 @@ def generate_weekly_analysis():
             f"{avg_sleep_score}\n\n"
 
             f"平均 Strain：\n"
-            f"{avg_strain}\n\n
+            f"{avg_strain}\n\n"
 
 
             f"==============================\n"
