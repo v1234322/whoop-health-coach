@@ -8227,8 +8227,8 @@ def generate_coach_prompt(
     if not isinstance(training_load, dict):
         training_load = {}
 
-    if not isinstance(weekly, dict):
-        weekly = {}
+    if not isinstance(weekly_data, dict):
+        weekly_data = {}
 
     if not isinstance(climbing_fatigue, dict):
         climbing_fatigue = {}
