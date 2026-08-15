@@ -3438,34 +3438,32 @@ def get_whoop_coach_report():
         # 5. 今日相对个人基线变化
         # =========================
 
-        temperature_deviation = None
-
-        if (
-            skin_temperature is not None
-            and
-            skin_temperature_avg is not None
-        ):
-
-            temperature_deviation = round(
-                float(skin_temperature)
-                - float(skin_temperature_avg),
+        temperature_deviation = (
+            round(
+                skin_temperature - skin_temperature_avg,
                 2
             )
+            if (
+                skin_temperature is not None
+                and skin_temperature_avg is not None
+                and skin_temperature_valid_days >= 3
+            )
+            else None
+        )
 
 
-        spo2_deviation = None
-
-        if (
-            spo2_percentage is not None
-            and
-            spo2_avg is not None
-        ):
-
-            spo2_deviation = round(
-                float(spo2_percentage)
-                - float(spo2_avg),
+        spo2_deviation = (
+            round(
+                spo2_percentage - spo2_avg,
                 2
             )
+            if (
+                spo2_percentage is not None
+                and spo2_avg is not None
+                and spo2_valid_days >= 3
+            )        
+            else None
+        )
 
 
         # =========================
@@ -7369,6 +7367,10 @@ def generate_coach_prompt(
     injury_data
 ):
 
+    # =========================
+    # 1. 安全类型
+    # =========================
+
     if not isinstance(metrics, dict):
         metrics = {}
 
@@ -7383,17 +7385,103 @@ def generate_coach_prompt(
 
 
     # =========================
-    # WHOOP 温度 / 血氧
+    # 2. WHOOP 温度
     # =========================
 
     skin_temperature = metrics.get(
         "skin_temperature"
     )
 
+    skin_temperature_avg = weekly.get(
+        "skin_temperature_avg"
+    )
+
+    skin_temperature_valid_days = weekly.get(
+        "skin_temperature_valid_days",
+        0
+    )
+
+    temperature_deviation = weekly.get(
+        "temperature_deviation"
+    )
+
+
+    # 如果 metrics 本身已经带这些字段，也兼容
+    if skin_temperature_avg is None:
+
+        skin_temperature_avg = metrics.get(
+            "skin_temperature_avg"
+        )
+
+
+    if not skin_temperature_valid_days:
+
+        skin_temperature_valid_days = (
+            metrics.get(
+                "skin_temperature_valid_days",
+                0
+            )
+            or 0
+        )
+
+
+    if temperature_deviation is None:
+
+        temperature_deviation = metrics.get(
+            "temperature_deviation"
+        )
+
+
+    # =========================
+    # 3. WHOOP SpO2
+    # =========================
+
     spo2_percentage = metrics.get(
         "spo2_percentage"
     )
 
+    spo2_avg = weekly.get(
+        "spo2_avg"
+    )
+
+    spo2_valid_days = weekly.get(
+        "spo2_valid_days",
+        0
+    )
+
+    spo2_deviation = weekly.get(
+        "spo2_deviation"
+    )
+
+
+    if spo2_avg is None:
+
+        spo2_avg = metrics.get(
+            "spo2_avg"
+        )
+
+
+    if not spo2_valid_days:
+
+        spo2_valid_days = (
+            metrics.get(
+                "spo2_valid_days",
+                0
+            )
+            or 0
+        )
+
+
+    if spo2_deviation is None:
+
+        spo2_deviation = metrics.get(
+            "spo2_deviation"
+        )
+
+
+    # =========================
+    # 4. 温度显示文字
+    # =========================
 
     if skin_temperature is None:
 
@@ -7408,6 +7496,39 @@ def generate_coach_prompt(
         )
 
 
+    if skin_temperature_avg is None:
+
+        skin_temperature_avg_text = (
+            "数据不足"
+        )
+
+    else:
+
+        skin_temperature_avg_text = (
+            f"{skin_temperature_avg} °C"
+        )
+
+
+    if (
+        temperature_deviation is None
+        or skin_temperature_valid_days < 3
+    ):
+
+        temperature_deviation_text = (
+            "有效历史不足，暂不判断"
+        )
+
+    else:
+
+        temperature_deviation_text = (
+            f"{temperature_deviation:+.2f} °C"
+        )
+
+
+    # =========================
+    # 5. SpO2显示文字
+    # =========================
+
     if spo2_percentage is None:
 
         spo2_text = (
@@ -7421,8 +7542,37 @@ def generate_coach_prompt(
         )
 
 
+    if spo2_avg is None:
+
+        spo2_avg_text = (
+            "数据不足"
+        )
+
+    else:
+
+        spo2_avg_text = (
+            f"{spo2_avg}%"
+        )
+
+
+    if (
+        spo2_deviation is None
+        or spo2_valid_days < 3
+    ):
+
+        spo2_deviation_text = (
+            "有效历史不足，暂不判断"
+        )
+
+    else:
+
+        spo2_deviation_text = (
+            f"{spo2_deviation:+.2f}%"
+        )
+
+
     # =========================
-    # 最近一次训练数据
+    # 6. 最近一次训练数据
     # =========================
 
     latest_finger_fatigue = (
@@ -7431,13 +7581,11 @@ def generate_coach_prompt(
         )
     )
 
-
     latest_elbow_fatigue = (
         training_load.get(
             "latest_elbow_fatigue"
         )
     )
-
 
     latest_recovery_after = (
         training_load.get(
@@ -7445,13 +7593,16 @@ def generate_coach_prompt(
         )
     )
 
-
     days_since_hangboard = (
         training_load.get(
             "days_since_hangboard"
         )
     )
 
+
+    # =========================
+    # 7. Prompt
+    # =========================
 
     return f"""
 
@@ -7461,7 +7612,6 @@ def generate_coach_prompt(
 制定今天的训练和恢复建议。
 
 你的目标不是简单复述数据，
-
 而是回答：
 
 “这些数据对今天训练意味着什么？”
@@ -7603,23 +7753,28 @@ REM：
 
 
 ==============================
-WHOOP 皮肤温度与血氧
+WHOOP 皮肤温度
 ==============================
 
-WHOOP皮肤温度：
+今日WHOOP夜间皮肤温度：
 {skin_temperature_text}
 
-WHOOP血氧饱和度：
-{spo2_text}
+近期有效平均：
+{skin_temperature_avg_text}
+
+有效历史：
+{skin_temperature_valid_days} 天
+
+相对个人近期平均偏差：
+{temperature_deviation_text}
 
 补充温度记录：
 {temperature_data}
 
 
-重要：
+强制规则：
 
-WHOOP的 skin_temperature
-表示夜间皮肤温度。
+WHOOP皮肤温度是夜间皮肤温度。
 
 它不等于：
 
@@ -7628,56 +7783,106 @@ WHOOP的 skin_temperature
 口腔温度。
 
 
-例如：
+不得因为皮肤温度是34.x°C
+就判断：
 
-WHOOP皮肤温度为34.2°C，
+“体温过低”。
 
-不得写成：
 
-“体温34.2°C偏低”。
-
-也不得根据单日皮肤温度
+不得根据单日WHOOP皮肤温度
 判断：
 
 发烧
 感染
-生病
-体温异常。
+生病。
 
 
-如果没有：
+如果有效皮肤温度历史少于3天：
 
-个人皮肤温度基线
+只能报告当前数值。
 
-或
+必须说明：
 
-明确的温度偏差数据，
-
-只能报告当前WHOOP皮肤温度，
-
-不得判断异常升高或降低。
+“当前温度历史数据不足，
+暂不做可靠个人趋势判断。”
 
 
-如果未来提供：
+此时：
 
-皮肤温度近期平均值
-
-或
-
-相对个人基线偏差，
-
-才可以判断：
-
-“较个人近期基线升高”
-或
-“较个人近期基线下降”。
+不得把今日数值和只有1-2天的平均值
+解释成稳定个人基线。
 
 
-SpO₂表示WHOOP血氧饱和度。
+只有当有效历史达到至少3天，
 
-单次读数只能作为恢复背景数据。
+且存在可靠偏差数据时，
 
-不得根据单次SpO₂进行疾病诊断。
+才可以使用：
+
+“较近期个人基线升高”
+
+“较近期个人基线下降”
+
+“接近近期个人基线”。
+
+
+即使存在偏差，
+
+也不得单独根据皮肤温度
+进行医学诊断。
+
+
+==============================
+WHOOP 血氧
+==============================
+
+今日SpO₂：
+{spo2_text}
+
+近期有效平均：
+{spo2_avg_text}
+
+有效历史：
+{spo2_valid_days} 天
+
+相对近期平均偏差：
+{spo2_deviation_text}
+
+
+强制规则：
+
+SpO₂表示WHOOP记录的血氧饱和度。
+
+
+如果有效历史少于3天：
+
+只能报告当前数值。
+
+必须说明：
+
+“当前血氧历史数据不足，
+暂不做可靠趋势判断。”
+
+
+不得根据单次SpO₂
+进行医学诊断。
+
+
+不得仅凭单次读数推测：
+
+呼吸系统疾病
+感染
+缺氧
+其他疾病。
+
+
+如未来存在持续异常趋势，
+只能谨慎说明：
+
+“建议关注后续变化”。
+
+如果用户同时报告明显身体不适，
+可以建议咨询合格医疗专业人员。
 
 
 ==============================
@@ -7850,15 +8055,13 @@ Max Hang判断
 Max Hang 属于高强度最大力量训练。
 
 
-不得：
-
-仅因为 Recovery 高
+不得仅因为 Recovery 高
 就推荐 Max Hang。
 
 
-也不得：
+也不得仅因为：
 
-仅因为手指疲劳4-6/10
+手指疲劳4-6/10
 
 或
 
@@ -7890,7 +8093,7 @@ Max Hang 属于高强度最大力量训练。
 则可以考虑恢复 Max Hang。
 
 
-但首次恢复 Max Hang
+首次恢复 Max Hang
 必须降低总训练量。
 
 
@@ -7928,7 +8131,7 @@ training_date
 训练开始时间
 训练结束时间
 
-则不得写：
+不得写：
 
 “已经满足48小时”
 
@@ -7984,7 +8187,7 @@ training_date
 
 如果经期数据不存在：
 
-写：
+必须写：
 
 “数据缺失，无法判断。”
 
@@ -8054,10 +8257,22 @@ training_date
 3. 睡眠是今天的支持因素
 还是限制因素。
 
-4. WHOOP皮肤温度
-是否有足够数据进行趋势判断。
+4. WHOOP皮肤温度：
 
-5. SpO₂是否有数据。
+如果有效历史不足3天，
+只报告当前值，
+不得做个人趋势判断。
+
+如果有效历史达到至少3天，
+再结合个人基线判断变化。
+
+5. SpO₂：
+
+如果有效历史不足3天，
+只报告当前值。
+
+如果历史足够，
+再分析近期趋势。
 
 6. 当前主要限制因素是：
 
@@ -8150,6 +8365,14 @@ HRV明显低于个人基线
 或多个指标同时异常。
 
 
+WHOOP皮肤温度和SpO₂：
+
+只能作为辅助恢复信号。
+
+不得仅凭其中一个指标
+升级整体训练风险。
+
+
 ==============================
 明日建议规则
 ==============================
@@ -8160,7 +8383,11 @@ HRV明显低于个人基线
 
 明天具体 HRV
 
-明天具体 Sleep Score。
+明天具体 Sleep Score
+
+明天具体皮肤温度
+
+明天具体SpO₂。
 
 
 必须采用条件式表达。
@@ -8199,6 +8426,9 @@ HRV明显低于个人基线
 
 不要把WHOOP皮肤温度
 误写成核心体温。
+
+不要把单次SpO₂
+解释为医学诊断结果。
 """
     
 
@@ -9951,7 +10181,9 @@ def generate_weekly_analysis():
                 resting_heart_rate,
                 sleep_duration,
                 sleep_score,
-                cycle_strain
+                cycle_strain,
+                skin_temperature,
+                spo2_percentage
 
             FROM daily_metrics
 
@@ -10096,7 +10328,9 @@ def generate_weekly_analysis():
                 resting_heart_rate,
                 sleep_duration,
                 sleep_score,
-                cycle_strain
+                cycle_strain,
+                skin_temperature,
+                spo2_percentage
             ) = row
 
 
@@ -10133,6 +10367,16 @@ def generate_weekly_analysis():
                 "cycle_strain":
                     safe_float(
                         cycle_strain
+                    ),
+
+                "skin_temperature":
+                    safe_float(
+                        skin_temperature
+                    ),
+
+                "spo2_percentage":
+                    safe_float(
+                        spo2_percentage
                     )
 
             }
@@ -10150,7 +10394,9 @@ def generate_weekly_analysis():
                 f"静息心率：{show_value(resting_heart_rate, ' bpm')}\n"
                 f"睡眠时长：{show_value(sleep_duration, ' 小时')}\n"
                 f"睡眠评分：{show_value(sleep_score, ' 分')}\n"
-                f"Strain：{show_value(cycle_strain)}"
+                f"Strain：{show_value(cycle_strain)}\n"
+                f"WHOOP皮肤温度：{show_value(skin_temperature, ' °C')}\n"
+                f"SpO₂：{show_value(spo2_percentage, '%')}"
             )
             
 
@@ -10211,6 +10457,159 @@ def generate_weekly_analysis():
             r["cycle_strain"]
             for r in records
         ])
+
+
+        # =========================
+        # WHOOP 温度 / SpO2趋势
+        # =========================
+
+        valid_skin_temperatures = [
+            r["skin_temperature"]
+            for r in records
+            if r.get("skin_temperature") is not None
+        ]
+
+
+        valid_spo2_values = [
+            r["spo2_percentage"]
+            for r in records
+            if r.get("spo2_percentage") is not None
+        ]
+
+
+        skin_temperature_valid_days = len(
+            valid_skin_temperatures
+        )
+
+
+        spo2_valid_days = len(
+            valid_spo2_values
+        )
+
+
+        skin_temperature_avg = (
+            round(
+                sum(valid_skin_temperatures)
+                / skin_temperature_valid_days,
+                2
+            )
+            if skin_temperature_valid_days > 0
+            else None
+        )
+
+
+        spo2_avg = (
+            round(
+                sum(valid_spo2_values)
+                / spo2_valid_days,
+                2
+            )
+            if spo2_valid_days > 0
+            else None
+        )
+
+
+        # 最新一天
+        latest_skin_temperature = (
+            records[-1].get(
+                "skin_temperature"
+            )
+            if records
+            else None
+        )
+
+
+        latest_spo2_percentage = (
+            records[-1].get(
+                "spo2_percentage"
+            )
+            if records
+            else None
+        )
+
+
+        # 至少3天数据才允许形成趋势偏差
+        temperature_deviation = None
+
+        if (
+            skin_temperature_valid_days >= 3
+            and latest_skin_temperature is not None
+            and skin_temperature_avg is not None
+        ):
+
+            temperature_deviation = round(
+                latest_skin_temperature
+                - skin_temperature_avg,
+                2
+            )
+
+
+        spo2_deviation = None
+
+        if (
+            spo2_valid_days >= 3
+            and latest_spo2_percentage is not None
+            and spo2_avg is not None
+        ):
+
+            spo2_deviation = round(
+                latest_spo2_percentage
+                - spo2_avg,
+                2
+            )
+
+
+        temperature_baseline_reliable = (
+            skin_temperature_valid_days >= 3
+        )
+
+
+        spo2_baseline_reliable = (
+            spo2_valid_days >= 3
+        )
+
+
+        print(
+            "WEEKLY TEMPERATURE:",
+            {
+                "latest":
+                    latest_skin_temperature,
+
+                "avg":
+                    skin_temperature_avg,
+
+                "valid_days":
+                    skin_temperature_valid_days,
+
+                "deviation":
+                    temperature_deviation,
+
+                "baseline_reliable":
+                    temperature_baseline_reliable
+            }
+        )
+
+
+        print(
+            "WEEKLY SPO2:",
+            {
+                "latest":
+                    latest_spo2_percentage,
+
+                "avg":
+                    spo2_avg,
+
+                "valid_days":
+                    spo2_valid_days,
+
+                "deviation":
+                    spo2_deviation,
+
+                "baseline_reliable":
+                    spo2_baseline_reliable
+            }
+        )
+
 
 
         # =========================
@@ -10451,7 +10850,52 @@ def generate_weekly_analysis():
             f"{avg_sleep_score}\n\n"
 
             f"平均 Strain：\n"
-            f"{avg_strain}\n\n"
+            f"{avg_strain}\n\n
+
+
+                        f"==============================\n"
+            f"WHOOP皮肤温度与血氧\n"
+            f"==============================\n\n"
+
+            f"今日WHOOP皮肤温度：\n"
+            f"{show_value(latest_skin_temperature, ' °C')}\n\n"
+
+            f"最近有效皮肤温度平均：\n"
+            f"{show_value(skin_temperature_avg, ' °C')}\n\n"
+
+            f"皮肤温度有效记录：\n"
+            f"{skin_temperature_valid_days}/7天\n\n"
+
+            f"皮肤温度相对近期平均偏差：\n"
+            f"{show_value(temperature_deviation, ' °C')}\n\n"
+
+            f"温度基线是否足够：\n"
+            f"{'是' if temperature_baseline_reliable else '否'}\n\n"
+
+            f"今日WHOOP SpO₂：\n"
+            f"{show_value(latest_spo2_percentage, '%')}\n\n"
+
+            f"最近有效SpO₂平均：\n"
+            f"{show_value(spo2_avg, '%')}\n\n"
+
+            f"SpO₂有效记录：\n"
+            f"{spo2_valid_days}/7天\n\n"
+
+            f"SpO₂相对近期平均偏差：\n"
+            f"{show_value(spo2_deviation, '%')}\n\n"
+
+            f"SpO₂基线是否足够：\n"
+            f"{'是' if spo2_baseline_reliable else '否'}\n\n"
+
+            f"重要说明：\n"
+            f"WHOOP皮肤温度是夜间皮肤温度，不等于核心体温、"
+            f"腋温或口腔温度。\n"
+            f"如果皮肤温度有效记录少于3天，"
+            f"只能报告当前值，不得判断相对个人基线升高或降低。\n"
+            f"如果SpO₂有效记录少于3天，"
+            f"只能报告当前值，不得进行可靠趋势判断。\n"
+            f"单次皮肤温度或SpO₂不得用于医学诊断。\n\n"
+
 
             f"==============================\n"
             f"最近7天攀岩训练负荷\n"
@@ -10600,6 +11044,22 @@ def generate_weekly_analysis():
             f"20. 未来7天计划必须动态调整，"
             f"不得仅根据最近7天训练频率较高，"
             f"直接规定固定休息1-2天或未来2-3天禁止Max Hang。\n"
+
+            f"21. WHOOP皮肤温度必须明确称为"
+            f"“WHOOP夜间皮肤温度”或“皮肤温度”，"
+            f"不得称为核心体温。\n\n"
+
+            f"22. 如果皮肤温度有效历史少于3天，"
+            f"不得使用“较个人基线升高”“较个人基线下降”"
+            f"或“温度异常”等结论，"
+            f"只能报告当前数值并说明历史不足。\n\n"
+
+            f"23. 如果SpO₂有效历史少于3天，"
+            f"只能报告当前值，"
+            f"不得根据单次读数进行医学推断。\n\n"
+
+            f"24. WHOOP皮肤温度和SpO₂只能作为辅助恢复信号，"
+            f"不得仅凭其中一个指标提高训练风险等级。\n"
         )
 
 
@@ -10640,6 +11100,42 @@ def generate_weekly_analysis():
 
             "avg_strain":
                 avg_strain,
+         
+
+            # WHOOP皮肤温度
+
+            "skin_temperature":
+                latest_skin_temperature,
+
+            "skin_temperature_avg":
+                skin_temperature_avg,
+
+            "skin_temperature_valid_days":
+                skin_temperature_valid_days,
+
+            "temperature_deviation":
+                temperature_deviation,
+
+            "temperature_baseline_reliable":
+                temperature_baseline_reliable,
+
+
+            # WHOOP SpO2
+
+            "spo2_percentage":
+                latest_spo2_percentage,
+
+            "spo2_avg":
+                spo2_avg,
+
+            "spo2_valid_days":
+                spo2_valid_days,
+
+            "spo2_deviation":
+                spo2_deviation,
+
+            "spo2_baseline_reliable":
+                spo2_baseline_reliable,
 
             "records":
                 records,
@@ -10673,7 +11169,22 @@ def generate_weekly_analysis():
                 days_since_hangboard,
 
             "prompt_text":
-                prompt_text
+                prompt_text,
+
+            "hang_time_7d":
+                hang_time_7d,
+
+            "avg_finger_fatigue_7d":
+                avg_finger_fatigue_7d,
+
+            "avg_elbow_fatigue_7d":
+                avg_elbow_fatigue_7d,
+
+            "latest_hangboard_date":
+                latest_hangboard_date,
+
+            "latest_recovery_after":
+                latest_recovery_after,
 
         }
 
@@ -10709,6 +11220,36 @@ def generate_weekly_analysis():
             "avg_sleep_score": 0,
 
             "avg_strain": 0,
+
+            "skin_temperature":
+                None,
+
+            "skin_temperature_avg":
+                None,
+
+            "skin_temperature_valid_days":
+                0,
+
+            "temperature_deviation":
+                None,
+
+            "temperature_baseline_reliable":
+                False,
+
+            "spo2_percentage":
+                None,
+
+            "spo2_avg":
+                None,
+
+            "spo2_valid_days":
+                0,
+
+            "spo2_deviation":
+                None,
+
+            "spo2_baseline_reliable":
+                False,
 
             "records": [],
 
