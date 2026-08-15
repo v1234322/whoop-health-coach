@@ -8241,7 +8241,7 @@ def generate_coach_prompt(
     max_hang_status = calculate_max_hang_status(
         metrics,
         training_load,
-        weekly,
+        weekly_data,
         injury_data
     ) 
 
