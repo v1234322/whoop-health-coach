@@ -15128,6 +15128,15 @@ def auto_report():
             risk_warning
         )
 
+     
+        max_hang_status = calculate_max_hang_status(
+            metrics,
+            training_load,
+            weekly,
+            injury_data
+        )
+
+
         print(
             "MAX HANG STATUS:",
             max_hang_status
