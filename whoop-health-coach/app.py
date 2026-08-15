@@ -7850,11 +7850,9 @@ def save_daily_coach_report(
 
     try:
 
-
         conn = get_db_connection()
 
         cursor = conn.cursor()
-
 
 
         report_date = datetime.now().strftime(
@@ -7869,7 +7867,6 @@ def save_daily_coach_report(
         training_advice = training_advice or ""
 
         risk_warning = risk_warning or ""
-
 
 
         print(
@@ -7894,7 +7891,6 @@ def save_daily_coach_report(
             "SAVE RISK WARNING:",
             risk_warning
         )
-
 
 
         cursor.execute(
@@ -8072,6 +8068,29 @@ def save_daily_coach_report(
             "SAVED MAX HANG STATUS:",
             max_hang_status
         )
+
+
+    except Exception as e:
+
+        print(
+            "SAVE DAILY COACH REPORT ERROR:",
+            e
+        )
+
+        if conn:
+
+            conn.rollback()
+
+
+    finally:
+
+        if cursor:
+
+            cursor.close()
+
+        if conn:
+
+            conn.close()
 
 def calculate_max_hang_status(
     metrics,
