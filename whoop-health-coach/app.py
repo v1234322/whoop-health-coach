@@ -10288,9 +10288,16 @@ def extract_daily_metrics(data):
 
     try:
 
-        recovery_data = data.get("recovery", [])
+        recovery_data = data.get(
+            "recovery",
+            []
+        )
 
-        if isinstance(recovery_data, dict):
+
+        if isinstance(
+            recovery_data,
+            dict
+        ):
 
             recovery_records = recovery_data.get(
                 "records",
@@ -10299,7 +10306,14 @@ def extract_daily_metrics(data):
 
         else:
 
-            recovery_records = recovery_data
+            recovery_records = (
+                recovery_data
+                if isinstance(
+                    recovery_data,
+                    list
+                )
+                else []
+            )
 
 
         recovery = (
@@ -10309,32 +10323,139 @@ def extract_daily_metrics(data):
         )
 
 
-        recovery_score_data = recovery.get(
-            "score",
-            {}
+        recovery_score_data = (
+            recovery.get(
+                "score"
+            )
+            or {}
         )
 
 
-        result["recovery_score"] = recovery_score_data.get(
-            "recovery_score"
+        # =========================
+        # Recovery Score
+        # =========================
+
+        result["recovery_score"] = (
+            recovery_score_data.get(
+                "recovery_score"
+            )
         )
 
 
-        result["hrv"] = recovery_score_data.get(
-            "hrv_rmssd_milli"
+        # =========================
+        # HRV
+        # =========================
+
+        result["hrv"] = (
+            recovery_score_data.get(
+                "hrv_rmssd_milli"
+            )
         )
 
 
-        result["resting_heart_rate"] = recovery_score_data.get(
-            "resting_heart_rate"
+        # =========================
+        # 静息心率
+        # =========================
+
+        result["resting_heart_rate"] = (
+            recovery_score_data.get(
+                "resting_heart_rate"
+            )
+        )
+
+
+        # =========================
+        # WHOOP 皮肤温度
+        # =========================
+
+        skin_temperature = (
+            recovery_score_data.get(
+                "skin_temp_celsius"
+            )
+        )
+
+
+        if skin_temperature is not None:
+
+            try:
+
+                skin_temperature = round(
+                    float(
+                        skin_temperature
+                    ),
+                    2
+                )
+
+            except Exception:
+
+                skin_temperature = None
+
+
+        result["skin_temperature"] = (
+            skin_temperature
+        )
+
+
+        # =========================
+        # WHOOP 血氧
+        # =========================
+
+        spo2_percentage = (
+            recovery_score_data.get(
+                "spo2_percentage"
+            )
+        )
+
+
+        if spo2_percentage is not None:
+
+            try:
+
+                spo2_percentage = round(
+                    float(
+                        spo2_percentage
+                    ),
+                    1
+                )
+
+            except Exception:
+
+                spo2_percentage = None
+
+
+        result["spo2_percentage"] = (
+            spo2_percentage
         )
 
 
         print(
             "RECOVERY PARSED:",
-            result["recovery_score"],
-            result["hrv"],
-            result["resting_heart_rate"]
+            {
+                "recovery_score":
+                    result.get(
+                        "recovery_score"
+                    ),
+
+                "hrv":
+                    result.get(
+                        "hrv"
+                    ),
+
+                "resting_heart_rate":
+                    result.get(
+                        "resting_heart_rate"
+                    ),
+
+                "skin_temperature":
+                    result.get(
+                        "skin_temperature"
+                    ),
+
+                "spo2_percentage":
+                    result.get(
+                        "spo2_percentage"
+                    )
+            }
         )
 
 
@@ -10346,13 +10467,19 @@ def extract_daily_metrics(data):
         )
 
         result["recovery_score"] = None
+
         result["hrv"] = None
+
         result["resting_heart_rate"] = None
 
+        result["skin_temperature"] = None
 
-    # =====================
+        result["spo2_percentage"] = None
+
+
+    # =========================
     # Sleep
-    # =====================
+    # =========================
 
     try:
 
@@ -10361,36 +10488,75 @@ def extract_daily_metrics(data):
             {}
         )
 
-        if not sleep_data and "score" in data:
+
+        if (
+            not sleep_data
+            and "score" in data
+        ):
+
             sleep_data = data
 
-        if isinstance(sleep_data, dict):
 
-            sleep_records = sleep_data.get(
-                "records",
-                []
+        if isinstance(
+            sleep_data,
+            dict
+        ):
+
+            sleep_records = (
+                sleep_data.get(
+                    "records",
+                    []
+                )
             )
 
-            if not sleep_records and sleep_data.get("score"):
-                sleep_records = [sleep_data]
 
-        
+            if (
+                not sleep_records
+                and sleep_data.get(
+                    "score"
+                )
+            ):
+
+                sleep_records = [
+                    sleep_data
+                ]
+
+
         else:
 
-            sleep_records = sleep_data
+            sleep_records = (
+                sleep_data
+                if isinstance(
+                    sleep_data,
+                    list
+                )
+                else []
+            )
 
-        # 优先选择非小睡且已评分的睡眠
+
+        # =========================
+        # 优先非小睡 + 已评分睡眠
+        # =========================
+
         main_sleep = None
+
 
         for record in sleep_records:
 
             if (
-                not record.get("nap", False)
-                and record.get("score_state") == "SCORED"
+                not record.get(
+                    "nap",
+                    False
+                )
+                and record.get(
+                    "score_state"
+                ) == "SCORED"
             ):
 
                 main_sleep = record
+
                 break
+
 
         if main_sleep is None:
 
@@ -10400,21 +10566,32 @@ def extract_daily_metrics(data):
                 else {}
             )
 
+
         sleep_score_data = (
-            main_sleep.get("score") or {}
+            main_sleep.get(
+                "score"
+            )
+            or {}
         )
+
 
         print(
             "SLEEP SCORE RAW:",
             sleep_score_data
         )
-        
+
 
         stage = (
-            sleep_score_data
-            .get("stage_summary") or {}
+            sleep_score_data.get(
+                "stage_summary"
+            )
+            or {}
         )
 
+
+        # =========================
+        # Sleep Score
+        # =========================
 
         result["sleep_score"] = (
             sleep_score_data.get(
@@ -10423,26 +10600,35 @@ def extract_daily_metrics(data):
         )
 
 
-        # 实际睡眠时间：
-        # 浅睡 + 深睡 + REM
+        # =========================
+        # 睡眠阶段
+        # =========================
+
         light_sleep = (
             stage.get(
                 "total_light_sleep_time_milli"
-            ) or 0
+            )
+            or 0
         )
+
 
         deep_sleep = (
             stage.get(
                 "total_slow_wave_sleep_time_milli"
-            ) or 0
+            )
+            or 0
         )
+
 
         rem_sleep = (
             stage.get(
                 "total_rem_sleep_time_milli"
-            ) or 0
+            )
+            or 0
         )
 
+
+        # 实际睡眠时间
         total_sleep = (
             light_sleep
             + deep_sleep
@@ -10452,13 +10638,18 @@ def extract_daily_metrics(data):
 
         result["sleep_duration"] = (
             round(
-                total_sleep / 3600000,
+                total_sleep
+                / 3600000,
                 2
             )
             if total_sleep
             else None
         )
 
+
+        # =========================
+        # 睡眠效率
+        # =========================
 
         result["sleep_efficiency"] = (
             sleep_score_data.get(
@@ -10467,9 +10658,14 @@ def extract_daily_metrics(data):
         )
 
 
+        # =========================
+        # 深睡
+        # =========================
+
         result["deep_sleep_duration"] = (
             round(
-                deep_sleep / 3600000,
+                deep_sleep
+                / 3600000,
                 2
             )
             if deep_sleep
@@ -10477,13 +10673,49 @@ def extract_daily_metrics(data):
         )
 
 
+        # =========================
+        # REM
+        # =========================
+
         result["rem_sleep_duration"] = (
             round(
-                rem_sleep / 3600000,
+                rem_sleep
+                / 3600000,
                 2
             )
             if rem_sleep
             else None
+        )
+
+
+        print(
+            "SLEEP PARSED:",
+            {
+                "sleep_score":
+                    result.get(
+                        "sleep_score"
+                    ),
+
+                "sleep_duration":
+                    result.get(
+                        "sleep_duration"
+                    ),
+
+                "sleep_efficiency":
+                    result.get(
+                        "sleep_efficiency"
+                    ),
+
+                "deep_sleep_duration":
+                    result.get(
+                        "deep_sleep_duration"
+                    ),
+
+                "rem_sleep_duration":
+                    result.get(
+                        "rem_sleep_duration"
+                    )
+            }
         )
 
 
@@ -10495,15 +10727,19 @@ def extract_daily_metrics(data):
         )
 
         result["sleep_score"] = None
+
         result["sleep_duration"] = None
+
         result["sleep_efficiency"] = None
+
         result["deep_sleep_duration"] = None
+
         result["rem_sleep_duration"] = None
 
 
-    # =====================
+    # =========================
     # Cycle
-    # =====================
+    # =========================
 
     strain = None
 
@@ -10516,30 +10752,59 @@ def extract_daily_metrics(data):
         )
 
 
-        cycle_records = cycle_data.get(
-            "records",
-            []
-        )
+        if isinstance(
+            cycle_data,
+            dict
+        ):
+
+            cycle_records = (
+                cycle_data.get(
+                    "records",
+                    []
+                )
+            )
+
+        else:
+
+            cycle_records = (
+                cycle_data
+                if isinstance(
+                    cycle_data,
+                    list
+                )
+                else []
+            )
 
 
         print(
             "CYCLE RECORD COUNT:",
-            len(cycle_records)
+            len(
+                cycle_records
+            )
         )
 
 
         for cycle in cycle_records:
 
-            score = cycle.get(
-                "score",
-                {}
+            score = (
+                cycle.get(
+                    "score"
+                )
+                or {}
             )
 
 
-            if score.get("strain") is not None:
-
-                strain = score.get(
+            if (
+                score.get(
                     "strain"
+                )
+                is not None
+            ):
+
+                strain = (
+                    score.get(
+                        "strain"
+                    )
                 )
 
                 break
@@ -10558,8 +10823,12 @@ def extract_daily_metrics(data):
         strain
     )
 
-    result["cycle_strain"] = strain
-    
+
+    result["cycle_strain"] = (
+        strain
+    )
+
+
     # =========================
     # Workout
     # =========================
@@ -10572,7 +10841,10 @@ def extract_daily_metrics(data):
         )
 
 
-        if isinstance(workout_data, dict):
+        if isinstance(
+            workout_data,
+            dict
+        ):
 
             result["workout_data"] = (
                 workout_data.get(
@@ -10583,7 +10855,9 @@ def extract_daily_metrics(data):
 
         else:
 
-            result["workout_data"] = workout_data
+            result["workout_data"] = (
+                workout_data
+            )
 
 
     except Exception as e:
@@ -10595,10 +10869,32 @@ def extract_daily_metrics(data):
 
         result["workout_data"] = {}
 
+
+    # =========================
+    # 最终输出
+    # =========================
+
     print(
         "FINAL EXTRACT METRICS:",
         result
     )
+
+
+    print(
+        "WHOOP TEMPERATURE:",
+        result.get(
+            "skin_temperature"
+        )
+    )
+
+
+    print(
+        "WHOOP SPO2:",
+        result.get(
+            "spo2_percentage"
+        )
+    )
+
 
     return result
 
