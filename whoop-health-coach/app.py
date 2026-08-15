@@ -1867,7 +1867,10 @@ def today():
 重点解释身体信号
 给明确行动建议
 像WHOOP私人教练
-500字以内
+总长度控制在800字以内。
+weekly_report 控制在500字以内。
+weekly_training_advice 控制在180字以内。
+weekly_risk_warning 控制在120字以内。
 
         """
 
@@ -7191,7 +7194,7 @@ def generate_weekly_ai_summary(ai_prompt):
 
             temperature=0.3,
 
-            max_tokens=1200
+            max_tokens=1800
 
         )
 
@@ -7221,6 +7224,11 @@ def generate_weekly_ai_summary(ai_prompt):
 
 
         raw = str(content).strip()
+
+        print(
+            "WEEKLY AI RAW LENGTH:",
+            len(raw)
+        )
 
 
         # 去掉 Markdown JSON 代码块
