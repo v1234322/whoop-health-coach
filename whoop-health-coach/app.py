@@ -9513,16 +9513,165 @@ def generate_weekly_analysis():
         # 11. Weekly AI Prompt
         # =========================
 
-        prompt_text = f"""
+        data_completeness = (
+            "完整7天数据"
+            if valid_days >= 7
+            else "不足7天，仅代表阶段性趋势"
+        )
 
-统计周期：
-{start_date} 至 {end_date}
 
-有效 WHOOP 记录：
-{valid_days}/7天
+        prompt_text = (
+            f"统计周期：\n"
+            f"{start_date} 至 {end_date}\n\n"
 
-数据完整性：
-{"完整7天数据" if valid_days >= 7 else "不足7天，仅代表阶段性趋势"}
+            f"有效 WHOOP 记录：\n"
+            f"{valid_days}/7天\n\n"
+
+            f"数据完整性：\n"
+            f"{data_completeness}\n\n"
+
+            f"==============================\n"
+            f"WHOOP 每日数据\n"
+            f"==============================\n\n"
+
+            f"以下数据按日期正序排列：\n\n"
+            f"{weekly_data_text}\n\n"
+
+            f"==============================\n"
+            f"WHOOP 周平均\n"
+            f"==============================\n\n"
+
+            f"平均 Recovery：\n"
+            f"{avg_recovery}%\n\n"
+
+            f"平均 HRV：\n"
+            f"{avg_hrv} ms\n\n"
+
+            f"平均静息心率：\n"
+            f"{avg_resting_hr} bpm\n\n"
+
+            f"平均睡眠：\n"
+            f"{avg_sleep} 小时\n\n"
+
+            f"平均睡眠评分：\n"
+            f"{avg_sleep_score}\n\n"
+
+            f"平均 Strain：\n"
+            f"{avg_strain}\n\n"
+
+            f"==============================\n"
+            f"最近7天攀岩训练负荷\n"
+            f"==============================\n\n"
+
+            f"攀岩次数：\n"
+            f"{climbing_sessions_7d}\n\n"
+
+            f"攀岩总时长：\n"
+            f"{climbing_duration_7d} 分钟\n\n"
+
+            f"==============================\n"
+            f"最近7天指力板训练负荷\n"
+            f"==============================\n\n"
+        
+            f"指力板次数：\n"
+            f"{hangboard_sessions_7d}\n\n"
+
+            f"指力板总时长：\n"
+            f"{hangboard_duration_7d} 分钟\n\n"
+
+            f"总悬挂时间：\n"
+            f"{hang_time_7d} 秒\n\n"
+
+            f"最近7天平均手指疲劳：\n"
+            f"{avg_finger_fatigue_7d}/10\n\n"
+        
+            f"最近7天平均肘部疲劳：\n"
+            f"{avg_elbow_fatigue_7d}/10\n\n"
+
+            f"重要：\n"
+            f"最近7天平均手指疲劳和肘部疲劳，"
+            f"只代表历史训练记录的平均值，"
+            f"不得直接解释为今天当前疲劳。\n\n"
+
+            f"==============================\n"
+            f"最近一次指力板状态\n"
+            f"==============================\n\n"
+
+            f"最近一次训练日期：\n"
+            f"{latest_hangboard_date}\n\n"
+
+            f"距最近一次训练：\n"
+            f"{days_since_hangboard} 个自然日\n\n"
+
+            f"最近一次手指疲劳：\n"
+            f"{latest_finger_fatigue}/10\n\n"
+
+            f"最近一次肘部疲劳：\n"
+            f"{latest_elbow_fatigue}/10\n\n"
+
+            f"训练后恢复评分：\n"
+            f"{latest_recovery_after}\n\n"
+
+            f"==============================\n"
+            f"攀岩专项疲劳模型\n"
+            f"==============================\n\n"
+
+            f"疲劳等级：\n"
+            f"{climbing_fatigue.get('fatigue_level', '数据不足')}\n\n"
+
+            f"模型建议：\n"
+            f"{climbing_fatigue.get('recommendations', [])}\n\n"
+
+            f"==============================\n"
+            f"分析要求\n"
+            f"==============================\n\n"
+
+            f"1. 只能根据以上实际数据分析。\n\n"
+
+            f"2. 如果 WHOOP 数据不足7天，"
+            f"必须明确说明这是阶段性趋势。\n\n"
+
+            f"3. 不得推测缺失日期或缺失指标。\n\n"
+
+            f"4. 不得把没有训练记录解释为休息日。\n\n"
+
+            f"5. Recovery 必须结合 HRV、静息心率、睡眠和 Strain 综合判断。\n\n"
+        
+            f"6. Strain 必须结合 Recovery 和睡眠判断负荷是否匹配。\n\n"
+
+            f"7. 单日变化不得直接定义为长期疲劳或恢复异常。\n\n"
+
+            f"8. 必须区分短期波动与连续趋势。\n\n"
+
+            f"9. Weekly训练建议必须同时结合 WHOOP恢复趋势、"
+            f"攀岩负荷、指力板负荷、手指疲劳和肘部疲劳。\n\n"
+
+            f"10. 最近7天指力板频率较高，"
+            f"本身不能证明过度使用或疲劳累积。\n\n"
+
+            f"11. 最近7天平均疲劳不能等同于当前手指或肘部疲劳。\n\n"
+
+            f"12. 判断当前局部风险时，优先参考最近一次疲劳评分、"
+            f"距离最近一次训练的自然日、recovery_after以及近期训练频率。\n\n"
+
+            f"13. 如果最近一次手指疲劳为4-6/10，"
+            f"应描述为中等局部疲劳或建议关注恢复，"
+            f"不得直接描述为疲劳累积、恢复不足或过度使用。\n\n"
+
+            f"14. 如果只有训练日期，没有准确训练时间，"
+            f"不得声称已经满足完整48小时恢复间隔。\n\n"
+
+            f"15. Max Hang属于高强度最大力量训练，"
+            f"必须结合整体恢复、局部疲劳、训练间隔和热身状态判断。\n\n"
+
+            f"16. 不得根据历史训练次数自行假设疼痛、酸痛、"
+            f"僵硬、肌腱敏感或动作受限。\n\n"
+
+            f"17. 不进行医学诊断。\n\n"
+
+            f"18. WHOOP、睡眠、HRV、Strain和训练负荷之间"
+            f"只能描述可能关联，禁止使用“直接导致”“证明”“一定因为”。\n"
+        )
 
 
 ==============================
