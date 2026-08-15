@@ -9260,7 +9260,7 @@ def generate_weekly_analysis():
             Strain：{show_value(cycle_strain)}
             """.strip()
             )
-
+            
 
         # =========================
         # 5. 周期信息
