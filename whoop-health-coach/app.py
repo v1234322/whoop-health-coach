@@ -3339,6 +3339,18 @@ def get_whoop_coach_report():
 
         weekly_rows = cur.fetchall()
 
+        skin_temperature_valid_days = sum(
+            1
+            for row in weekly_rows
+            if row[5] is not None
+        )
+
+        spo2_valid_days = sum(
+            1
+            for row in weekly_rows
+            if row[6] is not None
+        )
+
 
         # =========================
         # 3. 安全平均函数
@@ -3794,9 +3806,7 @@ def get_whoop_coach_report():
 
             "success": True,
 
-
             "coach_report": {
-
 
                 # =================
                 # 今日客观数据
@@ -3848,11 +3858,20 @@ def get_whoop_coach_report():
 
 
                     # =================
-                    # 温度
+                    # WHOOP皮肤温度
                     # =================
 
                     "skin_temperature":
-                        skin_temperature,
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
 
                     "skin_temperature_unit":
                         "°C",
@@ -3865,11 +3884,20 @@ def get_whoop_coach_report():
 
 
                     # =================
-                    # 血氧
+                    # WHOOP血氧
                     # =================
 
                     "spo2_percentage":
-                        spo2_percentage,
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
 
                     "spo2_unit":
                         "%",
@@ -3910,7 +3938,9 @@ def get_whoop_coach_report():
                 "baseline": {
 
                     "valid_days":
-                        len(weekly_rows),
+                        len(
+                            weekly_rows
+                        ),
 
                     "recovery_avg":
                         recovery_avg,
@@ -3930,8 +3960,122 @@ def get_whoop_coach_report():
                     "skin_temperature_avg":
                         skin_temperature_avg,
 
+                    "skin_temperature_valid_days":
+                        skin_temperature_valid_days,
+
                     "spo2_avg":
-                        spo2_avg
+                        spo2_avg,
+
+                    "spo2_valid_days":
+                        spo2_valid_days
+
+                },
+
+
+                # =================
+                # 温度专用数据
+                # =================
+
+                "temperature": {
+
+                    "source":
+                        "WHOOP",
+
+                    "skin_temperature":
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
+
+                    "unit":
+                        "°C",
+
+                    "label":
+                        "WHOOP夜间皮肤温度",
+
+                    "skin_temperature_avg":
+                        skin_temperature_avg,
+
+                    "temperature_deviation":
+                        temperature_deviation,
+
+                    "valid_days":
+                        skin_temperature_valid_days,
+
+                    "baseline_reliable":
+                        (
+                            True
+                            if skin_temperature_valid_days >= 3
+                            else False
+                        ),
+
+                    "interpretation":
+                        (
+                            "已有至少3天有效温度数据，可结合个人近期基线观察变化。"
+                            if skin_temperature_valid_days >= 3
+                            else
+                            "当前温度历史数据不足3天，只能报告当前WHOOP皮肤温度，暂不做可靠趋势判断。"
+                        )
+
+                },
+
+
+                # =================
+                # SpO2专用数据
+                # =================
+
+                "spo2": {
+
+                    "source":
+                        "WHOOP",
+
+                    "spo2_percentage":
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
+
+                    "unit":
+                        "%",
+
+                    "label":
+                        "WHOOP血氧饱和度",
+
+                    "spo2_avg":
+                        spo2_avg,
+
+                    "spo2_deviation":
+                        spo2_deviation,
+
+                    "valid_days":
+                        spo2_valid_days,
+
+                    "baseline_reliable":
+                        (
+                            True
+                            if spo2_valid_days >= 3
+                            else False
+                        ),
+
+                    "interpretation":
+                        (
+                            "已有至少3天有效血氧数据，可结合个人近期趋势观察变化。"
+                            if spo2_valid_days >= 3
+                            else
+                            "当前血氧历史数据不足3天，只报告当前WHOOP血氧值，不做可靠趋势判断。"
+                        )
 
                 },
 
@@ -3973,23 +4117,51 @@ def get_whoop_coach_report():
                         continuous_fatigue,
 
 
-                    # 温度与血氧也放入coach
-                    # 方便GPT Action直接读取
+                    # =================
+                    # 温度与血氧摘要
+                    # =================
 
                     "skin_temperature":
-                        skin_temperature,
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
 
                     "skin_temperature_avg":
                         skin_temperature_avg,
+
+                    "skin_temperature_valid_days":
+                        skin_temperature_valid_days,
 
                     "temperature_deviation":
                         temperature_deviation,
 
                     "spo2_percentage":
-                        spo2_percentage,
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
 
                     "spo2_avg":
-                        spo2_avg
+                        spo2_avg,
+
+                    "spo2_valid_days":
+                        spo2_valid_days,
+
+                    "spo2_deviation":
+                        spo2_deviation
 
                 }
 
@@ -4004,7 +4176,6 @@ def get_whoop_coach_report():
             "WHOOP COACH REPORT ERROR:",
             e
         )
-
 
         return jsonify({
 
@@ -4023,7 +4194,6 @@ def get_whoop_coach_report():
 
         if conn:
             conn.close()
-
 
 
 @app.route("/training/log", methods=["POST"])
