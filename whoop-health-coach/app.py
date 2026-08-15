@@ -15128,24 +15128,23 @@ def auto_report():
             risk_warning
         )
 
+        print(
+            "MAX HANG STATUS:",
+            max_hang_status
+        )
+
+
         save_daily_coach_report(
 
-            metrics,
-
-            training_load,
-
-            ai_report,
-
-            menstrual_data,
-
-            temperature_data,
-
-            injury_data,
-
-            training_advice,
-
-            risk_warning
-
+           metrics,
+           training_load,
+           ai_report,
+           training_advice,
+           risk_warning,
+           menstrual_data,
+           temperature_data,
+           injury_data,
+           max_hang_status
         )
 
         print(
