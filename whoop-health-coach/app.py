@@ -10274,6 +10274,10 @@ def whoop_token():
 
 def extract_daily_metrics(data):
 
+
+    print("========== NEW EXTRACT DAILY METRICS VERSION ==========")
+
+ 
     print(
         "FUNCTION INPUT CYCLE:",
         data.get("cycle")
@@ -10330,6 +10334,12 @@ def extract_daily_metrics(data):
             or {}
         )
 
+        print(
+            "RAW RECOVERY SCORE DATA:",
+            recovery_score_data
+       )
+
+     
 
         # =========================
         # Recovery Score
