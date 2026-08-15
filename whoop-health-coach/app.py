@@ -7837,11 +7837,12 @@ def save_daily_coach_report(
     metrics,
     training_load,
     ai_report,
+    training_advice,
+    risk_warning,
     menstrual_data,
     temperature_data,
     injury_data,
-    training_advice,
-    risk_warning
+    max_hang_status
 ):
 
     conn = None
