@@ -7897,7 +7897,7 @@ def save_daily_coach_report(
 
 
 
-                cursor.execute(
+        cursor.execute(
             """
 
             INSERT INTO daily_coach_reports
