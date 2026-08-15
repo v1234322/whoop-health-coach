@@ -10927,6 +10927,22 @@ def save_daily_data(metrics):
         ).strftime("%Y-%m-%d")
 
 
+        print(
+            "SAVE WHOOP EXTRA:",
+            {
+                "skin_temperature":
+                    metrics.get(
+                        "skin_temperature"
+                    ),
+
+                "spo2_percentage":
+                    metrics.get(
+                        "spo2_percentage"
+                    )
+            }
+        )
+
+
         cur.execute(
             """
             INSERT INTO daily_metrics
@@ -10942,88 +10958,194 @@ def save_daily_data(metrics):
                 rem_sleep_duration,
                 cycle_strain,
                 workout_data,
-                health_score
+                health_score,
+                skin_temperature,
+                spo2_percentage
             )
+
             VALUES
             (
-                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s
             )
-           ON CONFLICT (report_date)
 
-           DO UPDATE SET
+            ON CONFLICT (report_date)
 
-           recovery_score = EXCLUDED.recovery_score,
+            DO UPDATE SET
 
-           hrv = EXCLUDED.hrv,
+                recovery_score =
+                    EXCLUDED.recovery_score,
 
-           resting_heart_rate = EXCLUDED.resting_heart_rate,
+                hrv =
+                    EXCLUDED.hrv,
 
-           sleep_score = EXCLUDED.sleep_score,
+                resting_heart_rate =
+                    EXCLUDED.resting_heart_rate,
 
-           sleep_duration = EXCLUDED.sleep_duration,
+                sleep_score =
+                    EXCLUDED.sleep_score,
 
-           sleep_efficiency = EXCLUDED.sleep_efficiency,
+                sleep_duration =
+                    EXCLUDED.sleep_duration,
 
-           deep_sleep_duration = EXCLUDED.deep_sleep_duration,
+                sleep_efficiency =
+                    EXCLUDED.sleep_efficiency,
 
-           rem_sleep_duration = EXCLUDED.rem_sleep_duration,
+                deep_sleep_duration =
+                    EXCLUDED.deep_sleep_duration,
 
-           cycle_strain = EXCLUDED.cycle_strain,
+                rem_sleep_duration =
+                    EXCLUDED.rem_sleep_duration,
 
-           workout_data = EXCLUDED.workout_data,
+                cycle_strain =
+                    EXCLUDED.cycle_strain,
 
-           health_score = EXCLUDED.health_score
+                workout_data =
+                    EXCLUDED.workout_data,
 
-           """,
+                health_score =
+                    EXCLUDED.health_score,
+
+                skin_temperature =
+                    EXCLUDED.skin_temperature,
+
+                spo2_percentage =
+                    EXCLUDED.spo2_percentage
+            """,
+
             (
                 today,
-                metrics.get("recovery_score",0),
-                metrics.get("hrv",0),
-                metrics.get("resting_heart_rate",0),
-                metrics.get("sleep_score",0),
-                metrics.get("sleep_duration",0),
-                metrics.get("sleep_efficiency",0),
-                metrics.get("deep_sleep_duration",0),
-                metrics.get("rem_sleep_duration",0),
-                metrics.get("cycle_strain",0),
-                str(metrics.get("workout_data","")),
-                metrics.get("health_score",0)
+
+                metrics.get(
+                    "recovery_score",
+                    0
+                ),
+
+                metrics.get(
+                    "hrv",
+                    0
+                ),
+
+                metrics.get(
+                    "resting_heart_rate",
+                    0
+                ),
+
+                metrics.get(
+                    "sleep_score",
+                    0
+                ),
+
+                metrics.get(
+                    "sleep_duration",
+                    0
+                ),
+
+                metrics.get(
+                    "sleep_efficiency",
+                    0
+                ),
+
+                metrics.get(
+                    "deep_sleep_duration",
+                    0
+                ),
+
+                metrics.get(
+                    "rem_sleep_duration",
+                    0
+                ),
+
+                metrics.get(
+                    "cycle_strain",
+                    0
+                ),
+
+                str(
+                    metrics.get(
+                        "workout_data",
+                        ""
+                    )
+                ),
+
+                metrics.get(
+                    "health_score",
+                    0
+                ),
+
+                metrics.get(
+                    "skin_temperature"
+                ),
+
+                metrics.get(
+                    "spo2_percentage"
+                )
             )
-            )
+        )
 
 
         conn.commit()
 
 
-        print("AUTO DAILY SAVE OK")
+        print(
+            "AUTO DAILY SAVE OK"
+        )
 
-        print("BEFORE SELECT TEST")
 
-        print("SAVED METRICS:", metrics)
+        print(
+            "BEFORE SELECT TEST"
+        )
+
+
+        print(
+            "SAVED METRICS:",
+            metrics
+        )
+
 
         cur.execute(
             """
-            SELECT *
+            SELECT
+                report_date,
+                recovery_score,
+                hrv,
+                resting_heart_rate,
+                sleep_duration,
+                cycle_strain,
+                skin_temperature,
+                spo2_percentage
             FROM daily_metrics
-            ORDER BY id DESC
+            WHERE report_date = %s
             LIMIT 1
-            """
+            """,
+            (
+                today,
+            )
         )
 
-        latest_row = cur.fetchone()
 
-        
+        latest_row = (
+            cur.fetchone()
+        )
+
+
         print(
             "LATEST DAILY ROW:",
             latest_row
         )
 
+
     except Exception as e:
+
+        if conn:
+            conn.rollback()
 
         print(
             "SAVE DAILY DATA ERROR:",
             e
         )
+
+        raise
 
 
     finally:
