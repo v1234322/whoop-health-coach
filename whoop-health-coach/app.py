@@ -3745,12 +3745,16 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 11. 获取已保存AI Coach报告
+        # 11. 获取已保存 AI Coach 报告
         # =========================
 
         coach_report_text = ""
         training_recommendation = ""
         risk_warning = "暂无明显风险"
+
+        menstrual_data = None
+        saved_temperature_data = None
+        injury_data = None
 
 
         try:
@@ -3758,11 +3762,14 @@ def get_whoop_coach_report():
             cur.execute(
                 """
                 SELECT
-                    coach_report_text,
-                    training_recommendation,
-                    risk_warning
+                    ai_report,
+                    training_advice,
+                    risk_warning,
+                    menstrual_data,
+                    temperature_data,
+                    injury_data
 
-                FROM coach_reports
+                FROM daily_coach_reports
 
                 ORDER BY report_date DESC
 
@@ -3777,17 +3784,39 @@ def get_whoop_coach_report():
             if coach_row:
 
                 coach_report_text = (
-                    coach_row[0] or ""
+                    coach_row[0]
+                    or ""
                 )
 
                 training_recommendation = (
-                    coach_row[1] or ""
+                    coach_row[1]
+                    or ""
                 )
 
                 risk_warning = (
                     coach_row[2]
                     or "暂无明显风险"
                 )
+
+                menstrual_data = (
+                    coach_row[3]
+                )
+
+                saved_temperature_data = (
+                    coach_row[4]
+                )
+
+                injury_data = (
+                    coach_row[5]
+                )
+
+
+            print(
+                "SAVED COACH REPORT FOUND:",
+                bool(
+                    coach_report_text
+                )
+            )
 
 
         except Exception as e:
