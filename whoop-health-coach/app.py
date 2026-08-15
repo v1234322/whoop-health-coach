@@ -9250,15 +9250,13 @@ def generate_weekly_analysis():
 
 
             data_lines.append(
-                f"""
-            日期：{report_date}
-            Recovery：{show_value(recovery_score, "%")}
-            HRV：{show_value(hrv, " ms")}
-            静息心率：{show_value(resting_heart_rate, " bpm")}
-            睡眠时长：{show_value(sleep_duration, " 小时")}
-            睡眠评分：{show_value(sleep_score, " 分")}
-            Strain：{show_value(cycle_strain)}
-            """.strip()
+                f"日期：{report_date}\n"
+                f"Recovery：{show_value(recovery_score, '%')}\n"
+                f"HRV：{show_value(hrv, ' ms')}\n"
+                f"静息心率：{show_value(resting_heart_rate, ' bpm')}\n"
+                f"睡眠时长：{show_value(sleep_duration, ' 小时')}\n"
+                f"睡眠评分：{show_value(sleep_score, ' 分')}\n"
+                f"Strain：{show_value(cycle_strain)}"
             )
             
 
