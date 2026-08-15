@@ -7897,7 +7897,7 @@ def save_daily_coach_report(
 
 
 
-        cursor.execute(
+                cursor.execute(
             """
 
             INSERT INTO daily_coach_reports
@@ -7925,7 +7925,9 @@ def save_daily_coach_report(
 
                 temperature_data,
 
-                injury_data
+                injury_data,
+
+                max_hang_status
             )
 
 
@@ -7933,7 +7935,8 @@ def save_daily_coach_report(
 
             (
                 %s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s
+                %s,%s,%s,%s,%s,%s,
+                %s
             )
 
 
@@ -7983,7 +7986,11 @@ def save_daily_coach_report(
 
 
                 injury_data =
-                EXCLUDED.injury_data
+                EXCLUDED.injury_data,
+
+
+                max_hang_status =
+                EXCLUDED.max_hang_status
 
             """,
 
@@ -8043,7 +8050,10 @@ def save_daily_coach_report(
 
                 str(
                     injury_data
-                )
+                ),
+
+
+                max_hang_status
 
             )
 
@@ -8058,33 +8068,10 @@ def save_daily_coach_report(
         )
 
 
-
-    except Exception as e:
-
-
         print(
-            "SAVE DAILY COACH REPORT ERROR:",
-            e
+            "SAVED MAX HANG STATUS:",
+            max_hang_status
         )
-
-
-        if conn:
-
-            conn.rollback()
-
-
-
-    finally:
-
-
-        if cursor:
-
-            cursor.close()
-
-
-        if conn:
-
-            conn.close()
 
 def calculate_max_hang_status(
     metrics,
