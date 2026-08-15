@@ -8236,7 +8236,12 @@ def generate_coach_prompt(
         training_load,
         weekly,
         injury_data
-    )
+    ) 
+
+    print(
+        "MAX HANG STATUS:",
+        max_hang_status
+    ) 
  
     # =========================
     # 2. WHOOP 温度
