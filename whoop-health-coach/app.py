@@ -8086,9 +8086,120 @@ def save_daily_coach_report(
 
             conn.close()
 
+def calculate_max_hang_status(
+    metrics,
+    training_load,
+    weekly,
+    injury_data=None
+):
+
+    recovery = metrics.get("recovery_score")
+    hrv = metrics.get("hrv")
+    rhr = metrics.get("resting_heart_rate")
+    sleep = metrics.get("sleep_duration")
+
+    avg_hrv = weekly.get("avg_hrv")
+    avg_rhr = weekly.get("avg_resting_hr")
+    avg_sleep = weekly.get("avg_sleep")
+
+    finger_fatigue = training_load.get(
+        "latest_finger_fatigue"
+    )
+
+    recovery_after = training_load.get(
+        "latest_recovery_after"
+    )
+
+
+    # =========================
+    # 明确高风险 -> avoid
+    # =========================
+
+    if (
+        finger_fatigue is not None
+        and finger_fatigue >= 7
+    ):
+        return "avoid"
+
+
+    if (
+        recovery_after is not None
+        and recovery_after < 75
+    ):
+        return "avoid"
+
+
+    # =========================
+    # 全身恢复明显不支持
+    # =========================
+
+    if (
+        recovery is not None
+        and recovery < 34
+    ):
+        return "avoid"
+
+
+    # =========================
+    # 条件式 Max Hang
+    # =========================
+
+    recovery_good = (
+        recovery is not None
+        and recovery >= 67
+    )
+
+    hrv_good = (
+        hrv is not None
+        and avg_hrv is not None
+        and hrv >= avg_hrv
+    )
+
+    rhr_good = (
+        rhr is not None
+        and avg_rhr is not None
+        and rhr <= avg_rhr
+    )
+
+    sleep_ok = (
+        sleep is not None
+        and avg_sleep is not None
+        and sleep >= avg_sleep * 0.85
+    )
+
+    recovery_after_good = (
+        recovery_after is not None
+        and recovery_after >= 75
+    )
+
+    moderate_finger_fatigue = (
+        finger_fatigue is not None
+        and 4 <= finger_fatigue <= 6
+    )
+
+
+    if (
+        recovery_good
+        and hrv_good
+        and rhr_good
+        and sleep_ok
+        and recovery_after_good
+        and moderate_finger_fatigue
+    ):
+        return "conditional"
+
+
+    # =========================
+    # 数据不能明确支持
+    # =========================
+
+    return "conditional"
+
+
 
 
 def generate_coach_prompt(
+ 
     metrics,
     training_load,
     weekly,
@@ -8097,6 +8208,7 @@ def generate_coach_prompt(
     temperature_data,
     injury_data
 ):
+
 
     # =========================
     # 1. 安全类型
@@ -8115,6 +8227,17 @@ def generate_coach_prompt(
         climbing_fatigue = {}
 
 
+    # =========================
+    # Max Hang 后端最终决策
+    # =========================
+
+    max_hang_status = calculate_max_hang_status(
+        metrics,
+        training_load,
+        weekly,
+        injury_data
+    )
+ 
     # =========================
     # 2. WHOOP 温度
     # =========================
@@ -8886,6 +9009,57 @@ training_date
 就自动判断：
 
 “今天禁止Max Hang”。
+
+
+==============================
+后端Max Hang最终决策
+==============================
+
+Max Hang状态：
+{max_hang_status}
+
+这是后端根据结构化数据计算的最终状态。
+
+AI不得自行修改这个状态。
+
+状态含义：
+
+allowed：
+当前数据允许Max Hang，
+但仍应根据热身状态调整训练量。
+
+conditional：
+不得把Max Hang写入“避免训练”。
+
+必须写：
+
+“Max Hang：
+如果恢复间隔足够，
+且热身后手指状态正常，
+可以考虑降低总量进行；
+否则暂缓。”
+
+avoid：
+可以明确写：
+“避免Max Hang”。
+
+如果状态为conditional，
+
+ai_report、
+training_advice、
+今日教练总结
+
+均不得出现：
+
+“避免Max Hang”
+“不建议Max Hang”
+“不适合Max Hang”
+“避免高强度最大力量指力训练”
+“暂缓高强度最大力量指力训练”。
+
+不得使用其他文字
+变相表达Max Hang被禁止。
+
 
 
 ==============================
