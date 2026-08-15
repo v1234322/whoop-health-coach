@@ -3994,6 +3994,282 @@ def api_whoop_coach_report():
             conn.close()
 
 
+@app.route(
+    "/api/whoop/weekly-coach-report",
+    methods=["GET"]
+)
+@require_chatgpt_api_key
+def api_whoop_weekly_coach_report():
+
+    try:
+
+        # =========================
+        # 1. 获取7天数据
+        # =========================
+
+        weekly_data = generate_weekly_analysis()
+
+
+        if not isinstance(
+            weekly_data,
+            dict
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": "Weekly analysis type error"
+            }), 500
+
+
+        if not weekly_data.get(
+            "success",
+            False
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": weekly_data.get(
+                    "error",
+                    "Weekly data unavailable"
+                )
+            }), 500
+
+
+        # =========================
+        # 2. 生成 Weekly AI
+        # =========================
+
+        weekly_prompt = weekly_data.get(
+            "prompt_text",
+            ""
+        )
+
+
+        if not weekly_prompt:
+
+            return jsonify({
+                "success": False,
+                "error": "Weekly prompt unavailable"
+            }), 500
+
+
+        weekly_ai = generate_weekly_ai_summary(
+            weekly_prompt
+        )
+
+
+        if not isinstance(
+            weekly_ai,
+            dict
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": "Weekly AI type error"
+            }), 500
+
+
+        # =========================
+        # 3. 安全数字转换
+        # =========================
+
+        def num(value):
+
+            if value is None:
+                return None
+
+            try:
+                return float(value)
+
+            except Exception:
+                return value
+
+
+        # =========================
+        # 4. 返回给 GPT
+        # =========================
+
+        return jsonify({
+
+            "success": True,
+
+            "weekly_coach_report": {
+
+                "period": {
+
+                    "start_date":
+                        weekly_data.get(
+                            "start_date"
+                        ),
+
+                    "end_date":
+                        weekly_data.get(
+                            "end_date"
+                        ),
+
+                    "valid_days":
+                        weekly_data.get(
+                            "valid_days",
+                            0
+                        ),
+
+                    "is_complete":
+                        weekly_data.get(
+                            "is_complete",
+                            False
+                        )
+                },
+
+
+                "whoop_summary": {
+
+                    "avg_recovery":
+                        num(
+                            weekly_data.get(
+                                "avg_recovery"
+                            )
+                        ),
+
+                    "avg_hrv":
+                        num(
+                            weekly_data.get(
+                                "avg_hrv"
+                            )
+                        ),
+
+                    "avg_resting_hr":
+                        num(
+                            weekly_data.get(
+                                "avg_resting_hr"
+                            )
+                        ),
+
+                    "avg_sleep":
+                        num(
+                            weekly_data.get(
+                                "avg_sleep"
+                            )
+                        ),
+
+                    "avg_sleep_score":
+                        num(
+                            weekly_data.get(
+                                "avg_sleep_score"
+                            )
+                        ),
+
+                    "avg_strain":
+                        num(
+                            weekly_data.get(
+                                "avg_strain"
+                            )
+                        )
+                },
+
+
+                "climbing_load": {
+
+                    "climbing_sessions_7d":
+                        num(
+                            weekly_data.get(
+                                "climbing_sessions_7d"
+                            )
+                        ),
+
+                    "climbing_duration_7d":
+                        num(
+                            weekly_data.get(
+                                "climbing_duration_7d"
+                            )
+                        ),
+
+                    "hangboard_sessions_7d":
+                        num(
+                            weekly_data.get(
+                                "hangboard_sessions_7d"
+                            )
+                        ),
+
+                    "hangboard_duration_7d":
+                        num(
+                            weekly_data.get(
+                                "hangboard_duration_7d"
+                            )
+                        )
+                },
+
+
+                "local_fatigue": {
+
+                    "latest_finger_fatigue":
+                        num(
+                            weekly_data.get(
+                                "latest_finger_fatigue"
+                            )
+                        ),
+
+                    "latest_elbow_fatigue":
+                        num(
+                            weekly_data.get(
+                                "latest_elbow_fatigue"
+                            )
+                        ),
+
+                    "days_since_hangboard":
+                        num(
+                            weekly_data.get(
+                                "days_since_hangboard"
+                            )
+                        )
+                },
+
+
+                # AI权威周报告
+                "weekly_report":
+                    weekly_ai.get(
+                        "weekly_report",
+                        ""
+                    ),
+
+                "weekly_training_advice":
+                    weekly_ai.get(
+                        "weekly_training_advice",
+                        ""
+                    ),
+
+                "weekly_risk_warning":
+                    weekly_ai.get(
+                        "weekly_risk_warning",
+                        ""
+                    )
+
+            }
+
+        })
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "WEEKLY COACH API ERROR:",
+            e
+        )
+
+        traceback.print_exc()
+
+
+        return jsonify({
+
+            "success": False,
+
+            "error": str(e)
+
+        }), 500
+
+
+
 @app.route("/training/log", methods=["POST"])
 def add_training_log():
 
