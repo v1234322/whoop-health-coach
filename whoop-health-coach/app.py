@@ -8615,6 +8615,179 @@ def calculate_max_hang_status(
     )
 
 
+def calculate_strain_plan(
+    metrics
+):
+
+    # =========================
+    # 类型保护
+    # =========================
+
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+
+    recovery = metrics.get(
+        "recovery_score"
+    )
+
+    cycle_strain = metrics.get(
+        "cycle_strain"
+    )
+
+
+    # =========================
+    # 当前 Strain
+    # =========================
+
+    try:
+
+        current_strain = (
+            float(cycle_strain)
+            if cycle_strain is not None
+            else 0.0
+        )
+
+    except Exception:
+
+        current_strain = 0.0
+
+
+    # =========================
+    # Recovery → Strain区间
+    # =========================
+
+    if recovery is None:
+
+        target_min = 0
+
+        target_max = 0
+
+        training_level = (
+            "数据不足"
+        )
+
+
+    elif float(recovery) >= 67:
+
+        target_min = 12
+
+        target_max = 16
+
+        training_level = (
+            "中高强度训练候选"
+        )
+
+
+    elif float(recovery) >= 34:
+
+        target_min = 8
+
+        target_max = 12
+
+        training_level = (
+            "低至中等强度"
+        )
+
+
+    else:
+
+        target_min = 0
+
+        target_max = 8
+
+        training_level = (
+            "恢复优先"
+        )
+
+
+    # =========================
+    # 推荐区间
+    # =========================
+
+    recommended_strain = (
+        f"{target_min}-{target_max}"
+    )
+
+
+    # =========================
+    # 完成度 / 剩余建议负荷
+    # =========================
+
+    if target_min > 0:
+
+        strain_completion = round(
+            current_strain
+            / target_min
+            * 100,
+            1
+        )
+
+        remaining_strain = round(
+            max(
+                target_min
+                - current_strain,
+                0
+            ),
+            1
+        )
+
+
+    else:
+
+        strain_completion = 100.0
+
+        remaining_strain = 0.0
+
+
+    # =========================
+    # 返回统一结构
+    # =========================
+
+    result = {
+
+        "current_strain":
+            round(
+                current_strain,
+                2
+            ),
+
+        "target_min":
+            target_min,
+
+        "target_max":
+            target_max,
+
+        "recommended_strain":
+            recommended_strain,
+
+        "strain_completion":
+            strain_completion,
+
+        "remaining_strain":
+            remaining_strain,
+
+        "training_level":
+            training_level,
+
+        "remaining_strain_explanation":
+            (
+                "remaining_strain表示距离推荐Strain区间下限的差值，"
+                "不代表今天绝对训练上限。"
+            )
+
+    }
+
+
+    print(
+        "STRAIN PLAN:",
+        result
+    )
+
+
+    return result
+ 
+
 def generate_coach_prompt(
     metrics,
     training_load,
@@ -8623,7 +8796,8 @@ def generate_coach_prompt(
     menstrual_data,
     temperature_data,
     injury_data,
-    max_hang_decision=None
+    max_hang_decision=None,
+    strain_plan=None
 ):
 
     # =========================
@@ -8642,7 +8816,15 @@ def generate_coach_prompt(
     if not isinstance(climbing_fatigue, dict):
         climbing_fatigue = {}
 
-    if not isinstance(max_hang_decision, dict):
+
+    # =========================
+    # Max Hang最终决策
+    # =========================
+
+    if not isinstance(
+        max_hang_decision,
+        dict
+    ):
 
         max_hang_decision = (
             calculate_max_hang_decision(
@@ -8663,20 +8845,67 @@ def generate_coach_prompt(
 
 
     # =========================
+    # Strain最终决策
+    # =========================
+
+    if not isinstance(
+        strain_plan,
+        dict
+    ):
+
+        strain_plan = (
+            calculate_strain_plan(
+                metrics
+            )
+        )
+
+
+    current_strain = (
+        strain_plan.get(
+            "current_strain"
+        )
+    )
+
+    recommended_strain = (
+        strain_plan.get(
+            "recommended_strain"
+        )
+    )
+
+    strain_completion = (
+        strain_plan.get(
+            "strain_completion"
+        )
+    )
+
+    remaining_strain = (
+        strain_plan.get(
+            "remaining_strain"
+        )
+    )
+
+
+    # =========================
     # 温度 / SpO2
     # =========================
 
-    skin_temperature = metrics.get(
-        "skin_temperature"
+    skin_temperature = (
+        metrics.get(
+            "skin_temperature"
+        )
     )
 
-    spo2_percentage = metrics.get(
-        "spo2_percentage"
+    spo2_percentage = (
+        metrics.get(
+            "spo2_percentage"
+        )
     )
 
 
-    skin_temperature_avg = weekly_data.get(
-        "skin_temperature_avg"
+    skin_temperature_avg = (
+        weekly_data.get(
+            "skin_temperature_avg"
+        )
     )
 
     skin_temperature_valid_days = (
@@ -8687,13 +8916,17 @@ def generate_coach_prompt(
         or 0
     )
 
-    temperature_deviation = weekly_data.get(
-        "temperature_deviation"
+    temperature_deviation = (
+        weekly_data.get(
+            "temperature_deviation"
+        )
     )
 
 
-    spo2_avg = weekly_data.get(
-        "spo2_avg"
+    spo2_avg = (
+        weekly_data.get(
+            "spo2_avg"
+        )
     )
 
     spo2_valid_days = (
@@ -8704,8 +8937,10 @@ def generate_coach_prompt(
         or 0
     )
 
-    spo2_deviation = weekly_data.get(
-        "spo2_deviation"
+    spo2_deviation = (
+        weekly_data.get(
+            "spo2_deviation"
+        )
     )
 
 
@@ -8752,6 +8987,10 @@ def generate_coach_prompt(
     )
 
 
+    # =========================
+    # Prompt
+    # =========================
+
     return f"""
 
 你是一名专业的 WHOOP 私人攀岩健康教练。
@@ -8765,7 +9004,90 @@ SpO₂和伤病记录，
 
 
 ==============================
-核心规则
+最重要的数据优先级
+==============================
+
+下面两个后端结构化决策属于最终规则计算结果：
+
+1. Strain决策
+2. Max Hang决策
+
+AI不得自行修改、重新估算或生成不同结果。
+
+
+==============================
+后端Strain最终决策
+==============================
+
+当前 Strain：
+{current_strain}
+
+目标 Strain：
+{recommended_strain}
+
+目标区间下限：
+{strain_plan.get("target_min")}
+
+目标区间上限：
+{strain_plan.get("target_max")}
+
+训练完成度：
+{strain_completion}%
+
+剩余建议负荷：
+{remaining_strain}
+
+训练等级：
+{strain_plan.get("training_level")}
+
+
+强制规则：
+
+以上Strain数据是后端已经计算完成的最终结果。
+
+AI不得自行：
+
+修改目标Strain
+缩小目标区间
+扩大目标区间
+重新计算完成度
+重新计算remaining_strain。
+
+
+例如：
+
+如果后端目标Strain为：
+
+8-12
+
+AI必须写：
+
+8-12
+
+不得改成：
+
+8-10
+8-11
+10-12
+或其他数字。
+
+
+remaining_strain表示：
+
+距离推荐Strain区间下限
+还差多少。
+
+它不代表：
+
+今天最多只能增加这么多Strain。
+
+不得把remaining_strain解释成：
+
+今日绝对训练上限。
+
+
+==============================
+核心训练规则
 ==============================
 
 1. 不得只根据Recovery判断训练。
@@ -8796,7 +9118,7 @@ Strain
 手指疲劳
 肘部疲劳
 recovery_after
-Max Hang后端决策
+Max Hang后端决策。
 
 
 4. 手指疲劳4-6/10：
@@ -8869,7 +9191,7 @@ REM：
 {metrics.get("rem_sleep_duration")} 小时
 
 当前Strain：
-{metrics.get("cycle_strain")}
+{current_strain}
 
 
 ==============================
@@ -8909,11 +9231,14 @@ WHOOP夜间皮肤温度
 {temperature_deviation}
 
 
-规则：
-
 WHOOP skin_temperature是夜间皮肤温度。
 
-不等于核心体温、腋温或口腔体温。
+不等于：
+
+核心体温
+腋温
+口腔体温。
+
 
 如果有效历史不足3天：
 
@@ -8921,6 +9246,7 @@ WHOOP skin_temperature是夜间皮肤温度。
 
 “当前温度历史数据不足，
 暂不做可靠个人趋势判断。”
+
 
 不得根据单日皮肤温度判断：
 
@@ -8956,6 +9282,7 @@ WHOOP SpO₂
 “当前血氧历史数据不足，
 暂不做可靠趋势判断。”
 
+
 不得根据单次SpO₂
 进行医学诊断。
 
@@ -8965,12 +9292,22 @@ WHOOP SpO₂
 ==============================
 
 攀岩次数：
-{training_load.get("climbing_sessions_7d",
-training_load.get("climbing_sessions", 0))}
+{training_load.get(
+    "climbing_sessions_7d",
+    training_load.get(
+        "climbing_sessions",
+        0
+    )
+)}
 
 攀岩总时长：
-{training_load.get("climbing_duration_7d",
-training_load.get("climbing_duration", 0))} 分钟
+{training_load.get(
+    "climbing_duration_7d",
+    training_load.get(
+        "climbing_duration",
+        0
+    )
+)} 分钟
 
 
 ==============================
@@ -8978,27 +9315,45 @@ training_load.get("climbing_duration", 0))} 分钟
 ==============================
 
 指力板次数：
-{training_load.get("hangboard_sessions_7d",
-training_load.get("hangboard_sessions", 0))}
+{training_load.get(
+    "hangboard_sessions_7d",
+    training_load.get(
+        "hangboard_sessions",
+        0
+    )
+)}
 
 总时长：
-{training_load.get("hangboard_duration_7d",
-training_load.get("hangboard_duration", 0))} 分钟
+{training_load.get(
+    "hangboard_duration_7d",
+    training_load.get(
+        "hangboard_duration",
+        0
+    )
+)} 分钟
 
 总悬挂时间：
-{training_load.get("hang_time_7d",
-training_load.get("hang_time", 0))} 秒
+{training_load.get(
+    "hang_time_7d",
+    training_load.get(
+        "hang_time",
+        0
+    )
+)} 秒
 
 7天平均手指疲劳：
-{training_load.get("avg_finger_fatigue_7d")}/10
+{training_load.get(
+    "avg_finger_fatigue_7d"
+)}/10
 
 7天平均肘部疲劳：
-{training_load.get("avg_elbow_fatigue_7d")}/10
+{training_load.get(
+    "avg_elbow_fatigue_7d"
+)}/10
 
 
-注意：
-
-7天平均疲劳不能当作今天当前疲劳。
+7天平均疲劳
+不能当作今天当前疲劳。
 
 
 ==============================
@@ -9006,13 +9361,19 @@ training_load.get("hang_time", 0))} 秒
 ==============================
 
 日期：
-{training_load.get("latest_hangboard_date")}
+{training_load.get(
+    "latest_hangboard_date"
+)}
 
 协议：
-{training_load.get("latest_hangboard_protocol")}
+{training_load.get(
+    "latest_hangboard_protocol"
+)}
 
 训练类型：
-{training_load.get("latest_hangboard_session_type")}
+{training_load.get(
+    "latest_hangboard_session_type"
+)}
 
 最近一次手指疲劳：
 {latest_finger_fatigue}/10
@@ -9049,11 +9410,12 @@ AI不得自行升级、
 不得把Max Hang直接放入
 “避免训练”。
 
-必须采用条件式表达：
+必须采用：
 
-“如果恢复间隔足够，
+“Max Hang：
+如果恢复间隔足够，
 且热身后手指状态正常，
-可以考虑降低总量进行Max Hang；
+可以考虑降低总量进行；
 否则暂缓。”
 
 
@@ -9065,8 +9427,9 @@ AI不得自行升级、
 如果status = allowed：
 
 可以说明当前条件支持Max Hang，
+
 但仍需根据热身后的手指状态
-调整训练量。
+动态调整训练量。
 
 
 ==============================
@@ -9078,15 +9441,18 @@ Repeaters不等于Max Hang。
 不得自动把Repeaters定义为
 最大力量训练。
 
+
 如果整体恢复尚可，
-但存在4-6/10中等手指疲劳，
 
-Repeaters可以：
+但存在4-6/10
+中等局部手指疲劳，
 
-降低强度
+Repeaters可以考虑：
+
+降低悬挂强度
 减少组数
 减少总量
-增加休息
+增加组间休息
 
 而不是自动完全禁止。
 
@@ -9122,33 +9488,55 @@ Repeaters可以：
 ==============================
 
 疲劳等级：
-{climbing_fatigue.get("fatigue_level", "数据不足")}
+{climbing_fatigue.get(
+    "fatigue_level",
+    "数据不足"
+)}
 
 建议：
-{climbing_fatigue.get("recommendations", [])}
+{climbing_fatigue.get(
+    "recommendations",
+    []
+)}
 
 
 ==============================
-输出要求
+最终输出要求
 ==============================
 
-必须回答：
+必须说明：
 
-1. 今天整体恢复如何。
+今日整体恢复状态
 
-2. HRV和静息心率是否支持训练。
+HRV和静息心率状态
 
-3. 睡眠是支持因素还是限制因素。
+睡眠支持或限制
 
-4. 当前主要限制来自全身恢复还是局部手指/肘部。
+当前主要限制因素
 
-5. 今天适合什么攀岩类型。
+今日适合的攀岩类型
 
-6. Max Hang按照后端decision执行。
+Repeaters建议
 
-7. Repeaters单独判断。
+Max Hang后端决策
 
-8. 明日建议必须采用条件式表达。
+当前Strain
+
+目标Strain
+
+训练完成度
+
+剩余建议负荷。
+
+
+Strain相关数字必须完全使用
+后端Strain最终决策。
+
+禁止重新计算。
+
+
+明日恢复建议必须使用
+条件式表达。
 
 
 不得预测明天具体：
@@ -9159,12 +9547,18 @@ HRV
 Sleep Score。
 
 
-不得建立没有数据支持的确定因果关系。
+不得建立没有数据支持的
+确定因果关系。
 
 
 使用中文简体。
 
-表达专业、谨慎、简洁、可执行。
+表达：
+
+专业
+谨慎
+简洁
+可执行。
 
 """
     
@@ -14846,6 +15240,17 @@ def auto_report():
             max_hang_decision
         )
 
+        strain_plan = (
+            calculate_strain_plan(
+                metrics
+            )
+        )
+
+        print(
+            "AUTO REPORT STRAIN PLAN:",
+            strain_plan
+        )
+
 
         # =========================
         # 7. 基础报告
@@ -14868,7 +15273,8 @@ def auto_report():
             menstrual_data,
             temperature_data,
             injury_data,
-            max_hang_decision
+            max_hang_decision,
+            strain_plan
         )
 
 
@@ -15072,7 +15478,10 @@ def auto_report():
                 max_hang_status,
 
             "max_hang_decision":
-                max_hang_decision
+                max_hang_decision,
+
+            "strain_plan":
+                strain_plan
 
         })
 
