@@ -8107,16 +8107,15 @@ def save_daily_coach_report(
 
             conn.close()
 
-def calculate_max_hang_status(
+def calculate_max_hang_decision(
     metrics,
     training_load,
     weekly_data,
     injury_data=None
 ):
 
-
     # =========================
-    # DEBUG：检查传入的数据类型
+    # DEBUG
     # =========================
 
     print(
@@ -8127,11 +8126,11 @@ def calculate_max_hang_status(
         type(injury_data)
     )
 
- 
-    # ========================= 
+
+    # =========================
     # 类型保护
     # =========================
- 
+
     if not isinstance(metrics, dict):
         metrics = {}
 
@@ -8142,81 +8141,107 @@ def calculate_max_hang_status(
         weekly_data = {}
 
     if injury_data is None:
-        injury_data = {}
+        injury_data = []
+
 
     # =========================
     # WHOOP 当前数据
     # =========================
- 
-    recovery = metrics.get("recovery_score")
-    hrv = metrics.get("hrv")
-    rhr = metrics.get("resting_heart_rate")
-    sleep = metrics.get("sleep_duration")
+
+    recovery = metrics.get(
+        "recovery_score"
+    )
+
+    hrv = metrics.get(
+        "hrv"
+    )
+
+    rhr = metrics.get(
+        "resting_heart_rate"
+    )
+
+    sleep = metrics.get(
+        "sleep_duration"
+    )
+
 
     # =========================
     # 近期基线
     # =========================
- 
-    avg_hrv = weekly_data.get("avg_hrv")
-    avg_rhr = weekly_data.get("avg_resting_hr")
-    avg_sleep = weekly_data.get("avg_sleep")
+
+    avg_hrv = weekly_data.get(
+        "avg_hrv"
+    )
+
+    avg_rhr = weekly_data.get(
+        "avg_resting_hr"
+    )
+
+    avg_sleep = weekly_data.get(
+        "avg_sleep"
+    )
+
 
     # =========================
     # 指力板局部状态
     # =========================
- 
+
     finger_fatigue = training_load.get(
         "latest_finger_fatigue"
+    )
+
+    elbow_fatigue = training_load.get(
+        "latest_elbow_fatigue"
     )
 
     recovery_after = training_load.get(
         "latest_recovery_after"
     )
 
+    days_since_hangboard = training_load.get(
+        "days_since_hangboard"
+    )
 
-    # =========================
-    # 明确需要避免 Max Hang
-    # =========================
-
-    if (
-        finger_fatigue is not None
-        and finger_fatigue >= 7
-    ):
-        return "avoid"
-
-
-    if (
-        recovery_after is not None
-        and recovery_after < 75
-    ):
-        return "avoid"
+    latest_hangboard_date = training_load.get(
+        "latest_hangboard_date"
+    )
 
 
     # =========================
-    # 当前恢复条件
+    # 基础状态判断
     # =========================
 
-    recovery_good = (
+    recovery_green = (
         recovery is not None
         and recovery >= 67
     )
 
+    recovery_yellow = (
+        recovery is not None
+        and 34 <= recovery < 67
+    )
 
-    hrv_good = (
+    recovery_red = (
+        recovery is not None
+        and recovery < 34
+    )
+
+
+    hrv_supportive = (
         hrv is not None
         and avg_hrv is not None
         and hrv >= avg_hrv
     )
 
 
-    rhr_good = (
+    rhr_supportive = (
         rhr is not None
         and avg_rhr is not None
         and rhr <= avg_rhr
     )
 
 
-    sleep_ok = (
+    sleep_supportive = (
         sleep is not None
         and avg_sleep is not None
         and sleep >= avg_sleep * 0.85
@@ -8229,31 +8254,455 @@ def calculate_max_hang_status(
     )
 
 
+    low_finger_fatigue = (
+        finger_fatigue is not None
+        and finger_fatigue <= 3
+    )
+
+
     moderate_finger_fatigue = (
         finger_fatigue is not None
         and 4 <= finger_fatigue <= 6
     )
 
+
+    high_finger_fatigue = (
+        finger_fatigue is not None
+        and finger_fatigue >= 7
+    )
+
+
     # =========================
-    # 条件式恢复 Max Hang
+    # 默认结果
+    # =========================
+
+    status = "conditional"
+
+    reasons = []
+
+    allowed_if = []
+
+    avoid_if = []
+
+    volume_adjustment = (
+        "首次恢复Max Hang建议降低总量，"
+        "可减少组数、总悬挂时间或附加重量，并增加组间休息。"
+    )
+
+
+    # =========================
+    # 1. 明确避免条件
+    # =========================
+
+    if high_finger_fatigue:
+
+        status = "avoid"
+
+        reasons.append(
+            f"最近一次手指疲劳为{finger_fatigue}/10，"
+            "属于明显或高局部疲劳。"
+        )
+
+
+    if (
+        recovery_after is not None
+        and recovery_after < 75
+    ):
+
+        status = "avoid"
+
+        reasons.append(
+            f"训练后恢复评分为{recovery_after}，"
+            "低于当前Max Hang恢复规则要求。"
+        )
+
+
+    if recovery_red:
+
+        status = "avoid"
+
+        reasons.append(
+            f"当前Recovery为{recovery}%，"
+            "处于红色恢复区间。"
+        )
+
+
+    # =========================
+    # 2. 没有明确avoid时
+    # =========================
+
+    if status != "avoid":
+
+        # ---------
+        # Recovery
+        # ---------
+
+        if recovery_green:
+
+            reasons.append(
+                f"Recovery为{recovery}%，"
+                "处于绿色恢复区间。"
+            )
+
+        elif recovery_yellow:
+
+            reasons.append(
+                f"Recovery为{recovery}%，"
+                "处于黄色恢复区间，"
+                "因此Max Hang仍需要更谨慎评估。"
+            )
+
+            allowed_if.append(
+                "当日整体恢复状态进一步支持高强度训练"
+            )
+
+        elif recovery is None:
+
+            reasons.append(
+                "Recovery数据缺失。"
+            )
+
+            allowed_if.append(
+                "确认当日整体恢复状态"
+            )
+
+
+        # ---------
+        # HRV
+        # ---------
+
+        if hrv_supportive:
+
+            reasons.append(
+                "HRV未低于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                hrv is not None
+                and avg_hrv is not None
+            ):
+
+                reasons.append(
+                    f"HRV为{round(hrv, 2)}ms，"
+                    f"低于近期平均{round(avg_hrv, 2)}ms。"
+                )
+
+            else:
+
+                reasons.append(
+                    "HRV近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "HRV稳定或回升至不明显低于近期个人基线"
+            )
+
+
+        # ---------
+        # RHR
+        # ---------
+
+        if rhr_supportive:
+
+            reasons.append(
+                "静息心率未高于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                rhr is not None
+                and avg_rhr is not None
+            ):
+
+                reasons.append(
+                    f"静息心率为{round(rhr, 1)}bpm，"
+                    f"近期平均为{round(avg_rhr, 1)}bpm。"
+                )
+
+            else:
+
+                reasons.append(
+                    "静息心率近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "静息心率没有明显高于近期个人基线"
+            )
+
+
+        # ---------
+        # 睡眠
+        # ---------
+
+        if sleep_supportive:
+
+            reasons.append(
+                "睡眠时长未明显低于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                sleep is not None
+                and avg_sleep is not None
+            ):
+
+                reasons.append(
+                    f"睡眠为{round(sleep, 2)}小时，"
+                    f"近期平均为{round(avg_sleep, 2)}小时。"
+                )
+
+            else:
+
+                reasons.append(
+                    "睡眠近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "睡眠和主观恢复状态足够支持高强度训练"
+            )
+
+
+        # ---------
+        # 手指疲劳
+        # ---------
+
+        if low_finger_fatigue:
+
+            reasons.append(
+                f"最近一次手指疲劳为{finger_fatigue}/10，"
+                "属于低局部疲劳。"
+            )
+
+        elif moderate_finger_fatigue:
+
+            reasons.append(
+                f"最近一次手指疲劳为{finger_fatigue}/10，"
+                "属于中等局部手指疲劳。"
+            )
+
+            allowed_if.append(
+                "热身后手指主观状态正常"
+            )
+
+        elif finger_fatigue is None:
+
+            reasons.append(
+                "最近一次手指疲劳数据缺失。"
+            )
+
+            allowed_if.append(
+                "热身后确认手指状态正常"
+            )
+
+
+        # ---------
+        # recovery_after
+        # ---------
+
+        if recovery_after_good:
+
+            reasons.append(
+                f"训练后恢复评分为{recovery_after}，"
+                "支持局部恢复。"
+            )
+
+        elif recovery_after is None:
+
+            reasons.append(
+                "训练后恢复评分数据缺失。"
+            )
+
+            allowed_if.append(
+                "确认局部恢复状态良好"
+            )
+
+
+        # ---------
+        # 训练间隔
+        # ---------
+
+        if days_since_hangboard is not None:
+
+            reasons.append(
+                f"距离最近一次指力板训练约"
+                f"{days_since_hangboard}个自然日。"
+            )
+
+        else:
+
+            reasons.append(
+                "最近一次指力板训练间隔数据不足。"
+            )
+
+
+        # 只有日期，不能确认完整48小时
+        allowed_if.append(
+            "确认距离上次高强度指力训练的实际恢复间隔足够"
+        )
+
+
+        # 热身状态始终是现场条件
+        if (
+            "热身后手指主观状态正常"
+            not in allowed_if
+        ):
+
+            allowed_if.append(
+                "热身后手指主观状态正常"
+            )
+
+
+    # =========================
+    # 3. allowed 判定
+    # =========================
+    #
+    # 只有在非常明确的情况下
+    # 才返回 allowed。
+    #
+    # 如果恢复间隔只有日期、
+    # 无法确认准确时间，
+    # 保持 conditional 更安全。
     # =========================
 
     if (
-        recovery_good
-        and hrv_good
-        and rhr_good
-        and sleep_ok
+        status != "avoid"
+        and recovery_green
+        and hrv_supportive
+        and rhr_supportive
+        and sleep_supportive
         and recovery_after_good
-        and moderate_finger_fatigue
+        and low_finger_fatigue
     ):
-        return "conditional"
+
+        # 由于目前只有自然日，
+        # 无法可靠确认完整恢复时间，
+        # 所以仍然保持 conditional。
+
+        status = "conditional"
 
 
     # =========================
-    # 默认不直接禁止
+    # 4. avoid条件说明
     # =========================
 
-    return "conditional"
+    avoid_if = [
+
+        "手指疲劳达到7/10或以上",
+
+        "训练后恢复评分明显偏低",
+
+        "出现明确疼痛、僵硬、肌腱敏感、肿胀或动作受限",
+
+        "Recovery进入红色区间并伴随其他恢复异常",
+
+        "多项恢复指标持续恶化"
+
+    ]
+
+
+    # =========================
+    # 5. 中文状态说明
+    # =========================
+
+    if status == "avoid":
+
+        status_label = (
+            "当前数据支持暂缓Max Hang"
+        )
+
+    elif status == "allowed":
+
+        status_label = (
+            "当前数据支持进行Max Hang"
+        )
+
+    else:
+
+        status_label = (
+            "条件式评估Max Hang"
+        )
+
+
+    # =========================
+    # 最终返回
+    # =========================
+
+    result = {
+
+        "status":
+            status,
+
+        "status_label":
+            status_label,
+
+        "reason":
+            " ".join(reasons),
+
+        "allowed_if":
+            list(dict.fromkeys(
+                allowed_if
+            )),
+
+        "avoid_if":
+            avoid_if,
+
+        "volume_adjustment":
+            volume_adjustment,
+
+        "finger_fatigue":
+            finger_fatigue,
+
+        "elbow_fatigue":
+            elbow_fatigue,
+
+        "recovery_after":
+            recovery_after,
+
+        "days_since_hangboard":
+            days_since_hangboard,
+
+        "latest_hangboard_date":
+            latest_hangboard_date
+
+    }
+
+
+    print(
+        "MAX HANG DECISION:",
+        result
+    )
+
+
+    return result
+
+
+
+# =========================
+# 兼容旧代码
+# =========================
+
+def calculate_max_hang_status(
+    metrics,
+    training_load,
+    weekly_data,
+    injury_data=None
+):
+
+    decision = calculate_max_hang_decision(
+        metrics,
+        training_load,
+        weekly_data,
+        injury_data
+    )
+
+    return decision.get(
+        "status",
+        "conditional"
+    )
 
 
 
