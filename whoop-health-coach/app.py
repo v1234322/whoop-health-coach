@@ -15483,7 +15483,9 @@ def auto_report():
 
             max_hang_status,
 
-            max_hang_decision
+            max_hang_decision，
+
+            strain_plan
 
         )
 
