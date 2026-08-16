@@ -3662,6 +3662,8 @@ def get_whoop_coach_report():
 
         strain_plan = None
 
+        training_readiness = None
+
 
         cur.execute(
             """
@@ -3862,6 +3864,90 @@ def get_whoop_coach_report():
 
             })
 
+
+        # =========================
+        # Training Readiness旧日报兼容
+        # =========================
+
+        if not isinstance(
+            training_readiness,
+            dict
+        ):
+
+            training_readiness = {
+
+                "overall_status":
+                    "unknown",
+
+                "overall_label":
+                    "暂无保存的Training Readiness",
+
+                "primary_limiter":
+                    "unknown",
+
+                "systemic_recovery":
+                    "unknown",
+
+                "recovery_state":
+                    "unknown",
+        
+                "hrv_state":
+                    "unknown",
+
+                "rhr_state":
+                    "unknown",
+                
+                "sleep_state":
+                    "unknown",
+
+                "finger_status":
+                    "unknown",
+
+                "elbow_status":
+                    "unknown",
+
+                "recommended_training":
+                    [],
+
+                "avoid_or_limit":
+                    [],
+        
+                "max_hang_status":
+                    max_hang_status,
+
+                "current_strain":
+                    strain_plan.get(
+                        "current_strain",
+                        0
+                    ),
+
+                "recommended_strain":
+                    strain_plan.get(
+                        "recommended_strain",
+                        "0-0"
+                    ),
+
+                "strain_completion":
+                    strain_plan.get(
+                        "strain_completion",
+                        0
+                    ),
+
+                "remaining_strain":
+                    strain_plan.get(
+                        "remaining_strain",
+                        0
+                    ),
+
+                "reason":
+                    (
+                        "该日报生成时尚未保存training_readiness，"
+                        "因此不在coach-report接口中重新推导训练准备度。"
+                    )
+        
+            }
+
+ 
 
         # =========================
         # 12. 所有 Strain 字段
