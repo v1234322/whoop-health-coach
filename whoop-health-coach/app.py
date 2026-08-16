@@ -3743,20 +3743,6 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 11. 获取已保存 AI Coach 报告
-        # =========================
-
-        coach_report_text = ""
-        training_recommendation = ""
-        risk_warning = "暂无明显风险"
-
-        menstrual_data = None
-        saved_temperature_data = None
-        injury_data = None
-        max_hang_status = None
-
-
-        # =========================
         # 读取已保存 AI Coach 报告
         # =========================
 
@@ -3835,6 +3821,11 @@ def get_whoop_coach_report():
                     or None
                 )
 
+
+                max_hang_decision = (
+                    coach_row[7]
+                )
+             
 
                 # =========================
                 # Max Hang API结构
@@ -7991,7 +7982,8 @@ def save_daily_coach_report(
     menstrual_data,
     temperature_data,
     injury_data,
-    max_hang_status
+    max_hang_status,
+    max_hang_decision
 ):
 
     conn = None
@@ -8010,13 +8002,39 @@ def save_daily_coach_report(
         )
 
 
+        # =========================
         # 防止 None
+        # =========================
 
-        ai_report = ai_report or ""
+        ai_report = (
+            ai_report
+            or ""
+        )
 
-        training_advice = training_advice or ""
+        training_advice = (
+            training_advice
+            or ""
+        )
 
-        risk_warning = risk_warning or ""
+        risk_warning = (
+            risk_warning
+            or ""
+        )
+
+        max_hang_status = (
+            max_hang_status
+            or "conditional"
+        )
+
+        if not isinstance(
+            max_hang_decision,
+            dict
+        ):
+
+            max_hang_decision = {
+                "status":
+                    max_hang_status
+            }
 
 
         print(
@@ -8024,24 +8042,35 @@ def save_daily_coach_report(
             report_date
         )
 
-
         print(
             "SAVE AI LENGTH:",
             len(ai_report)
         )
-
 
         print(
             "SAVE TRAINING ADVICE:",
             training_advice
         )
 
-
         print(
             "SAVE RISK WARNING:",
             risk_warning
         )
 
+        print(
+            "SAVE MAX HANG STATUS:",
+            max_hang_status
+        )
+
+        print(
+            "SAVE MAX HANG DECISION:",
+            max_hang_decision
+        )
+
+
+        # =========================
+        # 保存 Daily Coach Report
+        # =========================
 
         cursor.execute(
             """
@@ -8073,7 +8102,9 @@ def save_daily_coach_report(
 
                 injury_data,
 
-                max_hang_status
+                max_hang_status,
+
+                max_hang_decision
             )
 
 
@@ -8082,7 +8113,7 @@ def save_daily_coach_report(
             (
                 %s,%s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,%s,
-                %s
+                %s,%s::jsonb
             )
 
 
@@ -8092,51 +8123,55 @@ def save_daily_coach_report(
 
 
                 recovery =
-                EXCLUDED.recovery,
+                    EXCLUDED.recovery,
 
 
                 whoop_strain =
-                EXCLUDED.whoop_strain,
+                    EXCLUDED.whoop_strain,
 
 
                 climbing_load =
-                EXCLUDED.climbing_load,
+                    EXCLUDED.climbing_load,
 
 
                 hangboard_load =
-                EXCLUDED.hangboard_load,
+                    EXCLUDED.hangboard_load,
 
 
                 fatigue_score =
-                EXCLUDED.fatigue_score,
+                    EXCLUDED.fatigue_score,
 
 
                 training_advice =
-                EXCLUDED.training_advice,
+                    EXCLUDED.training_advice,
 
 
                 risk_warning =
-                EXCLUDED.risk_warning,
+                    EXCLUDED.risk_warning,
 
 
                 ai_report =
-                EXCLUDED.ai_report,
+                    EXCLUDED.ai_report,
 
 
                 menstrual_data =
-                EXCLUDED.menstrual_data,
+                    EXCLUDED.menstrual_data,
 
 
                 temperature_data =
-                EXCLUDED.temperature_data,
+                    EXCLUDED.temperature_data,
 
 
                 injury_data =
-                EXCLUDED.injury_data,
+                    EXCLUDED.injury_data,
 
 
                 max_hang_status =
-                EXCLUDED.max_hang_status
+                    EXCLUDED.max_hang_status,
+
+
+                max_hang_decision =
+                    EXCLUDED.max_hang_decision
 
             """,
 
@@ -8199,7 +8234,13 @@ def save_daily_coach_report(
                 ),
 
 
-                max_hang_status
+                max_hang_status,
+
+
+                json.dumps(
+                    max_hang_decision,
+                    ensure_ascii=False
+                )
 
             )
 
@@ -8213,10 +8254,14 @@ def save_daily_coach_report(
             "DAILY COACH REPORT SAVED"
         )
 
-
         print(
             "SAVED MAX HANG STATUS:",
             max_hang_status
+        )
+
+        print(
+            "SAVED MAX HANG DECISION:",
+            max_hang_decision
         )
 
 
@@ -8226,6 +8271,7 @@ def save_daily_coach_report(
             "SAVE DAILY COACH REPORT ERROR:",
             e
         )
+
 
         if conn:
 
@@ -8238,9 +8284,12 @@ def save_daily_coach_report(
 
             cursor.close()
 
+
         if conn:
 
             conn.close()
+
+
 
 def calculate_max_hang_decision(
     metrics,
@@ -8816,8 +8865,567 @@ def calculate_max_hang_decision(
 
 
 
+def calculate_max_hang_decision(
+    metrics,
+    training_load,
+    weekly_data,
+    injury_data=None
+):
+
+    # =========================
+    # 类型保护
+    # =========================
+
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+    if not isinstance(training_load, dict):
+        training_load = {}
+
+    if not isinstance(weekly_data, dict):
+        weekly_data = {}
+
+    if injury_data is None:
+        injury_data = []
+
+
+    print(
+        "MAX HANG FUNCTION INPUT TYPES:",
+        type(metrics),
+        type(training_load),
+        type(weekly_data),
+        type(injury_data)
+    )
+
+
+    # =========================
+    # WHOOP 当前数据
+    # =========================
+
+    recovery = metrics.get(
+        "recovery_score"
+    )
+
+    hrv = metrics.get(
+        "hrv"
+    )
+
+    rhr = metrics.get(
+        "resting_heart_rate"
+    )
+
+    sleep = metrics.get(
+        "sleep_duration"
+    )
+
+
+    # =========================
+    # 近期个人基线
+    # =========================
+
+    avg_hrv = weekly_data.get(
+        "avg_hrv"
+    )
+
+    avg_rhr = weekly_data.get(
+        "avg_resting_hr"
+    )
+
+    avg_sleep = weekly_data.get(
+        "avg_sleep"
+    )
+
+
+    # =========================
+    # 最近一次指力板状态
+    # =========================
+
+    finger_fatigue = training_load.get(
+        "latest_finger_fatigue"
+    )
+
+    elbow_fatigue = training_load.get(
+        "latest_elbow_fatigue"
+    )
+
+    recovery_after = training_load.get(
+        "latest_recovery_after"
+    )
+
+    days_since_hangboard = training_load.get(
+        "days_since_hangboard"
+    )
+
+    latest_hangboard_date = training_load.get(
+        "latest_hangboard_date"
+    )
+
+
+    # =========================
+    # 基础条件
+    # =========================
+
+    recovery_green = (
+        recovery is not None
+        and recovery >= 67
+    )
+
+    recovery_yellow = (
+        recovery is not None
+        and 34 <= recovery < 67
+    )
+
+    recovery_red = (
+        recovery is not None
+        and recovery < 34
+    )
+
+
+    hrv_supportive = (
+        hrv is not None
+        and avg_hrv is not None
+        and hrv >= avg_hrv
+    )
+
+
+    rhr_supportive = (
+        rhr is not None
+        and avg_rhr is not None
+        and rhr <= avg_rhr
+    )
+
+
+    sleep_supportive = (
+        sleep is not None
+        and avg_sleep is not None
+        and sleep >= avg_sleep * 0.85
+    )
+
+
+    recovery_after_good = (
+        recovery_after is not None
+        and recovery_after >= 75
+    )
+
+
+    low_finger_fatigue = (
+        finger_fatigue is not None
+        and finger_fatigue <= 3
+    )
+
+
+    moderate_finger_fatigue = (
+        finger_fatigue is not None
+        and 4 <= finger_fatigue <= 6
+    )
+
+
+    high_finger_fatigue = (
+        finger_fatigue is not None
+        and finger_fatigue >= 7
+    )
+
+
+    # =========================
+    # 默认状态
+    # =========================
+
+    status = "conditional"
+
+    reasons = []
+
+    allowed_if = []
+
+    avoid_if = [
+
+        "手指疲劳达到7/10或以上",
+
+        "训练后恢复评分明显偏低",
+
+        "出现明确疼痛、僵硬、肌腱敏感、肿胀或动作受限",
+
+        "Recovery进入红色区间并伴随其他恢复异常",
+
+        "多项恢复指标持续恶化"
+
+    ]
+
+
+    volume_adjustment = (
+        "首次恢复Max Hang建议降低总量，"
+        "可减少组数、总悬挂时间或附加重量，"
+        "并增加组间休息。"
+    )
+
+
+    # =========================
+    # 明确避免条件
+    # =========================
+
+    if high_finger_fatigue:
+
+        status = "avoid"
+
+        reasons.append(
+            f"最近一次手指疲劳为"
+            f"{finger_fatigue}/10，"
+            "属于明显或高局部疲劳。"
+        )
+
+
+    if (
+        recovery_after is not None
+        and recovery_after < 75
+    ):
+
+        status = "avoid"
+
+        reasons.append(
+            f"训练后恢复评分为"
+            f"{recovery_after}，"
+            "低于Max Hang恢复条件。"
+        )
+
+
+    if recovery_red:
+
+        status = "avoid"
+
+        reasons.append(
+            f"当前Recovery为"
+            f"{recovery}%，"
+            "处于红色恢复区间。"
+        )
+
+
+    # =========================
+    # 非 avoid 状态进一步判断
+    # =========================
+
+    if status != "avoid":
+
+        # Recovery
+
+        if recovery_green:
+
+            reasons.append(
+                f"Recovery为{recovery}%，"
+                "处于绿色恢复区间。"
+            )
+
+        elif recovery_yellow:
+
+            reasons.append(
+                f"Recovery为{recovery}%，"
+                "处于黄色恢复区间，"
+                "Max Hang需要条件式评估。"
+            )
+
+            allowed_if.append(
+                "当天整体恢复状态足够支持高强度最大力量训练"
+            )
+
+        else:
+
+            reasons.append(
+                "Recovery数据不足。"
+            )
+
+            allowed_if.append(
+                "确认当天整体恢复状态"
+            )
+
+
+        # HRV
+
+        if hrv_supportive:
+
+            reasons.append(
+                "HRV未低于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                hrv is not None
+                and avg_hrv is not None
+            ):
+
+                reasons.append(
+                    f"HRV为{round(hrv, 2)}ms，"
+                    f"近期平均为"
+                    f"{round(avg_hrv, 2)}ms。"
+                )
+
+            else:
+
+                reasons.append(
+                    "HRV近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "HRV稳定或回升至不明显低于近期个人基线"
+            )
+
+
+        # 静息心率
+
+        if rhr_supportive:
+
+            reasons.append(
+                "静息心率未高于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                rhr is not None
+                and avg_rhr is not None
+            ):
+
+                reasons.append(
+                    f"静息心率为"
+                    f"{round(rhr, 1)}bpm，"
+                    f"近期平均为"
+                    f"{round(avg_rhr, 1)}bpm。"
+                )
+
+            else:
+
+                reasons.append(
+                    "静息心率近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "静息心率没有明显高于近期个人基线"
+            )
+
+
+        # 睡眠
+
+        if sleep_supportive:
+
+            reasons.append(
+                "睡眠时长未明显低于近期个人平均。"
+            )
+
+        else:
+
+            if (
+                sleep is not None
+                and avg_sleep is not None
+            ):
+
+                reasons.append(
+                    f"睡眠为"
+                    f"{round(sleep, 2)}小时，"
+                    f"近期平均为"
+                    f"{round(avg_sleep, 2)}小时。"
+                )
+
+            else:
+
+                reasons.append(
+                    "睡眠近期基线数据不足。"
+                )
+
+            allowed_if.append(
+                "睡眠和主观恢复状态足够支持高强度训练"
+            )
+
+
+        # 手指疲劳
+
+        if low_finger_fatigue:
+
+            reasons.append(
+                f"最近一次手指疲劳为"
+                f"{finger_fatigue}/10，"
+                "属于低局部疲劳。"
+            )
+
+        elif moderate_finger_fatigue:
+
+            reasons.append(
+                f"最近一次手指疲劳为"
+                f"{finger_fatigue}/10，"
+                "属于中等局部手指疲劳。"
+            )
+
+            allowed_if.append(
+                "热身后手指主观状态正常"
+            )
+
+        elif finger_fatigue is None:
+
+            reasons.append(
+                "最近一次手指疲劳数据缺失。"
+            )
+
+            allowed_if.append(
+                "热身后确认手指状态正常"
+            )
+
+
+        # recovery_after
+
+        if recovery_after_good:
+
+            reasons.append(
+                f"训练后恢复评分为"
+                f"{recovery_after}，"
+                "支持局部恢复。"
+            )
+
+        elif recovery_after is None:
+
+            reasons.append(
+                "训练后恢复评分数据缺失。"
+            )
+
+            allowed_if.append(
+                "确认局部恢复状态良好"
+            )
+
+
+        # 训练间隔
+
+        if days_since_hangboard is not None:
+
+            reasons.append(
+                f"距离最近一次指力板训练约"
+                f"{days_since_hangboard}个自然日。"
+            )
+
+        else:
+
+            reasons.append(
+                "最近一次指力板训练间隔数据不足。"
+            )
+
+
+        # 目前只有日期，不声称达到完整48小时
+
+        allowed_if.append(
+            "确认距离上次高强度指力训练的实际恢复间隔足够"
+        )
+
+
+        if (
+            "热身后手指主观状态正常"
+            not in allowed_if
+        ):
+
+            allowed_if.append(
+                "热身后手指主观状态正常"
+            )
+
+
+    # =========================
+    # 状态文字
+    # =========================
+
+    if status == "avoid":
+
+        status_label = (
+            "当前数据支持暂缓Max Hang"
+        )
+
+        instruction = (
+            "当前存在明确限制因素，"
+            "建议暂缓Max Hang，"
+            "优先进行低至中等强度训练或恢复。"
+        )
+
+
+    elif status == "allowed":
+
+        status_label = (
+            "当前数据支持进行Max Hang"
+        )
+
+        instruction = (
+            "当前条件支持进行Max Hang，"
+            "仍应根据热身后的手指状态"
+            "动态调整训练量。"
+        )
+
+
+    else:
+
+        status_label = (
+            "条件式评估Max Hang"
+        )
+
+        instruction = (
+            "如果恢复间隔足够，"
+            "且热身后手指状态正常，"
+            "可以考虑降低总量进行Max Hang；"
+            "否则暂缓。"
+        )
+
+
+    # =========================
+    # 最终结构
+    # =========================
+
+    result = {
+
+        "status":
+            status,
+
+        "status_label":
+            status_label,
+
+        "instruction":
+            instruction,
+
+        "reason":
+            " ".join(reasons),
+
+        "allowed_if":
+            list(
+                dict.fromkeys(
+                    allowed_if
+                )
+            ),
+
+        "avoid_if":
+            avoid_if,
+
+        "volume_adjustment":
+            volume_adjustment,
+
+        "finger_fatigue":
+            finger_fatigue,
+
+        "elbow_fatigue":
+            elbow_fatigue,
+
+        "recovery_after":
+            recovery_after,
+
+        "days_since_hangboard":
+            days_since_hangboard,
+
+        "latest_hangboard_date":
+            latest_hangboard_date
+
+    }
+
+
+    print(
+        "MAX HANG DECISION:",
+        result
+    )
+
+
+    return result
+
+
+
 # =========================
-# 兼容旧代码
+# 旧代码兼容函数
 # =========================
 
 def calculate_max_hang_status(
@@ -8883,21 +9491,64 @@ def generate_coach_prompt(
         climbing_fatigue = {}
 
 
-    # =========================
-    # Max Hang 后端最终决策
-    # =========================
+        # =========================
+        # Max Hang 最终结构化决策
+        # =========================
 
-    max_hang_status = calculate_max_hang_status(
-        metrics,
-        training_load,
-        weekly_data,
-        injury_data
-    ) 
+        max_hang_decision = calculate_max_hang_decision(
+            metrics,
+            training_load,
+            weekly_data,
+            injury_data
+        )
 
-    print(
-        "MAX HANG STATUS:",
-        max_hang_status
-    ) 
+
+        max_hang_status = (
+            max_hang_decision.get(
+                "status",
+                "conditional"
+            )
+        )
+
+
+        print(
+            "MAX HANG STATUS:",
+            max_hang_status
+        )
+
+        print(
+            "MAX HANG DECISION:",
+            max_hang_decision
+        )
+
+
+        # =========================
+        # 保存 Daily Coach Report
+        # =========================
+
+        save_daily_coach_report(
+
+            metrics,
+            training_load,
+            ai_report,
+            training_advice,
+            risk_warning,
+            menstrual_data,
+            temperature_data,
+            injury_data,
+            max_hang_status,
+            max_hang_decision
+
+        )
+
+
+        print(
+            "AI COACH GENERATED"
+        )
+
+        print(
+            "========== DAILY REPORT SUCCESS =========="
+        )
  
     # =========================
     # 2. WHOOP 温度
