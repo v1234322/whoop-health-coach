@@ -3674,7 +3674,8 @@ def get_whoop_coach_report():
                 injury_data,
                 max_hang_status,
                 max_hang_decision,
-                strain_plan
+                strain_plan,
+                training_readiness
 
             FROM daily_coach_reports
 
@@ -3738,6 +3739,10 @@ def get_whoop_coach_report():
                 coach_row[8]
             )
 
+         
+            training_readiness = (
+                coach_row[9]
+            )
 
         # =========================
         # 9. JSONB / 字符串兼容
@@ -3773,7 +3778,23 @@ def get_whoop_coach_report():
             except Exception:
 
                 strain_plan = None
+             
 
+        if isinstance(
+            training_readiness,
+            str
+        ):
+
+            try:
+
+                training_readiness = json.loads(
+                    training_readiness
+                )
+
+            except Exception:
+
+                training_readiness = None
+     
 
         # =========================
         # 10. 旧 Max Hang 日报兼容
@@ -4287,6 +4308,10 @@ def get_whoop_coach_report():
                         strain_plan,
 
 
+                    "training_readiness":
+                        training_readiness,
+
+                 
                     # =========================
                     # 疲劳
                     # =========================
@@ -8011,7 +8036,8 @@ def save_daily_coach_report(
     injury_data,
     max_hang_status,
     max_hang_decision,
-    strain_plan
+    strain_plan,
+    training_readiness
 ):
 
     import json
@@ -8139,15 +8165,23 @@ def save_daily_coach_report(
                 injury_data,
                 max_hang_status,
                 max_hang_decision,
-                strain_plan
+                strain_plan,
+                training_readiness
             )
 
             VALUES
             (
                 %s,%s,%s,%s,%s,
                 %s,%s,%s,%s,%s,
-                %s,%s,%s,%s::jsonb,%s::jsonb
+                %s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb
             )
+
+
+            json.dumps(
+                training_readiness,
+                ensure_ascii=False
+            )
+
 
             ON CONFLICT(report_date)
 
@@ -8193,7 +8227,10 @@ def save_daily_coach_report(
                     EXCLUDED.max_hang_decision,
 
                 strain_plan =
-                    EXCLUDED.strain_plan
+                    EXCLUDED.strain_plan,
+
+                training_readiness =
+                    EXCLUDED.training_readiness
             """,
 
             (
@@ -9028,6 +9065,817 @@ def calculate_strain_plan(
 
 
     return result
+
+
+def calculate_training_readiness(
+    metrics,
+    training_load,
+    weekly_data,
+    strain_plan,
+    max_hang_decision,
+    injury_data=None
+):
+
+    # =========================
+    # 类型保护
+    # =========================
+
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+    if not isinstance(training_load, dict):
+        training_load = {}
+
+    if not isinstance(weekly_data, dict):
+        weekly_data = {}
+
+    if not isinstance(strain_plan, dict):
+        strain_plan = {}
+
+    if not isinstance(max_hang_decision, dict):
+        max_hang_decision = {}
+
+    if injury_data is None:
+        injury_data = []
+
+
+    # =========================
+    # WHOOP 当前状态
+    # =========================
+
+    recovery = metrics.get(
+        "recovery_score"
+    )
+
+    hrv = metrics.get(
+        "hrv"
+    )
+
+    rhr = metrics.get(
+        "resting_heart_rate"
+    )
+
+    sleep = metrics.get(
+        "sleep_duration"
+    )
+
+
+    # =========================
+    # 近期基线
+    # =========================
+
+    avg_hrv = weekly_data.get(
+        "avg_hrv"
+    )
+
+    avg_rhr = weekly_data.get(
+        "avg_resting_hr"
+    )
+
+    avg_sleep = weekly_data.get(
+        "avg_sleep"
+    )
+
+
+    # =========================
+    # 局部疲劳
+    # =========================
+
+    finger_fatigue = training_load.get(
+        "latest_finger_fatigue"
+    )
+
+    elbow_fatigue = training_load.get(
+        "latest_elbow_fatigue"
+    )
+
+    recovery_after = training_load.get(
+        "latest_recovery_after"
+    )
+
+    days_since_hangboard = training_load.get(
+        "days_since_hangboard"
+    )
+
+
+    # =========================
+    # Strain Plan
+    # =========================
+
+    current_strain = strain_plan.get(
+        "current_strain"
+    )
+
+    recommended_strain = strain_plan.get(
+        "recommended_strain"
+    )
+
+    strain_completion = strain_plan.get(
+        "strain_completion"
+    )
+
+    remaining_strain = strain_plan.get(
+        "remaining_strain"
+    )
+
+
+    # =========================
+    # Max Hang
+    # =========================
+
+    max_hang_status = max_hang_decision.get(
+        "status",
+        "conditional"
+    )
+
+    max_hang_instruction = max_hang_decision.get(
+        "instruction",
+        ""
+    )
+
+
+    # =========================
+    # Recovery 状态
+    # =========================
+
+    if recovery is None:
+
+        recovery_state = (
+            "unknown"
+        )
+
+    elif recovery >= 67:
+
+        recovery_state = (
+            "green"
+        )
+
+    elif recovery >= 34:
+
+        recovery_state = (
+            "yellow"
+        )
+
+    else:
+
+        recovery_state = (
+            "red"
+        )
+
+
+    # =========================
+    # HRV 状态
+    # =========================
+
+    if (
+        hrv is None
+        or avg_hrv is None
+    ):
+
+        hrv_state = (
+            "unknown"
+        )
+
+    elif hrv >= avg_hrv:
+
+        hrv_state = (
+            "supportive"
+        )
+
+    else:
+
+        hrv_state = (
+            "below_baseline"
+        )
+
+
+    # =========================
+    # 静息心率状态
+    # =========================
+
+    if (
+        rhr is None
+        or avg_rhr is None
+    ):
+
+        rhr_state = (
+            "unknown"
+        )
+
+    elif rhr <= avg_rhr:
+
+        rhr_state = (
+            "supportive"
+        )
+
+    else:
+
+        rhr_state = (
+            "above_baseline"
+        )
+
+
+    # =========================
+    # 睡眠状态
+    # =========================
+
+    if (
+        sleep is None
+        or avg_sleep is None
+    ):
+
+        sleep_state = (
+            "unknown"
+        )
+
+    elif sleep >= avg_sleep * 0.85:
+
+        sleep_state = (
+            "supportive"
+        )
+
+    else:
+
+        sleep_state = (
+            "below_baseline"
+        )
+
+
+    # =========================
+    # 手指状态
+    # =========================
+
+    if finger_fatigue is None:
+
+        finger_status = (
+            "unknown"
+        )
+
+    elif finger_fatigue <= 3:
+
+        finger_status = (
+            "low_fatigue"
+        )
+
+    elif finger_fatigue <= 6:
+
+        finger_status = (
+            "moderate_fatigue"
+        )
+
+    else:
+
+        finger_status = (
+            "high_fatigue"
+        )
+
+
+    # =========================
+    # 肘部状态
+    # =========================
+
+    if elbow_fatigue is None:
+
+        elbow_status = (
+            "unknown"
+        )
+
+    elif elbow_fatigue <= 3:
+
+        elbow_status = (
+            "low_fatigue"
+        )
+
+    elif elbow_fatigue <= 5:
+
+        elbow_status = (
+            "moderate_fatigue"
+        )
+
+    else:
+
+        elbow_status = (
+            "high_fatigue"
+        )
+
+
+    # =========================
+    # 全身恢复状态
+    # =========================
+
+    systemic_negative_count = 0
+
+
+    if hrv_state == "below_baseline":
+
+        systemic_negative_count += 1
+
+
+    if rhr_state == "above_baseline":
+
+        systemic_negative_count += 1
+
+
+    if sleep_state == "below_baseline":
+
+        systemic_negative_count += 1
+
+
+    if recovery_state == "red":
+
+        systemic_recovery = (
+            "poor"
+        )
+
+
+    elif (
+        recovery_state == "green"
+        and systemic_negative_count == 0
+    ):
+
+        systemic_recovery = (
+            "good"
+        )
+
+
+    elif (
+        recovery_state in [
+            "green",
+            "yellow"
+        ]
+        and systemic_negative_count <= 1
+    ):
+
+        systemic_recovery = (
+            "moderate"
+        )
+
+
+    elif recovery_state == "unknown":
+
+        systemic_recovery = (
+            "unknown"
+        )
+
+
+    else:
+
+        systemic_recovery = (
+            "limited"
+        )
+
+
+    # =========================
+    # 伤病记录
+    # =========================
+    #
+    # 这里只表示存在记录。
+    # 不自动理解为今天正在疼痛。
+    # =========================
+
+    injury_recorded = bool(
+        injury_data
+    )
+
+
+    # =========================
+    # 主要限制因素
+    # =========================
+
+    primary_limiter = (
+        "none_identified"
+    )
+
+
+    if systemic_recovery in [
+        "poor",
+        "limited"
+    ]:
+
+        primary_limiter = (
+            "systemic_recovery"
+        )
+
+
+    elif finger_status == "high_fatigue":
+
+        primary_limiter = (
+            "finger_fatigue"
+        )
+
+
+    elif elbow_status == "high_fatigue":
+
+        primary_limiter = (
+            "elbow_fatigue"
+        )
+
+
+    elif finger_status == "moderate_fatigue":
+
+        primary_limiter = (
+            "finger_fatigue"
+        )
+
+
+    elif elbow_status == "moderate_fatigue":
+
+        primary_limiter = (
+            "elbow_fatigue"
+        )
+
+
+    elif injury_recorded:
+
+        primary_limiter = (
+            "injury_record_review"
+        )
+
+
+    # =========================
+    # Overall Status
+    # =========================
+
+    if (
+        systemic_recovery == "poor"
+        or finger_status == "high_fatigue"
+        or elbow_status == "high_fatigue"
+    ):
+
+        overall_status = (
+            "recovery_priority"
+        )
+
+
+    elif (
+        systemic_recovery in [
+            "limited",
+            "moderate",
+            "unknown"
+        ]
+        or finger_status == "moderate_fatigue"
+        or elbow_status == "moderate_fatigue"
+        or max_hang_status == "conditional"
+    ):
+
+        overall_status = (
+            "conditional"
+        )
+
+
+    else:
+
+        overall_status = (
+            "ready"
+        )
+
+
+    # =========================
+    # 状态标签
+    # =========================
+
+    if overall_status == "ready":
+
+        overall_label = (
+            "训练准备度良好"
+        )
+
+
+    elif overall_status == "recovery_priority":
+
+        overall_label = (
+            "恢复优先"
+        )
+
+
+    else:
+
+        overall_label = (
+            "条件式训练"
+        )
+
+
+    # =========================
+    # 推荐训练
+    # =========================
+
+    recommended_training = []
+
+
+    if overall_status == "recovery_priority":
+
+        recommended_training.extend([
+            "低强度主动恢复",
+            "轻松有氧",
+            "活动度训练",
+            "低负荷技术练习"
+        ])
+
+
+    elif overall_status == "conditional":
+
+        recommended_training.extend([
+            "技术攀岩",
+            "中低强度攀岩",
+            "基础耐力训练"
+        ])
+
+
+        if (
+            finger_status
+            in [
+                "low_fatigue",
+                "moderate_fatigue"
+            ]
+        ):
+
+            recommended_training.append(
+                "低量或降低强度的Repeaters，可根据热身后手指状态调整"
+            )
+
+
+    else:
+
+        recommended_training.extend([
+            "高质量技术攀岩",
+            "中等至中高强度攀岩",
+            "计划内力量训练"
+        ])
+
+
+        if finger_status == "low_fatigue":
+
+            recommended_training.append(
+                "Repeaters可按计划执行，并根据手指状态调整"
+            )
+
+
+    # =========================
+    # 限制 / 避免
+    # =========================
+
+    avoid_or_limit = []
+
+
+    if finger_status == "high_fatigue":
+
+        avoid_or_limit.append(
+            "高强度指力训练"
+        )
+
+
+    if elbow_status == "high_fatigue":
+
+        avoid_or_limit.append(
+            "高负荷拉力与高强度上肢训练"
+        )
+
+
+    if systemic_recovery == "poor":
+
+        avoid_or_limit.append(
+            "高强度训练和极限尝试"
+        )
+
+
+    elif systemic_recovery == "limited":
+
+        avoid_or_limit.append(
+            "高总量或连续高强度训练"
+        )
+
+
+    # =========================
+    # Max Hang直接继承后端结果
+    # =========================
+
+    if max_hang_status == "avoid":
+
+        avoid_or_limit.append(
+            "Max Hang"
+        )
+
+
+    elif max_hang_status == "conditional":
+
+        avoid_or_limit.append(
+            "Max Hang需满足后端条件后再决定"
+        )
+
+
+    # =========================
+    # 决策原因
+    # =========================
+
+    reasons = []
+
+
+    if recovery is not None:
+
+        reasons.append(
+            f"Recovery为{recovery}%"
+        )
+
+
+    if (
+        hrv is not None
+        and avg_hrv is not None
+    ):
+
+        reasons.append(
+            f"HRV为{round(hrv, 2)}ms，"
+            f"近期平均为{round(avg_hrv, 2)}ms"
+        )
+
+
+    if (
+        rhr is not None
+        and avg_rhr is not None
+    ):
+
+        reasons.append(
+            f"静息心率为{round(rhr, 1)}bpm，"
+            f"近期平均为{round(avg_rhr, 1)}bpm"
+        )
+
+
+    if (
+        sleep is not None
+        and avg_sleep is not None
+    ):
+
+        reasons.append(
+            f"睡眠为{round(sleep, 2)}小时，"
+            f"近期平均为{round(avg_sleep, 2)}小时"
+        )
+
+
+    if finger_fatigue is not None:
+
+        reasons.append(
+            f"最近一次手指疲劳为"
+            f"{finger_fatigue}/10"
+        )
+
+
+    if elbow_fatigue is not None:
+
+        reasons.append(
+            f"最近一次肘部疲劳为"
+            f"{elbow_fatigue}/10"
+        )
+
+
+    if recovery_after is not None:
+
+        reasons.append(
+            f"训练后恢复评分为"
+            f"{recovery_after}"
+        )
+
+
+    # =========================
+    # 最终结构
+    # =========================
+
+    result = {
+
+        "overall_status":
+            overall_status,
+
+        "overall_label":
+            overall_label,
+
+        "primary_limiter":
+            primary_limiter,
+
+
+        # =====================
+        # 全身恢复
+        # =====================
+
+        "systemic_recovery":
+            systemic_recovery,
+
+        "recovery_state":
+            recovery_state,
+
+        "hrv_state":
+            hrv_state,
+
+        "rhr_state":
+            rhr_state,
+
+        "sleep_state":
+            sleep_state,
+
+
+        # =====================
+        # 局部状态
+        # =====================
+
+        "finger_status":
+            finger_status,
+
+        "finger_fatigue":
+            finger_fatigue,
+
+        "elbow_status":
+            elbow_status,
+
+        "elbow_fatigue":
+            elbow_fatigue,
+
+        "recovery_after":
+            recovery_after,
+
+        "days_since_hangboard":
+            days_since_hangboard,
+
+
+        # =====================
+        # 训练建议
+        # =====================
+
+        "recommended_training":
+            list(
+                dict.fromkeys(
+                    recommended_training
+                )
+            ),
+
+        "avoid_or_limit":
+            list(
+                dict.fromkeys(
+                    avoid_or_limit
+                )
+            ),
+
+
+        # =====================
+        # Max Hang
+        # =====================
+
+        "max_hang_status":
+            max_hang_status,
+
+        "max_hang_instruction":
+            max_hang_instruction,
+
+
+        # =====================
+        # Strain
+        # =====================
+
+        "current_strain":
+            current_strain,
+
+        "recommended_strain":
+            recommended_strain,
+
+        "strain_completion":
+            strain_completion,
+
+        "remaining_strain":
+            remaining_strain,
+
+
+        # =====================
+        # 伤病
+        # =====================
+
+        "injury_recorded":
+            injury_recorded,
+
+        "injury_note":
+            (
+                "存在伤病记录，需结合记录内容确认当前是否仍有限制。"
+                if injury_recorded
+                else
+                "当前未检测到非空伤病记录。"
+            ),
+
+
+        # =====================
+        # 原因
+        # =====================
+
+        "reason":
+            "；".join(
+                reasons
+            )
+
+    }
+
+
+    print(
+        "TRAINING READINESS:",
+        result
+    )
+
+
+    return result
+ 
  
 
 def generate_coach_prompt(
@@ -9039,7 +9887,8 @@ def generate_coach_prompt(
     temperature_data,
     injury_data,
     max_hang_decision=None,
-    strain_plan=None
+    strain_plan=None,
+    training_readiness=None
 ):
 
     # =========================
@@ -9057,6 +9906,18 @@ def generate_coach_prompt(
 
     if not isinstance(climbing_fatigue, dict):
         climbing_fatigue = {}
+
+    if not isinstance(training_readiness,dic):
+
+        training_readiness = (calculate_training_readiness(
+            metrics,
+            training_load,
+            weekly_data,
+            strain_plan,
+            max_hang_decision,
+            injury_data
+        )
+    )
 
 
     # =========================
@@ -9281,6 +10142,51 @@ AI不得自行修改、重新估算或生成不同结果。
 
 训练等级：
 {strain_plan.get("training_level")}
+
+
+==============================
+后端Training Readiness最终决策
+==============================
+
+整体状态：
+{training_readiness.get("overall_status")}
+
+状态说明：
+{training_readiness.get("overall_label")}
+
+主要限制因素：
+{training_readiness.get("primary_limiter")}
+
+全身恢复：
+{training_readiness.get("systemic_recovery")}
+
+手指状态：
+{training_readiness.get("finger_status")}
+
+肘部状态：
+{training_readiness.get("elbow_status")}
+
+推荐训练：
+{training_readiness.get("recommended_training")}
+
+限制或避免：
+{training_readiness.get("avoid_or_limit")}
+
+
+重要：
+
+training_readiness是后端综合训练决策。
+
+AI不得自行推翻：
+
+overall_status
+primary_limiter
+recommended_training
+avoid_or_limit
+
+Max Hang必须继续服从max_hang_decision。
+
+Strain必须继续服从strain_plan。
 
 
 强制规则：
@@ -15516,7 +16422,8 @@ def auto_report():
             temperature_data,
             injury_data,
             max_hang_decision,
-            strain_plan
+            strain_plan,
+            training_readiness
         )
 
 
@@ -15664,7 +16571,9 @@ def auto_report():
 
             max_hang_decision,
 
-            strain_plan
+            strain_plan,
+
+            training_readiness
 
         )
 
