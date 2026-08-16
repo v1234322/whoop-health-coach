@@ -4595,22 +4595,193 @@ def get_training_history():
     return jsonify(rows)
 
 
-@app.route("/training/hangboard", methods=["POST"])
+@app.route(
+    "/training/hangboard",
+    methods=["POST"]
+)
 def training_hangboard():
 
-    data=request.json
+    import traceback
+
+    try:
+
+        # =========================
+        # API Key
+        # =========================
+
+        if not check_api_key():
+
+            return jsonify({
+                "success": False,
+                "error": "unauthorized"
+            }), 401
 
 
-    save_hangboard_training(data)
+        # =========================
+        # 获取 JSON
+        # =========================
+
+        data = request.get_json(
+            silent=True
+        )
 
 
-    return jsonify({
+        print(
+            "HANGBOARD SAVE RAW DATA:",
+            data
+        )
 
-        "success":True,
 
-        "message":"指力板训练已保存",
+        if not isinstance(
+            data,
+            dict
+        ):
 
-    })
+            return jsonify({
+                "success": False,
+                "error": "请求内容必须是JSON对象"
+            }), 400
+
+
+        # =========================
+        # 必填字段
+        # =========================
+
+        training_date = data.get(
+            "training_date"
+        )
+
+        protocol = data.get(
+            "protocol"
+        )
+
+
+        if not training_date:
+
+            return jsonify({
+                "success": False,
+                "error": "缺少training_date"
+            }), 400
+
+
+        if not protocol:
+
+            return jsonify({
+                "success": False,
+                "error": "缺少protocol"
+            }), 400
+
+
+        # =========================
+        # 保存
+        # =========================
+
+        result = save_hangboard_training(
+            data
+        )
+
+
+        if not result:
+
+            return jsonify({
+                "success": False,
+                "error": "指力板训练保存失败"
+            }), 500
+
+
+        print(
+            "HANGBOARD TRAINING SAVED:",
+            data
+        )
+
+
+        return jsonify({
+
+            "success": True,
+
+            "message":
+                "指力板训练已保存",
+
+            "training": {
+
+                "training_date":
+                    data.get(
+                        "training_date"
+                    ),
+
+                "protocol":
+                    data.get(
+                        "protocol"
+                    ),
+
+                "session_type":
+                    data.get(
+                        "session_type"
+                    ),
+
+                "edge_size":
+                    data.get(
+                        "edge_size"
+                    ),
+
+                "added_weight":
+                    data.get(
+                        "added_weight"
+                    ),
+
+                "hold_seconds":
+                    data.get(
+                        "hold_seconds"
+                    ),
+
+                "sets":
+                    data.get(
+                        "sets"
+                    ),
+
+                "total_hang_time":
+                    data.get(
+                        "total_hang_time"
+                    ),
+
+                "finger_fatigue":
+                    data.get(
+                        "finger_fatigue"
+                    ),
+
+                "elbow_fatigue":
+                    data.get(
+                        "elbow_fatigue"
+                    ),
+
+                "recovery_after":
+                    data.get(
+                        "recovery_after"
+                    )
+
+            }
+
+        }), 200
+
+
+    except Exception as e:
+
+        print(
+            "HANGBOARD ROUTE ERROR:",
+            repr(e)
+        )
+
+        traceback.print_exc()
+
+
+        return jsonify({
+
+            "success": False,
+
+            "error":
+                str(e)
+
+        }), 500
 
 
 @app.route("/training/hangboard/history")
@@ -14749,73 +14920,558 @@ def save_daily_data(metrics):
             conn.close()
 
 
-def save_hangboard_training(data):
+def save_hangboard_training(
+    data
+):
 
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-
-    cursor.execute("""
-    INSERT INTO hangboard_training_log (
-
-        training_date,
-        protocol,
-        session_type,
-        edge_size,
-        grip_type,
-        added_weight,
-        hold_seconds,
-        duration,
-        sets,
-        total_hang_time,
-        intensity,
-        finger_fatigue,
-        elbow_fatigue,
-        recovery_after,
-        notes
-
-    )
-
-    VALUES (
-
-        %s,%s,%s,%s,%s,
-        %s,%s,%s,%s,%s,
-        %s,%s,%s,%s,%s
-
-    )
-
-    """,
-
-    (
-
-        data.get("training_date"),
-        data.get("protocol"),
-        data.get("session_type"),
-        data.get("edge_size"),
-        data.get("grip_type"),
-        data.get("added_weight"),
-        data.get("hold_seconds"),
-        data.get("duration"),
-        data.get("sets"),
-        data.get("total_hang_time"),
-        data.get("intensity"),
-        data.get("finger_fatigue"),
-        data.get("elbow_fatigue"),
-        data.get("recovery_after"),
-        data.get("notes")
-    )
-    )
+    conn = None
+    cursor = None
 
 
-    conn.commit()
+    try:
 
-    cursor.close()
+        # =========================
+        # 类型保护
+        # =========================
 
-    conn.close()
+        if not isinstance(
+            data,
+            dict
+        ):
+
+            raise ValueError(
+                "hangboard data必须是dict"
+            )
 
 
-    return True
+        # =========================
+        # 数字转换函数
+        # =========================
+
+        def to_float(
+            value
+        ):
+
+            if value is None:
+                return None
+
+            if value == "":
+                return None
+
+            if isinstance(
+                value,
+                (int, float)
+            ):
+
+                return float(
+                    value
+                )
+
+
+            text = str(
+                value
+            ).strip()
+
+
+            # 支持:
+            # 10
+            # +10
+            # 10kg
+            # +10 kg
+
+            text = (
+                text
+                .replace(
+                    "kg",
+                    ""
+                )
+                .replace(
+                    "KG",
+                    ""
+                )
+                .strip()
+            )
+
+
+            return float(
+                text
+            )
+
+
+        def to_int(
+            value
+        ):
+
+            if value is None:
+                return None
+
+            if value == "":
+                return None
+
+            if isinstance(
+                value,
+                bool
+            ):
+
+                return int(
+                    value
+                )
+
+            if isinstance(
+                value,
+                int
+            ):
+
+                return value
+
+            if isinstance(
+                value,
+                float
+            ):
+
+                return int(
+                    round(
+                        value
+                    )
+                )
+
+
+            text = str(
+                value
+            ).strip()
+
+
+            # 防止类似:
+            # "7秒"
+            # "35 sec"
+
+            number_text = ""
+
+            decimal_found = False
+
+
+            for char in text:
+
+                if char.isdigit():
+
+                    number_text += char
+
+                elif (
+                    char == "."
+                    and not decimal_found
+                ):
+
+                    number_text += char
+
+                    decimal_found = True
+
+                elif (
+                    char == "-"
+                    and not number_text
+                ):
+
+                    number_text += char
+
+
+            if not number_text:
+
+                return None
+
+
+            return int(
+                round(
+                    float(
+                        number_text
+                    )
+                )
+            )
+
+
+        # =========================
+        # 清理字段
+        # =========================
+
+        training_date = (
+            str(
+                data.get(
+                    "training_date"
+                )
+            ).strip()
+            if data.get(
+                "training_date"
+            ) is not None
+            else None
+        )
+
+
+        protocol = (
+            str(
+                data.get(
+                    "protocol"
+                )
+            ).strip()
+            if data.get(
+                "protocol"
+            ) is not None
+            else None
+        )
+
+
+        session_type = (
+            str(
+                data.get(
+                    "session_type"
+                )
+            ).strip()
+            if data.get(
+                "session_type"
+            ) not in [
+                None,
+                ""
+            ]
+            else None
+        )
+
+
+        edge_size = (
+            str(
+                data.get(
+                    "edge_size"
+                )
+            ).strip()
+            if data.get(
+                "edge_size"
+            ) not in [
+                None,
+                ""
+            ]
+            else None
+        )
+
+
+        grip_type = (
+            str(
+                data.get(
+                    "grip_type"
+                )
+            ).strip()
+            if data.get(
+                "grip_type"
+            ) not in [
+                None,
+                ""
+            ]
+            else None
+        )
+
+
+        added_weight = to_float(
+            data.get(
+                "added_weight"
+            )
+        )
+
+
+        hold_seconds = to_int(
+            data.get(
+                "hold_seconds"
+            )
+        )
+
+
+        duration = to_int(
+            data.get(
+                "duration"
+            )
+        )
+
+
+        sets = to_int(
+            data.get(
+                "sets"
+            )
+        )
+
+
+        total_hang_time = to_int(
+            data.get(
+                "total_hang_time"
+            )
+        )
+
+
+        intensity = (
+            str(
+                data.get(
+                    "intensity"
+                )
+            ).strip()
+            if data.get(
+                "intensity"
+            ) not in [
+                None,
+                ""
+            ]
+            else None
+        )
+
+
+        finger_fatigue = to_int(
+            data.get(
+                "finger_fatigue"
+            )
+        )
+
+
+        elbow_fatigue = to_int(
+            data.get(
+                "elbow_fatigue"
+            )
+        )
+
+
+        recovery_after = to_int(
+            data.get(
+                "recovery_after"
+            )
+        )
+
+
+        notes = (
+            str(
+                data.get(
+                    "notes"
+                )
+            ).strip()
+            if data.get(
+                "notes"
+            ) not in [
+                None,
+                ""
+            ]
+            else None
+        )
+
+
+        # =========================
+        # 必填字段检查
+        # =========================
+
+        if not training_date:
+
+            raise ValueError(
+                "training_date不能为空"
+            )
+
+
+        if not protocol:
+
+            raise ValueError(
+                "protocol不能为空"
+            )
+
+
+        # =========================
+        # 疲劳评分保护
+        # =========================
+
+        if (
+            finger_fatigue is not None
+            and not 0 <= finger_fatigue <= 10
+        ):
+
+            raise ValueError(
+                "finger_fatigue必须在0-10之间"
+            )
+
+
+        if (
+            elbow_fatigue is not None
+            and not 0 <= elbow_fatigue <= 10
+        ):
+
+            raise ValueError(
+                "elbow_fatigue必须在0-10之间"
+            )
+
+
+        if (
+            recovery_after is not None
+            and not 0 <= recovery_after <= 100
+        ):
+
+            raise ValueError(
+                "recovery_after必须在0-100之间"
+            )
+
+
+        # =========================
+        # DEBUG
+        # =========================
+
+        cleaned_data = {
+
+            "training_date":
+                training_date,
+
+            "protocol":
+                protocol,
+
+            "session_type":
+                session_type,
+
+            "edge_size":
+                edge_size,
+
+            "grip_type":
+                grip_type,
+
+            "added_weight":
+                added_weight,
+
+            "hold_seconds":
+                hold_seconds,
+
+            "duration":
+                duration,
+
+            "sets":
+                sets,
+
+            "total_hang_time":
+                total_hang_time,
+
+            "intensity":
+                intensity,
+
+            "finger_fatigue":
+                finger_fatigue,
+
+            "elbow_fatigue":
+                elbow_fatigue,
+
+            "recovery_after":
+                recovery_after,
+
+            "notes":
+                notes
+
+        }
+
+
+        print(
+            "HANGBOARD CLEANED DATA:",
+            cleaned_data
+        )
+
+
+        # =========================
+        # 数据库
+        # =========================
+
+        conn = get_db_connection()
+
+        cursor = conn.cursor()
+
+
+        cursor.execute(
+            """
+            INSERT INTO hangboard_training_log
+            (
+                training_date,
+                protocol,
+                session_type,
+                edge_size,
+                grip_type,
+                added_weight,
+                hold_seconds,
+                duration,
+                sets,
+                total_hang_time,
+                intensity,
+                finger_fatigue,
+                elbow_fatigue,
+                recovery_after,
+                notes
+            )
+
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+            )
+            """,
+
+            (
+                training_date,
+                protocol,
+                session_type,
+                edge_size,
+                grip_type,
+                added_weight,
+                hold_seconds,
+                duration,
+                sets,
+                total_hang_time,
+                intensity,
+                finger_fatigue,
+                elbow_fatigue,
+                recovery_after,
+                notes
+            )
+        )
+
+
+        conn.commit()
+
+
+        print(
+            "HANGBOARD DB INSERT SUCCESS"
+        )
+
+
+        return True
+
+
+    except Exception as e:
+
+        print(
+            "SAVE HANGBOARD TRAINING ERROR:",
+            repr(e)
+        )
+
+
+        if conn:
+
+            conn.rollback()
+
+
+        raise
+
+
+    finally:
+
+        if cursor:
+
+            cursor.close()
+
+
+        if conn:
+
+            conn.close()
     
 
 def convert_utc_to_beijing(obj):
