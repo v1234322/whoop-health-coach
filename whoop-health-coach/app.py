@@ -4117,23 +4117,6 @@ def get_whoop_coach_report():
 
                 },
 
-
-                # =========================
-                # Max Hang 完整决策
-                # =========================
-
-                max_hang_decision = calculate_max_hang_decision(
-                    metrics,
-                    training_load,
-                    weekly_data,
-                    injury_data
-                )
-
-                print(
-                    "COACH REPORT MAX HANG DECISION:",
-                    max_hang_decision
-                )
-
              
                 # =================
                 # AI Coach
@@ -4237,6 +4220,49 @@ def get_whoop_coach_report():
             e
         )
 
+
+        # =========================
+        # Max Hang 完整决策
+        # =========================
+
+        max_hang_decision = calculate_max_hang_decision(
+            metrics,
+            training_load,
+            weekly_data,
+            injury_data
+        )
+
+        print(
+            "COACH REPORT MAX HANG DECISION:",
+            max_hang_decision
+        )
+
+
+        # =========================
+        # 返回完整报告
+        # =========================
+     
+        return jsonify({
+
+            "success": True,
+
+            "coach_report": {
+
+                # 你的 today
+                # baseline
+                # coach
+            }
+
+        })
+
+
+    except Exception as e:
+
+        print(
+            "WHOOP COACH REPORT ERROR:",
+            e
+        )
+
         return jsonify({
 
             "success": False,
@@ -4254,6 +4280,7 @@ def get_whoop_coach_report():
 
         if conn:
             conn.close()
+
 
 
 @app.route("/training/log", methods=["POST"])
