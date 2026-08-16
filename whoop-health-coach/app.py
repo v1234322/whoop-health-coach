@@ -3753,6 +3753,7 @@ def get_whoop_coach_report():
         menstrual_data = None
         saved_temperature_data = None
         injury_data = None
+        max_hang_status = None
 
 
         try:
@@ -3765,7 +3766,8 @@ def get_whoop_coach_report():
                     risk_warning,
                     menstrual_data,
                     temperature_data,
-                    injury_data
+                    injury_data,
+                    max_hang_status
 
                 FROM daily_coach_reports
 
@@ -3808,6 +3810,15 @@ def get_whoop_coach_report():
                     coach_row[5]
                 )
 
+                max_hang_status = (
+                    coach_row[6]
+                    or None
+                )
+
+                print(
+                    "COACH REPORT MAX HANG STATUS:",
+                    max_hang_status
+                )
 
             print(
                 "SAVED COACH REPORT FOUND:",
@@ -4142,6 +4153,9 @@ def get_whoop_coach_report():
 
                     "continuous_fatigue":
                         continuous_fatigue,
+
+                    "max_hang_status":
+                        max_hang_status,
 
 
                     # =================
