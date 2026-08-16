@@ -4118,6 +4118,23 @@ def get_whoop_coach_report():
                 },
 
 
+                # =========================
+                # Max Hang 完整决策
+                # =========================
+
+                max_hang_decision = calculate_max_hang_decision(
+                    metrics,
+                    training_load,
+                    weekly_data,
+                    injury_data
+                )
+
+                print(
+                    "COACH REPORT MAX HANG DECISION:",
+                    max_hang_decision
+                )
+
+             
                 # =================
                 # AI Coach
                 # =================
@@ -4157,6 +4174,8 @@ def get_whoop_coach_report():
                     "max_hang_status":
                         max_hang_status,
 
+                    "max_hang_decision":
+                        max_hang_decision,
 
                     # =================
                     # 温度与血氧摘要
