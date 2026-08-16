@@ -8256,6 +8256,18 @@ def generate_coach_prompt(
 ):
 
 
+    print(
+        "GENERATE COACH PROMPT INPUT TYPES:",
+        type(metrics),
+        type(training_load),
+        type(weekly_data),
+        type(climbing_fatigue),
+        type(menstrual_data),
+        type(temperature_data),
+        type(injury_data)
+    )
+
+ 
     # =========================
     # 1. 安全类型
     # =========================
@@ -15046,7 +15058,7 @@ def auto_report():
         ai_prompt = generate_coach_prompt(
             metrics,
             training_load,
-            weekly_data,
+            weekly_analysis,
             climbing_fatigue,
             menstrual_data,
             temperature_data,
