@@ -8058,21 +8058,39 @@ def save_daily_coach_report(
         if not isinstance(training_load, dict):
             training_load = {}
 
-        if not isinstance(max_hang_decision, dict):
+
+        if not isinstance(
+            max_hang_decision,
+            dict
+        ):
 
             max_hang_decision = {
+
                 "status":
                     max_hang_status
                     or "conditional"
+
             }
 
-        if not isinstance(strain_plan, dict):
+
+        if not isinstance(
+            strain_plan,
+            dict
+        ):
 
             strain_plan = (
                 calculate_strain_plan(
                     metrics
                 )
             )
+
+
+        if not isinstance(
+            training_readiness,
+            dict
+        ):
+
+            training_readiness = {}
 
 
         # =========================
@@ -8091,7 +8109,7 @@ def save_daily_coach_report(
 
 
         # =========================
-        # 防止None
+        # None保护
         # =========================
 
         ai_report = (
@@ -8108,6 +8126,7 @@ def save_daily_coach_report(
             risk_warning
             or ""
         )
+
 
         max_hang_status = (
             max_hang_status
@@ -8142,6 +8161,11 @@ def save_daily_coach_report(
             strain_plan
         )
 
+        print(
+            "SAVE TRAINING READINESS:",
+            training_readiness
+        )
+
 
         # =========================
         # 保存
@@ -8171,17 +8195,23 @@ def save_daily_coach_report(
 
             VALUES
             (
-                %s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,
-                %s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s::jsonb,
+                %s::jsonb,
+                %s::jsonb
             )
-
-
-            json.dumps(
-                training_readiness,
-                ensure_ascii=False
-            )
-
 
             ON CONFLICT(report_date)
 
@@ -8298,6 +8328,11 @@ def save_daily_coach_report(
                 json.dumps(
                     strain_plan,
                     ensure_ascii=False
+                ),
+
+                json.dumps(
+                    training_readiness,
+                    ensure_ascii=False
                 )
             )
         )
@@ -8325,6 +8360,11 @@ def save_daily_coach_report(
             strain_plan
         )
 
+        print(
+            "SAVED TRAINING READINESS:",
+            training_readiness
+        )
+
 
         return True
 
@@ -8337,7 +8377,9 @@ def save_daily_coach_report(
         )
 
         if conn:
+
             conn.rollback()
+
 
         return False
 
@@ -8345,9 +8387,12 @@ def save_daily_coach_report(
     finally:
 
         if cursor:
+
             cursor.close()
 
+
         if conn:
+
             conn.close()
 
 
@@ -9907,18 +9952,6 @@ def generate_coach_prompt(
     if not isinstance(climbing_fatigue, dict):
         climbing_fatigue = {}
 
-    if not isinstance(training_readiness,dic):
-
-        training_readiness = (calculate_training_readiness(
-            metrics,
-            training_load,
-            weekly_data,
-            strain_plan,
-            max_hang_decision,
-            injury_data
-        )
-    )
-
 
     # =========================
     # Max Hang最终决策
@@ -9986,6 +10019,27 @@ def generate_coach_prompt(
             "remaining_strain"
         )
     )
+
+
+    # =========================
+    # Training Readiness最终决策
+    # =========================
+
+    if not isinstance(
+        training_readiness,
+        dict
+    ):
+
+        training_readiness = (
+            calculate_training_readiness(
+                metrics,
+                training_load,
+                weekly_data,
+                strain_plan,
+                max_hang_decision,
+                injury_data
+            )
+        )
 
 
     # =========================
@@ -10110,12 +10164,81 @@ SpO₂和伤病记录，
 最重要的数据优先级
 ==============================
 
-下面两个后端结构化决策属于最终规则计算结果：
+下面三个后端结构化决策属于最终规则计算结果：
 
-1. Strain决策
-2. Max Hang决策
+1. Training Readiness
+2. Strain Plan
+3. Max Hang Decision
 
-AI不得自行修改、重新估算或生成不同结果。
+AI不得自行修改、重新估算或推翻这些后端结构化决策。
+
+
+==============================
+后端Training Readiness最终决策
+==============================
+
+整体状态：
+{training_readiness.get("overall_status")}
+
+状态说明：
+{training_readiness.get("overall_label")}
+
+主要限制因素：
+{training_readiness.get("primary_limiter")}
+
+全身恢复：
+{training_readiness.get("systemic_recovery")}
+
+Recovery状态：
+{training_readiness.get("recovery_state")}
+
+HRV状态：
+{training_readiness.get("hrv_state")}
+
+静息心率状态：
+{training_readiness.get("rhr_state")}
+
+睡眠状态：
+{training_readiness.get("sleep_state")}
+
+手指状态：
+{training_readiness.get("finger_status")}
+
+肘部状态：
+{training_readiness.get("elbow_status")}
+
+推荐训练：
+{training_readiness.get("recommended_training")}
+
+限制或避免：
+{training_readiness.get("avoid_or_limit")}
+
+综合原因：
+{training_readiness.get("reason")}
+
+
+强制规则：
+
+training_readiness是后端综合训练决策。
+
+AI不得自行推翻：
+
+overall_status
+primary_limiter
+systemic_recovery
+recommended_training
+avoid_or_limit
+
+如果overall_status为conditional：
+
+必须使用条件式训练表达，
+
+不得擅自改成：
+
+完全休息
+完全禁止训练
+完全恢复
+适合无限制高强度训练。
 
 
 ==============================
@@ -10142,51 +10265,6 @@ AI不得自行修改、重新估算或生成不同结果。
 
 训练等级：
 {strain_plan.get("training_level")}
-
-
-==============================
-后端Training Readiness最终决策
-==============================
-
-整体状态：
-{training_readiness.get("overall_status")}
-
-状态说明：
-{training_readiness.get("overall_label")}
-
-主要限制因素：
-{training_readiness.get("primary_limiter")}
-
-全身恢复：
-{training_readiness.get("systemic_recovery")}
-
-手指状态：
-{training_readiness.get("finger_status")}
-
-肘部状态：
-{training_readiness.get("elbow_status")}
-
-推荐训练：
-{training_readiness.get("recommended_training")}
-
-限制或避免：
-{training_readiness.get("avoid_or_limit")}
-
-
-重要：
-
-training_readiness是后端综合训练决策。
-
-AI不得自行推翻：
-
-overall_status
-primary_limiter
-recommended_training
-avoid_or_limit
-
-Max Hang必须继续服从max_hang_decision。
-
-Strain必须继续服从strain_plan。
 
 
 强制规则：
@@ -10261,6 +10339,7 @@ HRV
 静息心率
 睡眠
 Strain
+Training Readiness
 攀岩训练负荷
 指力板训练负荷
 手指疲劳
@@ -10500,8 +10579,7 @@ WHOOP SpO₂
 )}/10
 
 
-7天平均疲劳
-不能当作今天当前疲劳。
+7天平均疲劳不能当作今天当前疲劳。
 
 
 ==============================
@@ -10586,8 +10664,7 @@ Repeaters规则
 
 Repeaters不等于Max Hang。
 
-不得自动把Repeaters定义为
-最大力量训练。
+不得自动把Repeaters定义为最大力量训练。
 
 
 如果整体恢复尚可，
@@ -10654,6 +10731,8 @@ Repeaters可以考虑：
 
 必须说明：
 
+今日Training Readiness
+
 今日整体恢复状态
 
 HRV和静息心率状态
@@ -10675,6 +10754,15 @@ Max Hang后端决策
 训练完成度
 
 剩余建议负荷。
+
+
+训练类型优先遵循：
+
+training_readiness.recommended_training
+
+训练限制优先遵循：
+
+training_readiness.avoid_or_limit
 
 
 Strain相关数字必须完全使用
@@ -16214,8 +16302,10 @@ def auto_report():
         )
 
         return jsonify({
+
             "error":
                 "unauthorized"
+
         }), 401
 
 
@@ -16273,8 +16363,10 @@ def auto_report():
         # 3. 提取指标
         # =========================
 
-        metrics = extract_daily_metrics(
-            data
+        metrics = (
+            extract_daily_metrics(
+                data
+            )
         )
 
 
@@ -16285,7 +16377,7 @@ def auto_report():
 
 
         # =========================
-        # 4. 保存每日数据
+        # 4. 保存每日指标
         # =========================
 
         save_daily_data(
@@ -16294,7 +16386,7 @@ def auto_report():
 
 
         # =========================
-        # 5. 生成分析数据
+        # 5. 分析数据
         # =========================
 
         weekly_data = (
@@ -16334,9 +16426,11 @@ def auto_report():
             get_latest_menstrual_data()
         )
 
+
         temperature_data = (
             get_latest_temperature_data()
         )
+
 
         injury_data = (
             get_latest_injury_data()
@@ -16388,11 +16482,17 @@ def auto_report():
             max_hang_decision
         )
 
+
+        # =========================
+        # 7. Strain只计算一次
+        # =========================
+
         strain_plan = (
             calculate_strain_plan(
                 metrics
             )
         )
+
 
         print(
             "AUTO REPORT STRAIN PLAN:",
@@ -16401,29 +16501,56 @@ def auto_report():
 
 
         # =========================
-        # 7. 基础报告
+        # 8. Training Readiness
+        #    只计算一次
         # =========================
 
-        report = generate_ai_summary(
-            data
+        training_readiness = (
+            calculate_training_readiness(
+                metrics,
+                training_load,
+                weekly_data,
+                strain_plan,
+                max_hang_decision,
+                injury_data
+            )
+        )
+
+
+        print(
+            "AUTO REPORT TRAINING READINESS:",
+            training_readiness
         )
 
 
         # =========================
-        # 8. Coach Prompt
+        # 9. 基础报告
         # =========================
 
-        ai_prompt = generate_coach_prompt(
-            metrics,
-            training_load,
-            weekly_data,
-            climbing_fatigue,
-            menstrual_data,
-            temperature_data,
-            injury_data,
-            max_hang_decision,
-            strain_plan,
-            training_readiness
+        report = (
+            generate_ai_summary(
+                data
+            )
+        )
+
+
+        # =========================
+        # 10. Coach Prompt
+        # =========================
+
+        ai_prompt = (
+            generate_coach_prompt(
+                metrics,
+                training_load,
+                weekly_data,
+                climbing_fatigue,
+                menstrual_data,
+                temperature_data,
+                injury_data,
+                max_hang_decision,
+                strain_plan,
+                training_readiness
+            )
         )
 
 
@@ -16433,22 +16560,26 @@ def auto_report():
 
 
         # =========================
-        # 9. AI Coach
+        # 11. AI Coach
         # =========================
 
-        ai_result = generate_ai_summary(
-            ai_prompt
+        ai_result = (
+            generate_ai_summary(
+                ai_prompt
+            )
         )
 
 
         print(
             "DEBUG RAW AI:",
-            repr(ai_result)
+            repr(
+                ai_result
+            )
         )
 
 
         # =========================
-        # 10. 解析AI结果
+        # 12. 解析AI
         # =========================
 
         import json
@@ -16471,6 +16602,7 @@ def auto_report():
                 coach_json = (
                     ai_result
                 )
+
 
             else:
 
@@ -16496,8 +16628,10 @@ def auto_report():
                     raw = raw.strip()
 
 
-                coach_json = json.loads(
-                    raw
+                coach_json = (
+                    json.loads(
+                        raw
+                    )
                 )
 
 
@@ -16546,35 +16680,37 @@ def auto_report():
 
 
         # =========================
-        # 11. 保存日报
+        # 13. 保存日报
         # =========================
 
-        saved = save_daily_coach_report(
+        saved = (
+            save_daily_coach_report(
 
-            metrics,
+                metrics,
 
-            training_load,
+                training_load,
 
-            ai_report,
+                ai_report,
 
-            training_advice,
+                training_advice,
 
-            risk_warning,
+                risk_warning,
 
-            menstrual_data,
+                menstrual_data,
 
-            temperature_data,
+                temperature_data,
 
-            injury_data,
+                injury_data,
 
-            max_hang_status,
+                max_hang_status,
 
-            max_hang_decision,
+                max_hang_decision,
 
-            strain_plan,
+                strain_plan,
 
-            training_readiness
+                training_readiness
 
+            )
         )
 
 
@@ -16595,7 +16731,7 @@ def auto_report():
 
 
         # =========================
-        # 12. 返回
+        # 14. 返回
         # =========================
 
         return jsonify({
@@ -16634,7 +16770,10 @@ def auto_report():
                 max_hang_decision,
 
             "strain_plan":
-                strain_plan
+                strain_plan,
+
+            "training_readiness":
+                training_readiness
 
         })
 
@@ -16656,171 +16795,6 @@ def auto_report():
 
             "error":
                 str(e)
-
-        }), 500
-
-
-
-@app.route("/health")
-def health():
-
-    try:
-
-        # =====================
-        # WHOOP TOKEN CHECK
-        # =====================
-
-        whoop_token_status = "ERROR"
-
-
-        try:
-
-            conn_token = get_db_connection()
-
-            cur_token = conn_token.cursor()
-
-
-            cur_token.execute(
-                """
-                SELECT access_token
-                FROM tokens
-                WHERE access_token IS NOT NULL
-                ORDER BY id DESC
-                LIMIT 1
-                """
-            )
-
-
-            token_row = cur_token.fetchone()
-
-
-            if token_row and token_row[0]:
-
-                whoop_token_status = "OK"
-
-            else:
-
-                whoop_token_status = "MISSING"
-
-
-            cur_token.close()
-
-            conn_token.close()
-
-
-        except Exception as e:
-
-            print(
-                "TOKEN HEALTH ERROR:",
-                e
-            )
-
-            whoop_token_status = "ERROR"
-
-
-        conn = get_db_connection()
-
-        cur = conn.cursor()
-
-
-        cur.execute(
-            """
-            SELECT
-                report_date,
-                recovery_score,
-                sleep_duration,
-                cycle_strain
-            FROM daily_metrics
-
-            ORDER BY report_date DESC
-
-            LIMIT 1
-            """
-        )
-
-
-        row = cur.fetchone()
-
-
-        # =====================
-        # SYSTEM STATUS CHECK
-        # =====================
-
-        cur.execute(
-             """
-             SELECT last_success_time
-             FROM system_status
-             LIMIT 1
-             """
-        )
-
-
-        status_row = cur.fetchone()
-
-
-        cur.close()
-
-        conn.close()
-
-
-        if row:
-
-            return jsonify({
-
-                "app": "OK",
-
-                "database": "OK",
-
-                "whoop_token":
-                whoop_token_status,
-            
-                "last_report":
-                row[0],
-
-                "last_success_time":
-                status_row[0] if status_row else None,
-
-                "recovery":
-                row[1],
-
-                "sleep":
-                row[2],
-
-                "strain":
-                row[3]
-
-            })
-
-
-        else:
-
-            return jsonify({
-
-                "app": "OK",
-
-                "database": "OK",
-
-                "last_report": None
-
-            })
-
-
-    except Exception as e:
-
-
-        print(
-            "HEALTH CHECK ERROR:",
-            e
-        )
-
-
-        return jsonify({
-
-            "app": "ERROR",
-
-            "database": "ERROR",
-
-            "error": str(e)
 
         }), 500
 
