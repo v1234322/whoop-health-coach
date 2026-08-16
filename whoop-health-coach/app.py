@@ -3756,6 +3756,26 @@ def get_whoop_coach_report():
         max_hang_status = None
 
 
+        # =========================
+        # 读取已保存 AI Coach 报告
+        # =========================
+
+        coach_report_text = ""
+        training_recommendation = ""
+        risk_warning = "暂无明显风险"
+
+        menstrual_data = None
+        saved_temperature_data = None
+        injury_data = None
+
+        max_hang_status = None
+
+        max_hang_decision = {
+            "status": None,
+            "status_label": "暂无Max Hang决策"
+        }
+
+
         try:
 
             cur.execute(
@@ -3815,10 +3835,98 @@ def get_whoop_coach_report():
                     or None
                 )
 
+
+                # =========================
+                # Max Hang API结构
+                # =========================
+
+                if max_hang_status == "conditional":
+
+                    max_hang_decision = {
+
+                        "status":
+                            "conditional",
+
+                        "status_label":
+                            "条件式评估Max Hang",
+
+                        "instruction":
+                            (
+                                "如果恢复间隔足够，"
+                                "且热身后手指状态正常，"
+                                "可以考虑降低总量进行Max Hang；"
+                                "否则暂缓。"
+                            )
+
+                    }
+
+
+                elif max_hang_status == "avoid":
+
+                    max_hang_decision = {
+
+                        "status":
+                            "avoid",
+
+                        "status_label":
+                            "当前数据支持暂缓Max Hang",
+
+                        "instruction":
+                            (
+                                "当前存在明确限制因素，"
+                                "建议暂缓Max Hang，"
+                                "优先进行低至中等强度训练或恢复。"
+                            )
+
+                    }
+
+
+                elif max_hang_status == "allowed":
+
+                    max_hang_decision = {
+
+                        "status":
+                            "allowed",
+
+                        "status_label":
+                            "当前数据支持进行Max Hang",
+
+                        "instruction":
+                            (
+                                "当前恢复条件支持Max Hang，"
+                                "仍需根据热身后的手指状态"
+                                "动态调整训练总量。"
+                            )
+
+                    }
+
+
+                else:
+
+                    max_hang_decision = {
+
+                        "status":
+                            None,
+
+                        "status_label":
+                            "暂无Max Hang决策",
+
+                        "instruction":
+                            "当前数据不足，暂不做Max Hang判断。"
+
+                    }
+
+
                 print(
                     "COACH REPORT MAX HANG STATUS:",
                     max_hang_status
                 )
+
+                print(
+                    "COACH REPORT MAX HANG DECISION:",
+                    max_hang_decision
+                )
+
 
             print(
                 "SAVED COACH REPORT FOUND:",
@@ -3834,8 +3942,6 @@ def get_whoop_coach_report():
                 "COACH REPORT READ ERROR:",
                 e
             )
-
-
         # =========================
         # 12. 返回完整报告
         # =========================
@@ -4218,23 +4324,6 @@ def get_whoop_coach_report():
         print(
             "WHOOP COACH REPORT ERROR:",
             e
-        )
-
-
-        # =========================
-        # Max Hang 完整决策
-        # =========================
-
-        max_hang_decision = calculate_max_hang_decision(
-            metrics,
-            training_load,
-            weekly_data,
-            injury_data
-        )
-
-        print(
-            "COACH REPORT MAX HANG DECISION:",
-            max_hang_decision
         )
 
 
