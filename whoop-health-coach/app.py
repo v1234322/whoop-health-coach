@@ -15058,7 +15058,7 @@ def auto_report():
         ai_prompt = generate_coach_prompt(
             metrics,
             training_load,
-            weekly_analysis,
+            weekly_data,
             climbing_fatigue,
             menstrual_data,
             temperature_data,
@@ -15183,7 +15183,7 @@ def auto_report():
         max_hang_status = calculate_max_hang_status(
             metrics,
             training_load,
-            weekly,
+            weekly_data,
             injury_data
         )
 
