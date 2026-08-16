@@ -8096,19 +8096,61 @@ def save_daily_coach_report(
 def calculate_max_hang_status(
     metrics,
     training_load,
-    weekly,
+    weekly_data,
     injury_data=None
 ):
 
+
+    # =========================
+    # DEBUG：检查传入的数据类型
+    # =========================
+
+    print(
+        "MAX HANG FUNCTION INPUT TYPES:",
+        type(metrics),
+        type(training_load),
+        type(weekly_data),
+        type(injury_data)
+    )
+
+ 
+    # ========================= 
+    # 类型保护
+    # =========================
+ 
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+    if not isinstance(training_load, dict):
+        training_load = {}
+
+    if not isinstance(weekly_data, dict):
+        weekly_data = {}
+
+    if injury_data is None:
+        injury_data = {}
+
+    # =========================
+    # WHOOP 当前数据
+    # =========================
+ 
     recovery = metrics.get("recovery_score")
     hrv = metrics.get("hrv")
     rhr = metrics.get("resting_heart_rate")
     sleep = metrics.get("sleep_duration")
 
-    avg_hrv = weekly.get("avg_hrv")
-    avg_rhr = weekly.get("avg_resting_hr")
-    avg_sleep = weekly.get("avg_sleep")
+    # =========================
+    # 近期基线
+    # =========================
+ 
+    avg_hrv = weekly_data.get("avg_hrv")
+    avg_rhr = weekly_data.get("avg_resting_hr")
+    avg_sleep = weekly_data.get("avg_sleep")
 
+    # =========================
+    # 指力板局部状态
+    # =========================
+ 
     finger_fatigue = training_load.get(
         "latest_finger_fatigue"
     )
@@ -8119,7 +8161,7 @@ def calculate_max_hang_status(
 
 
     # =========================
-    # 明确高风险 -> avoid
+    # 明确需要避免 Max Hang
     # =========================
 
     if (
@@ -8137,18 +8179,7 @@ def calculate_max_hang_status(
 
 
     # =========================
-    # 全身恢复明显不支持
-    # =========================
-
-    if (
-        recovery is not None
-        and recovery < 34
-    ):
-        return "avoid"
-
-
-    # =========================
-    # 条件式 Max Hang
+    # 当前恢复条件
     # =========================
 
     recovery_good = (
@@ -8156,11 +8187,13 @@ def calculate_max_hang_status(
         and recovery >= 67
     )
 
+
     hrv_good = (
         hrv is not None
         and avg_hrv is not None
         and hrv >= avg_hrv
     )
+
 
     rhr_good = (
         rhr is not None
@@ -8168,22 +8201,28 @@ def calculate_max_hang_status(
         and rhr <= avg_rhr
     )
 
+
     sleep_ok = (
         sleep is not None
         and avg_sleep is not None
         and sleep >= avg_sleep * 0.85
     )
 
+
     recovery_after_good = (
         recovery_after is not None
         and recovery_after >= 75
     )
+
 
     moderate_finger_fatigue = (
         finger_fatigue is not None
         and 4 <= finger_fatigue <= 6
     )
 
+    # =========================
+    # 条件式恢复 Max Hang
+    # =========================
 
     if (
         recovery_good
@@ -8197,7 +8236,7 @@ def calculate_max_hang_status(
 
 
     # =========================
-    # 数据不能明确支持
+    # 默认不直接禁止
     # =========================
 
     return "conditional"
