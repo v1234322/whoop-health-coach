@@ -3252,12 +3252,11 @@ def get_whoop_coach_report():
     try:
 
         conn = get_db_connection()
-
         cur = conn.cursor()
 
 
         # =========================
-        # 1. 今日WHOOP
+        # 1. 获取今日 WHOOP 数据
         # =========================
 
         cur.execute(
@@ -3318,7 +3317,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 2. 最近7天
+        # 2. 最近7天 WHOOP
         # =========================
 
         cur.execute(
@@ -3341,18 +3340,14 @@ def get_whoop_coach_report():
         )
 
 
-        weekly_rows = (
-            cur.fetchall()
-        )
+        weekly_rows = cur.fetchall()
 
 
         # =========================
-        # 3. 平均函数
+        # 3. 安全平均
         # =========================
 
-        def safe_avg(
-            values
-        ):
+        def safe_avg(values):
 
             valid = []
 
@@ -3364,9 +3359,7 @@ def get_whoop_coach_report():
                 try:
 
                     valid.append(
-                        float(
-                            value
-                        )
+                        float(value)
                     )
 
                 except Exception:
@@ -3391,30 +3384,36 @@ def get_whoop_coach_report():
             for row in weekly_rows
         ])
 
+
         hrv_avg = safe_avg([
             row[1]
             for row in weekly_rows
         ])
+
 
         rhr_avg = safe_avg([
             row[2]
             for row in weekly_rows
         ])
 
+
         sleep_avg = safe_avg([
             row[3]
             for row in weekly_rows
         ])
+
 
         strain_avg = safe_avg([
             row[4]
             for row in weekly_rows
         ])
 
+
         skin_temperature_avg = safe_avg([
             row[5]
             for row in weekly_rows
         ])
+
 
         spo2_avg = safe_avg([
             row[6]
@@ -3428,6 +3427,7 @@ def get_whoop_coach_report():
             if row[5] is not None
         )
 
+
         spo2_valid_days = sum(
             1
             for row in weekly_rows
@@ -3436,10 +3436,11 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 4. 温度 / SpO2
+        # 4. 温度 / SpO₂ 偏差
         # =========================
 
         temperature_deviation = None
+
 
         if (
             skin_temperature is not None
@@ -3448,17 +3449,14 @@ def get_whoop_coach_report():
         ):
 
             temperature_deviation = round(
-                float(
-                    skin_temperature
-                )
-                - float(
-                    skin_temperature_avg
-                ),
+                float(skin_temperature)
+                - float(skin_temperature_avg),
                 2
             )
 
 
         spo2_deviation = None
+
 
         if (
             spo2_percentage is not None
@@ -3467,18 +3465,14 @@ def get_whoop_coach_report():
         ):
 
             spo2_deviation = round(
-                float(
-                    spo2_percentage
-                )
-                - float(
-                    spo2_avg
-                ),
+                float(spo2_percentage)
+                - float(spo2_avg),
                 2
             )
 
 
         # =========================
-        # 5. 睡眠比例
+        # 5. 睡眠结构比例
         # =========================
 
         deep_sleep_ratio = None
@@ -3488,20 +3482,14 @@ def get_whoop_coach_report():
 
         if (
             sleep_duration is not None
-            and float(
-                sleep_duration
-            ) > 0
+            and float(sleep_duration) > 0
         ):
 
             if deep_sleep_duration is not None:
 
                 deep_sleep_ratio = round(
-                    float(
-                        deep_sleep_duration
-                    )
-                    / float(
-                        sleep_duration
-                    )
+                    float(deep_sleep_duration)
+                    / float(sleep_duration)
                     * 100,
                     1
                 )
@@ -3510,12 +3498,8 @@ def get_whoop_coach_report():
             if rem_sleep_duration is not None:
 
                 rem_sleep_ratio = round(
-                    float(
-                        rem_sleep_duration
-                    )
-                    / float(
-                        sleep_duration
-                    )
+                    float(rem_sleep_duration)
+                    / float(sleep_duration)
                     * 100,
                     1
                 )
@@ -3538,7 +3522,14 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 6. Recovery等级
+        # 6. Recovery状态
+        # =========================
+        #
+        # 注意：
+        # 这里只负责 Recovery 颜色状态。
+        #
+        # training_level 不在这里计算。
+        # training_level 统一来自 strain_plan。
         # =========================
 
         if recovery_score is None:
@@ -3547,49 +3538,35 @@ def get_whoop_coach_report():
                 "数据缺失"
             )
 
-            training_level = (
-                "数据不足"
-            )
-
             training_advice = (
                 "Recovery数据缺失，"
-                "暂无法判断训练等级"
+                "暂无法判断整体训练准备度。"
             )
 
 
-        elif float(
-            recovery_score
-        ) >= 67:
+        elif float(recovery_score) >= 67:
 
             recovery_status = (
                 "🟢 绿色 - 恢复良好"
             )
 
-            training_level = (
-                "中高强度训练候选"
-            )
-
             training_advice = (
                 "整体恢复条件较好，"
-                "但仍需结合HRV、睡眠、"
-                "训练负荷和局部疲劳决定强度。"
+                "但最终训练强度仍需结合HRV、睡眠、"
+                "训练负荷和局部疲劳判断。"
             )
 
 
-        elif float(
-            recovery_score
-        ) >= 34:
+        elif float(recovery_score) >= 34:
 
             recovery_status = (
                 "🟡 黄色 - 需要控制训练"
             )
 
-            training_level = (
-                "低至中等强度"
-            )
-
             training_advice = (
-                "以低至中等强度训练为主。"
+                "整体恢复处于黄色区间，"
+                "训练建议结合Strain Plan、HRV、睡眠"
+                "和局部手指状态执行。"
             )
 
 
@@ -3599,27 +3576,21 @@ def get_whoop_coach_report():
                 "🔴 红色 - 优先恢复"
             )
 
-            training_level = (
-                "恢复优先"
-            )
-
             training_advice = (
-                "优先降低训练负荷，"
-                "结合其他恢复指标决定主动恢复或休息。"
+                "整体恢复偏低，"
+                "优先控制训练负荷并关注恢复。"
             )
 
 
         # =========================
-        # 7. 疲劳趋势
+        # 7. 基础疲劳趋势
         # =========================
 
         fatigue_warning = (
             "正常"
         )
 
-        continuous_fatigue = (
-            False
-        )
+        continuous_fatigue = False
 
 
         if (
@@ -3632,17 +3603,9 @@ def get_whoop_coach_report():
         ):
 
             if (
-                float(
-                    recovery_score
-                ) < recovery_avg
-
-                and float(
-                    hrv
-                ) < hrv_avg
-
-                and float(
-                    resting_heart_rate
-                ) > rhr_avg
+                float(recovery_score) < recovery_avg
+                and float(hrv) < hrv_avg
+                and float(resting_heart_rate) > rhr_avg
             ):
 
                 fatigue_warning = (
@@ -3651,8 +3614,31 @@ def get_whoop_coach_report():
                 )
 
 
+            elif (
+                float(recovery_score) < recovery_avg
+                and float(hrv) < hrv_avg
+            ):
+
+                fatigue_warning = (
+                    "恢复指标下降，"
+                    "建议关注训练负荷"
+                )
+
+
+            elif (
+                recovery_avg > 0
+                and float(recovery_score)
+                < recovery_avg * 0.85
+            ):
+
+                fatigue_warning = (
+                    "Recovery明显低于近期平均，"
+                    "建议降低训练强度"
+                )
+
+
         # =========================
-        # 8. 读取保存日报
+        # 8. 读取保存的 Coach Report
         # =========================
 
         coach_report_text = ""
@@ -3664,10 +3650,14 @@ def get_whoop_coach_report():
         )
 
         menstrual_data = None
+
         saved_temperature_data = None
+
         injury_data = None
 
+
         max_hang_status = None
+
         max_hang_decision = None
 
         strain_plan = None
@@ -3695,9 +3685,7 @@ def get_whoop_coach_report():
         )
 
 
-        coach_row = (
-            cur.fetchone()
-        )
+        coach_row = cur.fetchone()
 
 
         if coach_row:
@@ -3707,36 +3695,44 @@ def get_whoop_coach_report():
                 or ""
             )
 
+
             training_recommendation = (
                 coach_row[1]
                 or ""
             )
+
 
             risk_warning = (
                 coach_row[2]
                 or "暂无明显风险"
             )
 
+
             menstrual_data = (
                 coach_row[3]
             )
+
 
             saved_temperature_data = (
                 coach_row[4]
             )
 
+
             injury_data = (
                 coach_row[5]
             )
+
 
             max_hang_status = (
                 coach_row[6]
                 or None
             )
 
+
             max_hang_decision = (
                 coach_row[7]
             )
+
 
             strain_plan = (
                 coach_row[8]
@@ -3744,7 +3740,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # JSON字符串兼容
+        # 9. JSONB / 字符串兼容
         # =========================
 
         if isinstance(
@@ -3754,10 +3750,8 @@ def get_whoop_coach_report():
 
             try:
 
-                max_hang_decision = (
-                    json.loads(
-                        max_hang_decision
-                    )
+                max_hang_decision = json.loads(
+                    max_hang_decision
                 )
 
             except Exception:
@@ -3772,10 +3766,8 @@ def get_whoop_coach_report():
 
             try:
 
-                strain_plan = (
-                    json.loads(
-                        strain_plan
-                    )
+                strain_plan = json.loads(
+                    strain_plan
                 )
 
             except Exception:
@@ -3784,7 +3776,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 旧Max Hang日报兼容
+        # 10. 旧 Max Hang 日报兼容
         # =========================
 
         if not isinstance(
@@ -3800,18 +3792,15 @@ def get_whoop_coach_report():
                 "status_label":
                     (
                         "条件式评估Max Hang"
-                        if max_hang_status
-                        == "conditional"
+                        if max_hang_status == "conditional"
 
                         else
                         "当前数据支持暂缓Max Hang"
-                        if max_hang_status
-                        == "avoid"
+                        if max_hang_status == "avoid"
 
                         else
                         "当前数据支持进行Max Hang"
-                        if max_hang_status
-                        == "allowed"
+                        if max_hang_status == "allowed"
 
                         else
                         "暂无Max Hang决策"
@@ -3819,7 +3808,7 @@ def get_whoop_coach_report():
 
                 "instruction":
                     (
-                        "旧日报没有完整Max Hang决策，"
+                        "旧日报没有完整结构化Max Hang决策，"
                         "当前仅返回已保存状态。"
                     )
 
@@ -3827,7 +3816,14 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 旧Strain日报兼容
+        # 11. Strain Plan 唯一真源
+        # =========================
+        #
+        # 正常情况：
+        # 直接使用数据库保存的 strain_plan
+        #
+        # 只有旧日报没有 strain_plan 时，
+        # 才调用 calculate_strain_plan() fallback
         # =========================
 
         if not isinstance(
@@ -3835,21 +3831,20 @@ def get_whoop_coach_report():
             dict
         ):
 
-            strain_plan = (
-                calculate_strain_plan({
+            strain_plan = calculate_strain_plan({
 
-                    "recovery_score":
-                        recovery_score,
+                "recovery_score":
+                    recovery_score,
 
-                    "cycle_strain":
-                        cycle_strain
+                "cycle_strain":
+                    cycle_strain
 
-                })
-            )
+            })
 
 
         # =========================
-        # 统一使用保存的Strain Plan
+        # 12. 所有 Strain 字段
+        #     全部从 strain_plan 获取
         # =========================
 
         current_strain = (
@@ -3859,12 +3854,30 @@ def get_whoop_coach_report():
             )
         )
 
+
+        target_min = (
+            strain_plan.get(
+                "target_min",
+                0
+            )
+        )
+
+
+        target_max = (
+            strain_plan.get(
+                "target_max",
+                0
+            )
+        )
+
+
         recommended_strain = (
             strain_plan.get(
                 "recommended_strain",
-                "0-0"
+                f"{target_min}-{target_max}"
             )
         )
+
 
         strain_completion = (
             strain_plan.get(
@@ -3872,6 +3885,7 @@ def get_whoop_coach_report():
                 0
             )
         )
+
 
         remaining_strain = (
             strain_plan.get(
@@ -3881,28 +3895,40 @@ def get_whoop_coach_report():
         )
 
 
-        saved_training_level = (
+        training_level = (
             strain_plan.get(
-                "training_level"
+                "training_level",
+                "数据不足"
             )
         )
 
-        if saved_training_level:
 
-            training_level = (
-                saved_training_level
+        remaining_strain_explanation = (
+            strain_plan.get(
+                "remaining_strain_explanation",
+                (
+                    "remaining_strain表示距离推荐Strain区间下限的差值，"
+                    "不代表今天绝对训练上限。"
+                )
             )
+        )
 
+
+        # =========================
+        # 13. DEBUG
+        # =========================
 
         print(
             "COACH REPORT MAX HANG STATUS:",
             max_hang_status
         )
 
+
         print(
             "COACH REPORT MAX HANG DECISION:",
             max_hang_decision
         )
+
 
         print(
             "COACH REPORT STRAIN PLAN:",
@@ -3910,22 +3936,38 @@ def get_whoop_coach_report():
         )
 
 
+        print(
+            "COACH REPORT TRAINING LEVEL:",
+            training_level
+        )
+
+
+        print(
+            "COACH REPORT RECOMMENDED STRAIN:",
+            recommended_strain
+        )
+
+
         # =========================
-        # 9. 返回
+        # 14. 返回完整报告
         # =========================
 
         return jsonify({
 
             "success": True,
 
+
             "coach_report": {
+
+
+                # =========================
+                # 今日数据
+                # =========================
 
                 "today": {
 
                     "date":
-                        str(
-                            report_date
-                        ),
+                        str(report_date),
 
                     "recovery":
                         recovery_score,
@@ -3964,10 +4006,47 @@ def get_whoop_coach_report():
                         light_sleep_ratio,
 
                     "strain":
-                        cycle_strain,
+                        current_strain,
+
+
+                    # =========================
+                    # Strain Plan
+                    # =========================
+
+                    "training_level":
+                        training_level,
+
+                    "recommended_strain":
+                        recommended_strain,
+
+                    "strain_completion":
+                        strain_completion,
+
+                    "remaining_strain":
+                        remaining_strain,
+
+                    "training_advice":
+                        training_advice,
+
+                    "fatigue_warning":
+                        fatigue_warning,
+
+
+                    # =========================
+                    # WHOOP皮肤温度
+                    # =========================
 
                     "skin_temperature":
-                        skin_temperature,
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
 
                     "skin_temperature_unit":
                         "°C",
@@ -3978,8 +4057,22 @@ def get_whoop_coach_report():
                     "temperature_deviation":
                         temperature_deviation,
 
+
+                    # =========================
+                    # WHOOP SpO₂
+                    # =========================
+
                     "spo2_percentage":
-                        spo2_percentage,
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
 
                     "spo2_unit":
                         "%",
@@ -3988,25 +4081,14 @@ def get_whoop_coach_report():
                         "WHOOP血氧饱和度",
 
                     "spo2_deviation":
-                        spo2_deviation,
-
-                    "training_level":
-                        training_level,
-
-                    "training_advice":
-                        training_advice,
-
-                    "strain_completion":
-                        strain_completion,
-
-                    "remaining_strain":
-                        remaining_strain,
-
-                    "fatigue_warning":
-                        fatigue_warning
+                        spo2_deviation
 
                 },
 
+
+                # =========================
+                # 近期基线
+                # =========================
 
                 "baseline": {
 
@@ -4045,13 +4127,26 @@ def get_whoop_coach_report():
                 },
 
 
+                # =========================
+                # 温度
+                # =========================
+
                 "temperature": {
 
                     "source":
                         "WHOOP",
 
                     "skin_temperature":
-                        skin_temperature,
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
 
                     "unit":
                         "°C",
@@ -4072,10 +4167,25 @@ def get_whoop_coach_report():
                         (
                             skin_temperature_valid_days
                             >= 3
+                        ),
+
+                    "interpretation":
+                        (
+                            "已有至少3天有效温度数据，"
+                            "可结合个人近期基线观察变化。"
+                            if skin_temperature_valid_days >= 3
+                            else
+                            "当前温度历史数据不足3天，"
+                            "只报告当前WHOOP皮肤温度，"
+                            "暂不做可靠趋势判断。"
                         )
 
                 },
 
+
+                # =========================
+                # SpO₂
+                # =========================
 
                 "spo2": {
 
@@ -4083,7 +4193,16 @@ def get_whoop_coach_report():
                         "WHOOP",
 
                     "spo2_percentage":
-                        spo2_percentage,
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
 
                     "unit":
                         "%",
@@ -4104,10 +4223,25 @@ def get_whoop_coach_report():
                         (
                             spo2_valid_days
                             >= 3
+                        ),
+
+                    "interpretation":
+                        (
+                            "已有至少3天有效血氧数据，"
+                            "可结合个人近期趋势观察变化。"
+                            if spo2_valid_days >= 3
+                            else
+                            "当前血氧历史数据不足3天，"
+                            "只报告当前WHOOP血氧值，"
+                            "不做可靠趋势判断。"
                         )
 
                 },
 
+
+                # =========================
+                # AI Coach
+                # =========================
 
                 "coach": {
 
@@ -4123,6 +4257,12 @@ def get_whoop_coach_report():
                     "coach_report_text":
                         coach_report_text,
 
+
+                    # =========================
+                    # Strain兼容字段
+                    # 全部来自strain_plan
+                    # =========================
+
                     "current_strain":
                         current_strain,
 
@@ -4135,8 +4275,21 @@ def get_whoop_coach_report():
                     "remaining_strain":
                         remaining_strain,
 
+                    "remaining_strain_explanation":
+                        remaining_strain_explanation,
+
+
+                    # =========================
+                    # Strain唯一结构
+                    # =========================
+
                     "strain_plan":
                         strain_plan,
+
+
+                    # =========================
+                    # 疲劳
+                    # =========================
 
                     "fatigue_warning":
                         fatigue_warning,
@@ -4144,14 +4297,33 @@ def get_whoop_coach_report():
                     "continuous_fatigue":
                         continuous_fatigue,
 
+
+                    # =========================
+                    # Max Hang
+                    # =========================
+
                     "max_hang_status":
                         max_hang_status,
 
                     "max_hang_decision":
                         max_hang_decision,
 
+
+                    # =========================
+                    # 温度 / SpO₂摘要
+                    # =========================
+
                     "skin_temperature":
-                        skin_temperature,
+                        (
+                            round(
+                                float(
+                                    skin_temperature
+                                ),
+                                2
+                            )
+                            if skin_temperature is not None
+                            else None
+                        ),
 
                     "skin_temperature_avg":
                         skin_temperature_avg,
@@ -4163,7 +4335,16 @@ def get_whoop_coach_report():
                         temperature_deviation,
 
                     "spo2_percentage":
-                        spo2_percentage,
+                        (
+                            round(
+                                float(
+                                    spo2_percentage
+                                ),
+                                1
+                            )
+                            if spo2_percentage is not None
+                            else None
+                        ),
 
                     "spo2_avg":
                         spo2_avg,
@@ -4194,9 +4375,7 @@ def get_whoop_coach_report():
             "success": False,
 
             "error":
-                str(
-                    e
-                )
+                str(e)
 
         }), 500
 
