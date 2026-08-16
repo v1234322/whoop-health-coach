@@ -3245,9 +3245,7 @@ def get_whoop_coach_report():
 
     import json
 
-
     conn = None
-
     cur = None
 
 
@@ -3259,7 +3257,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 1. 今日数据
+        # 1. 今日WHOOP
         # =========================
 
         cur.execute(
@@ -3393,36 +3391,30 @@ def get_whoop_coach_report():
             for row in weekly_rows
         ])
 
-
         hrv_avg = safe_avg([
             row[1]
             for row in weekly_rows
         ])
-
 
         rhr_avg = safe_avg([
             row[2]
             for row in weekly_rows
         ])
 
-
         sleep_avg = safe_avg([
             row[3]
             for row in weekly_rows
         ])
-
 
         strain_avg = safe_avg([
             row[4]
             for row in weekly_rows
         ])
 
-
         skin_temperature_avg = safe_avg([
             row[5]
             for row in weekly_rows
         ])
-
 
         spo2_avg = safe_avg([
             row[6]
@@ -3436,7 +3428,6 @@ def get_whoop_coach_report():
             if row[5] is not None
         )
 
-
         spo2_valid_days = sum(
             1
             for row in weekly_rows
@@ -3445,11 +3436,10 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 4. 温度 / SpO2偏差
+        # 4. 温度 / SpO2
         # =========================
 
         temperature_deviation = None
-
 
         if (
             skin_temperature is not None
@@ -3469,7 +3459,6 @@ def get_whoop_coach_report():
 
 
         spo2_deviation = None
-
 
         if (
             spo2_percentage is not None
@@ -3493,9 +3482,7 @@ def get_whoop_coach_report():
         # =========================
 
         deep_sleep_ratio = None
-
         rem_sleep_ratio = None
-
         light_sleep_ratio = None
 
 
@@ -3623,78 +3610,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 7. Strain
-        # =========================
-
-        current_strain = (
-            float(
-                cycle_strain
-            )
-            if cycle_strain is not None
-            else 0
-        )
-
-
-        if recovery_score is None:
-
-            target_min = 0
-            target_max = 0
-
-
-        elif float(
-            recovery_score
-        ) >= 67:
-
-            target_min = 12
-            target_max = 16
-
-
-        elif float(
-            recovery_score
-        ) >= 34:
-
-            target_min = 8
-            target_max = 12
-
-
-        else:
-
-            target_min = 0
-            target_max = 8
-
-
-        recommended_strain = (
-            f"{target_min}-{target_max}"
-        )
-
-
-        if target_min > 0:
-
-            strain_completion = round(
-                current_strain
-                / target_min
-                * 100,
-                1
-            )
-
-            remaining_strain = round(
-                max(
-                    target_min
-                    - current_strain,
-                    0
-                ),
-                1
-            )
-
-        else:
-
-            strain_completion = 100
-
-            remaining_strain = 0
-
-
-        # =========================
-        # 8. 疲劳趋势
+        # 7. 疲劳趋势
         # =========================
 
         fatigue_warning = (
@@ -3718,18 +3634,15 @@ def get_whoop_coach_report():
             if (
                 float(
                     recovery_score
-                )
-                < recovery_avg
+                ) < recovery_avg
 
                 and float(
                     hrv
-                )
-                < hrv_avg
+                ) < hrv_avg
 
                 and float(
                     resting_heart_rate
-                )
-                > rhr_avg
+                ) > rhr_avg
             ):
 
                 fatigue_warning = (
@@ -3739,7 +3652,7 @@ def get_whoop_coach_report():
 
 
         # =========================
-        # 9. 已保存Coach报告
+        # 8. 读取保存日报
         # =========================
 
         coach_report_text = ""
@@ -3751,14 +3664,13 @@ def get_whoop_coach_report():
         )
 
         menstrual_data = None
-
         saved_temperature_data = None
-
         injury_data = None
 
         max_hang_status = None
-
         max_hang_decision = None
+
+        strain_plan = None
 
 
         cur.execute(
@@ -3771,7 +3683,8 @@ def get_whoop_coach_report():
                 temperature_data,
                 injury_data,
                 max_hang_status,
-                max_hang_decision
+                max_hang_decision,
+                strain_plan
 
             FROM daily_coach_reports
 
@@ -3825,27 +3738,53 @@ def get_whoop_coach_report():
                 coach_row[7]
             )
 
-
-            if isinstance(
-                max_hang_decision,
-                str
-            ):
-
-                try:
-
-                    max_hang_decision = (
-                        json.loads(
-                            max_hang_decision
-                        )
-                    )
-
-                except Exception:
-
-                    max_hang_decision = None
+            strain_plan = (
+                coach_row[8]
+            )
 
 
         # =========================
-        # 旧日报兼容
+        # JSON字符串兼容
+        # =========================
+
+        if isinstance(
+            max_hang_decision,
+            str
+        ):
+
+            try:
+
+                max_hang_decision = (
+                    json.loads(
+                        max_hang_decision
+                    )
+                )
+
+            except Exception:
+
+                max_hang_decision = None
+
+
+        if isinstance(
+            strain_plan,
+            str
+        ):
+
+            try:
+
+                strain_plan = (
+                    json.loads(
+                        strain_plan
+                    )
+                )
+
+            except Exception:
+
+                strain_plan = None
+
+
+        # =========================
+        # 旧Max Hang日报兼容
         # =========================
 
         if not isinstance(
@@ -3880,11 +3819,79 @@ def get_whoop_coach_report():
 
                 "instruction":
                     (
-                        "该日报没有完整结构化Max Hang决策，"
+                        "旧日报没有完整Max Hang决策，"
                         "当前仅返回已保存状态。"
                     )
 
             }
+
+
+        # =========================
+        # 旧Strain日报兼容
+        # =========================
+
+        if not isinstance(
+            strain_plan,
+            dict
+        ):
+
+            strain_plan = (
+                calculate_strain_plan({
+
+                    "recovery_score":
+                        recovery_score,
+
+                    "cycle_strain":
+                        cycle_strain
+
+                })
+            )
+
+
+        # =========================
+        # 统一使用保存的Strain Plan
+        # =========================
+
+        current_strain = (
+            strain_plan.get(
+                "current_strain",
+                0
+            )
+        )
+
+        recommended_strain = (
+            strain_plan.get(
+                "recommended_strain",
+                "0-0"
+            )
+        )
+
+        strain_completion = (
+            strain_plan.get(
+                "strain_completion",
+                0
+            )
+        )
+
+        remaining_strain = (
+            strain_plan.get(
+                "remaining_strain",
+                0
+            )
+        )
+
+
+        saved_training_level = (
+            strain_plan.get(
+                "training_level"
+            )
+        )
+
+        if saved_training_level:
+
+            training_level = (
+                saved_training_level
+            )
 
 
         print(
@@ -3897,9 +3904,14 @@ def get_whoop_coach_report():
             max_hang_decision
         )
 
+        print(
+            "COACH REPORT STRAIN PLAN:",
+            strain_plan
+        )
+
 
         # =========================
-        # 10. 返回
+        # 9. 返回
         # =========================
 
         return jsonify({
@@ -4122,6 +4134,9 @@ def get_whoop_coach_report():
 
                     "remaining_strain":
                         remaining_strain,
+
+                    "strain_plan":
+                        strain_plan,
 
                     "fatigue_warning":
                         fatigue_warning,
@@ -7816,7 +7831,8 @@ def save_daily_coach_report(
     temperature_data,
     injury_data,
     max_hang_status,
-    max_hang_decision
+    max_hang_decision,
+    strain_plan
 ):
 
     import json
@@ -7826,6 +7842,10 @@ def save_daily_coach_report(
 
 
     try:
+
+        # =========================
+        # 类型保护
+        # =========================
 
         if not isinstance(metrics, dict):
             metrics = {}
@@ -7841,6 +7861,18 @@ def save_daily_coach_report(
                     or "conditional"
             }
 
+        if not isinstance(strain_plan, dict):
+
+            strain_plan = (
+                calculate_strain_plan(
+                    metrics
+                )
+            )
+
+
+        # =========================
+        # 数据库
+        # =========================
 
         conn = get_db_connection()
 
@@ -7852,6 +7884,10 @@ def save_daily_coach_report(
             .strftime("%Y-%m-%d")
         )
 
+
+        # =========================
+        # 防止None
+        # =========================
 
         ai_report = (
             ai_report
@@ -7877,6 +7913,10 @@ def save_daily_coach_report(
         )
 
 
+        # =========================
+        # DEBUG
+        # =========================
+
         print(
             "SAVE DATE:",
             report_date
@@ -7892,6 +7932,15 @@ def save_daily_coach_report(
             max_hang_decision
         )
 
+        print(
+            "SAVE STRAIN PLAN:",
+            strain_plan
+        )
+
+
+        # =========================
+        # 保存
+        # =========================
 
         cursor.execute(
             """
@@ -7910,14 +7959,15 @@ def save_daily_coach_report(
                 temperature_data,
                 injury_data,
                 max_hang_status,
-                max_hang_decision
+                max_hang_decision,
+                strain_plan
             )
 
             VALUES
             (
-                %s,%s,%s,%s,%s,%s,
-                %s,%s,%s,%s,%s,%s,
-                %s,%s::jsonb
+                %s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,
+                %s,%s,%s,%s::jsonb,%s::jsonb
             )
 
             ON CONFLICT(report_date)
@@ -7961,7 +8011,10 @@ def save_daily_coach_report(
                     EXCLUDED.max_hang_status,
 
                 max_hang_decision =
-                    EXCLUDED.max_hang_decision
+                    EXCLUDED.max_hang_decision,
+
+                strain_plan =
+                    EXCLUDED.strain_plan
             """,
 
             (
@@ -8024,6 +8077,11 @@ def save_daily_coach_report(
                 json.dumps(
                     max_hang_decision,
                     ensure_ascii=False
+                ),
+
+                json.dumps(
+                    strain_plan,
+                    ensure_ascii=False
                 )
             )
         )
@@ -8044,6 +8102,11 @@ def save_daily_coach_report(
         print(
             "SAVED MAX HANG DECISION:",
             max_hang_decision
+        )
+
+        print(
+            "SAVED STRAIN PLAN:",
+            strain_plan
         )
 
 
