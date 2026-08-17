@@ -10637,12 +10637,10 @@ def calculate_training_readiness(
         )
     )
 
-
     if not isinstance(
         today_training_summary,
         list
     ):
-
         today_training_summary = []
 
 
@@ -10693,13 +10691,20 @@ def calculate_training_readiness(
 
 
     # =========================
-    # Max Hang
+    # Max Hang 专项决策
     # =========================
 
     max_hang_status = (
         max_hang_decision.get(
             "status",
             "conditional"
+        )
+    )
+
+    max_hang_status_label = (
+        max_hang_decision.get(
+            "status_label",
+            ""
         )
     )
 
@@ -10712,7 +10717,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # Recovery状态
+    # Recovery 状态
     # =========================
 
     if recovery is None:
@@ -10741,7 +10746,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # HRV状态
+    # HRV 状态
     # =========================
 
     if (
@@ -10819,29 +10824,24 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 用今日训练后反馈补充局部状态
+    # 今日训练后反馈优先
     # =========================
 
     effective_finger_fatigue = (
         today_max_finger_fatigue
-        if today_max_finger_fatigue
-        is not None
+        if today_max_finger_fatigue is not None
         else finger_fatigue
     )
 
-
     effective_elbow_fatigue = (
         today_max_elbow_fatigue
-        if today_max_elbow_fatigue
-        is not None
+        if today_max_elbow_fatigue is not None
         else elbow_fatigue
     )
 
-
     effective_recovery_after = (
         today_latest_recovery_after
-        if today_latest_recovery_after
-        is not None
+        if today_latest_recovery_after is not None
         else recovery_after
     )
 
@@ -10934,7 +10934,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 全身恢复状态
+    # 全身恢复
     # =========================
 
     systemic_negative_count = 0
@@ -10961,7 +10961,6 @@ def calculate_training_readiness(
             "poor"
         )
 
-
     elif (
         recovery_state == "green"
         and systemic_negative_count == 0
@@ -10970,7 +10969,6 @@ def calculate_training_readiness(
         systemic_recovery = (
             "good"
         )
-
 
     elif (
         recovery_state in [
@@ -10984,13 +10982,11 @@ def calculate_training_readiness(
             "moderate"
         )
 
-
     elif recovery_state == "unknown":
 
         systemic_recovery = (
             "unknown"
         )
-
 
     else:
 
@@ -11009,7 +11005,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 基础主要限制因素
+    # 主要限制因素
     # =========================
 
     primary_limiter = (
@@ -11026,13 +11022,11 @@ def calculate_training_readiness(
             "systemic_recovery"
         )
 
-
     elif finger_status == "high_fatigue":
 
         primary_limiter = (
             "finger_fatigue"
         )
-
 
     elif elbow_status == "high_fatigue":
 
@@ -11040,13 +11034,11 @@ def calculate_training_readiness(
             "elbow_fatigue"
         )
 
-
     elif forearm_status == "high_fatigue":
 
         primary_limiter = (
             "forearm_fatigue"
         )
-
 
     elif finger_status == "moderate_fatigue":
 
@@ -11054,20 +11046,17 @@ def calculate_training_readiness(
             "finger_fatigue"
         )
 
-
     elif elbow_status == "moderate_fatigue":
 
         primary_limiter = (
             "elbow_fatigue"
         )
 
-
     elif forearm_status == "moderate_fatigue":
 
         primary_limiter = (
             "forearm_fatigue"
         )
-
 
     elif injury_recorded:
 
@@ -11077,7 +11066,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 基础训练准备度
+    # Overall Status
     # =========================
 
     if (
@@ -11090,7 +11079,6 @@ def calculate_training_readiness(
         overall_status = (
             "recovery_priority"
         )
-
 
     elif (
         systemic_recovery in [
@@ -11107,7 +11095,6 @@ def calculate_training_readiness(
         overall_status = (
             "conditional"
         )
-
 
     else:
 
@@ -11251,7 +11238,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # Max Hang继承后端专项决策
+    # Max Hang专项限制
     # =========================
 
     if max_hang_status == "avoid":
@@ -11259,7 +11246,6 @@ def calculate_training_readiness(
         avoid_or_limit.append(
             "Max Hang"
         )
-
 
     elif max_hang_status == "conditional":
 
@@ -11301,18 +11287,10 @@ def calculate_training_readiness(
 
     else:
 
-        # =====================
-        # 已完成训练后不再机械补Strain
-        # =====================
-
         additional_training.append(
             "不需要为了达到推荐Strain区间下限而机械追加训练"
         )
 
-
-        # =====================
-        # 已做指力板
-        # =====================
 
         if hangboard_done_today:
 
@@ -11321,20 +11299,12 @@ def calculate_training_readiness(
             )
 
 
-        # =====================
-        # 已做Repeaters
-        # =====================
-
         if repeaters_done_today:
 
             additional_training.append(
                 "今天已经完成Repeaters，不建议为了增加训练量再次安排同类指力板刺激"
             )
 
-
-        # =====================
-        # 已做Max Hang
-        # =====================
 
         if max_hang_done_today:
 
@@ -11343,10 +11313,6 @@ def calculate_training_readiness(
             )
 
 
-        # =====================
-        # 已完成攀岩
-        # =====================
-
         if climbing_done_today:
 
             additional_training.append(
@@ -11354,17 +11320,13 @@ def calculate_training_readiness(
             )
 
 
-        # =====================
-        # 已经指力板 + 攀岩
-        # =====================
-
         if (
             hangboard_done_today
             and climbing_done_today
         ):
 
             additional_training.append(
-                "今天已同时完成指力板和攀岩训练，后续更适合低强度活动、恢复或结束训练"
+                "今天已同时完成指力板和攀岩训练，后续更适合低强度活动、恢复或结束主要训练"
             )
 
             additional_high_intensity = (
@@ -11384,8 +11346,7 @@ def calculate_training_readiness(
                     "low_fatigue",
                     "unknown"
                 ]
-                and systemic_recovery
-                in [
+                and systemic_recovery in [
                     "good",
                     "moderate"
                 ]
@@ -11395,24 +11356,121 @@ def calculate_training_readiness(
                     "如果仍想活动，可选择低强度技术练习或轻松恢复活动"
                 )
 
-                additional_high_intensity = (
-                    "not_recommended"
-                )
-
             else:
 
                 additional_training.append(
                     "当前更适合结束主要训练并进入恢复"
                 )
 
-                additional_high_intensity = (
-                    "not_recommended"
-                )
+
+            additional_high_intensity = (
+                "not_recommended"
+            )
 
 
     # =========================
-    # 今天已经做过的项目
-    # 不再重复推荐
+    # 今日 Max Hang 行动
+    # =========================
+    #
+    # 注意：
+    #
+    # max_hang_status
+    # = Max Hang专项资格
+    #
+    # max_hang_today_action
+    # = 今天现在还要不要追加
+    #
+    # 两者不能混为一谈
+    # =========================
+
+    if max_hang_done_today:
+
+        max_hang_today_action = (
+            "completed_today"
+        )
+
+        max_hang_today_label = (
+            "今天已经完成Max Hang"
+        )
+
+        max_hang_today_instruction = (
+            "今天已经完成Max Hang，"
+            "不建议当天再次安排Max Hang。"
+            "Max Hang专项状态保留用于下一次训练机会重新评估。"
+        )
+
+
+    elif hangboard_done_today:
+
+        max_hang_today_action = (
+            "do_not_add_today"
+        )
+
+        max_hang_today_label = (
+            "今天不再追加Max Hang"
+        )
+
+        max_hang_today_instruction = (
+            "今天已经完成指力板训练，"
+            "不建议为了增加训练量再追加Max Hang。"
+            f"当前Max Hang专项状态仍为{max_hang_status}，"
+            "该专项状态用于下一次训练机会重新评估，"
+            "不代表今天仍需要执行Max Hang。"
+        )
+
+
+    elif climbing_done_today:
+
+        max_hang_today_action = (
+            "reassess_before_adding"
+        )
+
+        max_hang_today_label = (
+            "如考虑Max Hang需重新评估"
+        )
+
+        max_hang_today_instruction = (
+            "今天已经完成攀岩训练。"
+            "如果仍考虑Max Hang，"
+            "需结合当前局部疲劳、实际恢复间隔"
+            "以及热身后的手指状态重新评估。"
+            "不要仅因为Max Hang专项状态允许或条件式允许"
+            "就自动追加训练。"
+        )
+
+
+    else:
+
+        if max_hang_status == "allowed":
+
+            max_hang_today_action = (
+                "possible_today"
+            )
+
+        elif max_hang_status == "avoid":
+
+            max_hang_today_action = (
+                "avoid_today"
+            )
+
+        else:
+
+            max_hang_today_action = (
+                "conditional_today"
+            )
+
+
+        max_hang_today_label = (
+            max_hang_status_label
+        )
+
+        max_hang_today_instruction = (
+            max_hang_instruction
+        )
+
+
+    # =========================
+    # 已做项目不再重复推荐
     # =========================
 
     if trained_today:
@@ -11439,12 +11497,9 @@ def calculate_training_readiness(
             if (
                 climbing_done_today
                 and (
-                    "技术攀岩"
-                    in item
-                    or "中低强度攀岩"
-                    in item
-                    or "高质量技术攀岩"
-                    in item
+                    "技术攀岩" in item
+                    or "中低强度攀岩" in item
+                    or "高质量技术攀岩" in item
                 )
             ):
 
@@ -11625,7 +11680,7 @@ def calculate_training_readiness(
 
 
         # =====================
-        # 日内训练状态
+        # 日内训练
         # =====================
 
         "training_phase":
@@ -11695,7 +11750,7 @@ def calculate_training_readiness(
 
 
         # =====================
-        # Max Hang
+        # Max Hang 专项
         # =====================
 
         "max_hang_status":
@@ -11703,6 +11758,20 @@ def calculate_training_readiness(
 
         "max_hang_instruction":
             max_hang_instruction,
+
+
+        # =====================
+        # Max Hang 今日行动
+        # =====================
+
+        "max_hang_today_action":
+            max_hang_today_action,
+
+        "max_hang_today_label":
+            max_hang_today_label,
+
+        "max_hang_today_instruction":
+            max_hang_today_instruction,
 
 
         # =====================
@@ -11782,21 +11851,33 @@ def generate_coach_prompt(
     # 类型保护
     # =========================
 
-    if not isinstance(metrics, dict):
+    if not isinstance(
+        metrics,
+        dict
+    ):
         metrics = {}
 
-    if not isinstance(training_load, dict):
+    if not isinstance(
+        training_load,
+        dict
+    ):
         training_load = {}
 
-    if not isinstance(weekly_data, dict):
+    if not isinstance(
+        weekly_data,
+        dict
+    ):
         weekly_data = {}
 
-    if not isinstance(climbing_fatigue, dict):
+    if not isinstance(
+        climbing_fatigue,
+        dict
+    ):
         climbing_fatigue = {}
 
 
     # =========================
-    # Max Hang最终决策
+    # Max Hang
     # =========================
 
     if not isinstance(
@@ -11823,7 +11904,7 @@ def generate_coach_prompt(
 
 
     # =========================
-    # Strain最终决策
+    # Strain
     # =========================
 
     if not isinstance(
@@ -11864,7 +11945,7 @@ def generate_coach_prompt(
 
 
     # =========================
-    # Training Readiness最终决策
+    # Training Readiness
     # =========================
 
     if not isinstance(
@@ -11882,6 +11963,66 @@ def generate_coach_prompt(
                 injury_data
             )
         )
+
+
+    # =========================
+    # 日内训练状态
+    # =========================
+
+    training_phase = (
+        training_readiness.get(
+            "training_phase"
+        )
+    )
+
+    trained_today = (
+        training_readiness.get(
+            "trained_today"
+        )
+    )
+
+    today_training_summary = (
+        training_readiness.get(
+            "today_training_summary",
+            []
+        )
+    )
+
+    additional_training = (
+        training_readiness.get(
+            "additional_training",
+            []
+        )
+    )
+
+    additional_high_intensity = (
+        training_readiness.get(
+            "additional_high_intensity"
+        )
+    )
+
+
+    # =========================
+    # 今日 Max Hang行动
+    # =========================
+
+    max_hang_today_action = (
+        training_readiness.get(
+            "max_hang_today_action"
+        )
+    )
+
+    max_hang_today_label = (
+        training_readiness.get(
+            "max_hang_today_label"
+        )
+    )
+
+    max_hang_today_instruction = (
+        training_readiness.get(
+            "max_hang_today_instruction"
+        )
+    )
 
 
     # =========================
@@ -11994,29 +12135,126 @@ def generate_coach_prompt(
 
 你是一名专业的 WHOOP 私人攀岩健康教练。
 
-你的任务是根据用户今天的 WHOOP 数据、
-近期个人趋势、攀岩训练、指力板训练、
-局部疲劳、经期、WHOOP夜间皮肤温度、
+你的任务是根据今天的 WHOOP 数据、
+近期个人基线、攀岩训练、指力板训练、
+局部疲劳、今日已经完成的训练、
+经期、WHOOP夜间皮肤温度、
 SpO₂和伤病记录，
 
-生成谨慎、专业、可执行的训练建议。
+生成谨慎、专业、简洁、可执行的训练建议。
 
 
 ==============================
 最重要的数据优先级
 ==============================
 
-下面三个后端结构化决策属于最终规则计算结果：
+后端已经完成三个核心结构化决策：
 
 1. Training Readiness
 2. Strain Plan
 3. Max Hang Decision
 
-AI不得自行修改、重新估算或推翻这些后端结构化决策。
+AI不得自行重新计算、
+修改或推翻这些结构化结果。
+
+
+Training Readiness负责：
+
+今天整体怎么练，
+以及今天已经完成训练之后
+还适合做什么。
+
+
+Strain Plan负责：
+
+当前Strain、
+推荐区间、
+完成度、
+remaining_strain。
+
+
+Max Hang Decision负责：
+
+Max Hang专项资格状态。
+
+
+此外：
+
+Training Readiness中的
+max_hang_today_action
+负责：
+
+“今天现在还要不要追加Max Hang”。
+
+
+必须区分：
+
+Max Hang专项资格
+
+和
+
+今天是否追加Max Hang。
 
 
 ==============================
-后端Training Readiness最终决策
+后端Strain最终决策
+==============================
+
+当前Strain：
+{current_strain}
+
+目标Strain：
+{recommended_strain}
+
+目标下限：
+{strain_plan.get("target_min")}
+
+目标上限：
+{strain_plan.get("target_max")}
+
+完成度：
+{strain_completion}%
+
+距离区间下限：
+{remaining_strain}
+
+训练等级：
+{strain_plan.get("training_level")}
+
+
+强制规则：
+
+以上Strain数据为后端最终结果。
+
+不得自行：
+
+修改目标Strain
+缩小区间
+扩大区间
+重新计算完成度
+重新计算remaining_strain。
+
+
+remaining_strain只表示：
+
+距离推荐Strain区间下限的差值。
+
+
+它不代表：
+
+今天剩余训练额度
+今天最多还能增加多少
+今天必须补足多少。
+
+
+如果用户今天已经完成训练：
+
+不得为了达到target_min
+而建议机械补Strain。
+
+
+==============================
+Training Readiness
 ==============================
 
 整体状态：
@@ -12031,23 +12269,14 @@ AI不得自行修改、重新估算或推翻这些后端结构化决策。
 全身恢复：
 {training_readiness.get("systemic_recovery")}
 
-Recovery状态：
-{training_readiness.get("recovery_state")}
-
-HRV状态：
-{training_readiness.get("hrv_state")}
-
-静息心率状态：
-{training_readiness.get("rhr_state")}
-
-睡眠状态：
-{training_readiness.get("sleep_state")}
-
 手指状态：
 {training_readiness.get("finger_status")}
 
 肘部状态：
 {training_readiness.get("elbow_status")}
+
+前臂状态：
+{training_readiness.get("forearm_status")}
 
 推荐训练：
 {training_readiness.get("recommended_training")}
@@ -12055,180 +12284,144 @@ HRV状态：
 限制或避免：
 {training_readiness.get("avoid_or_limit")}
 
-综合原因：
-{training_readiness.get("reason")}
 
-
-强制规则：
-
-training_readiness是后端综合训练决策。
-
-AI不得自行推翻：
+AI不得推翻：
 
 overall_status
 primary_limiter
-systemic_recovery
 recommended_training
-avoid_or_limit
-
-如果overall_status为conditional：
-
-必须使用条件式训练表达，
-
-不得擅自改成：
-
-完全休息
-完全禁止训练
-完全恢复
-适合无限制高强度训练。
+avoid_or_limit。
 
 
 ==============================
-后端Strain最终决策
+今日训练阶段
 ==============================
 
-当前 Strain：
-{current_strain}
+训练阶段：
+{training_phase}
 
-目标 Strain：
-{recommended_strain}
+今天是否已经训练：
+{trained_today}
 
-目标区间下限：
-{strain_plan.get("target_min")}
+今天已经完成：
+{today_training_summary}
 
-目标区间上限：
-{strain_plan.get("target_max")}
+今日攀岩是否完成：
+{training_readiness.get("climbing_done_today")}
 
-训练完成度：
-{strain_completion}%
+今日指力板是否完成：
+{training_readiness.get("hangboard_done_today")}
 
-剩余建议负荷：
-{remaining_strain}
+今日Repeaters是否完成：
+{training_readiness.get("repeaters_done_today")}
 
-训练等级：
-{strain_plan.get("training_level")}
+今日Max Hang是否完成：
+{training_readiness.get("max_hang_done_today")}
 
 
-强制规则：
+如果：
 
-以上Strain数据是后端已经计算完成的最终结果。
+training_phase = post_training
 
-AI不得自行：
+必须把回答重点从：
 
-修改目标Strain
-缩小目标区间
-扩大目标区间
-重新计算完成度
-重新计算remaining_strain。
+“今天适合训练什么”
+
+切换成：
+
+“今天已经完成这些训练后，
+现在还适合做什么”。
+
+
+剩余训练建议：
+{additional_training}
+
+额外高强度训练状态：
+{additional_high_intensity}
+
+
+如果：
+
+additional_high_intensity = not_recommended
+
+不得继续推荐：
+
+极限抱石
+高强度指力
+Max Hang
+高强度项目
+其他额外高强度训练。
+
+
+==============================
+Max Hang专项资格
+==============================
+
+专项状态：
+{max_hang_status}
+
+完整专项决策：
+{max_hang_decision}
+
+
+这个状态回答：
+
+“Max Hang这个训练项目本身，
+当前属于allowed、
+conditional还是avoid？”
+
+
+AI不得自行改变该专项状态。
+
+
+==============================
+今天是否追加Max Hang
+==============================
+
+今日行动：
+{max_hang_today_action}
+
+今日标签：
+{max_hang_today_label}
+
+今日执行说明：
+{max_hang_today_instruction}
+
+
+这是回答：
+
+“今天现在还应不应该再做一次Max Hang？”
+
+
+必须优先服从
+max_hang_today_action。
 
 
 例如：
 
-如果后端目标Strain为：
+如果专项状态为：
 
-8-12
+conditional
 
-AI必须写：
+但今日行动为：
 
-8-12
+do_not_add_today
 
-不得改成：
+必须表达：
 
-8-10
-8-11
-10-12
-或其他数字。
-
-
-remaining_strain表示：
-
-距离推荐Strain区间下限
-还差多少。
-
-它不代表：
-
-今天最多只能增加这么多Strain。
-
-不得把remaining_strain解释成：
-
-今日绝对训练上限。
+“Max Hang专项状态仍是条件式评估，
+但今天已经完成指力板训练，
+因此今天不再追加Max Hang。
+该专项状态留到下一次训练机会重新评估。”
 
 
-==============================
-核心训练规则
-==============================
+不得错误表达为：
 
-1. 不得只根据Recovery判断训练。
+“Max Hang已经变成avoid”。
 
-2. Recovery统一标准：
+因为：
 
-Recovery >=67%：
-绿色恢复。
-
-Recovery 34-66%：
-黄色恢复。
-
-Recovery <34%：
-红色恢复。
-
-不得自行使用其他Recovery分界。
-
-
-3. 必须综合：
-
-Recovery
-HRV
-静息心率
-睡眠
-Strain
-Training Readiness
-攀岩训练负荷
-指力板训练负荷
-手指疲劳
-肘部疲劳
-recovery_after
-Max Hang后端决策。
-
-
-4. 手指疲劳4-6/10：
-
-必须定义为：
-
-“中等局部手指疲劳”。
-
-不得仅凭4-6/10判断：
-
-疲劳累积
-恢复不足
-过度使用
-肌腱风险
-高风险。
-
-
-5. 最近7天训练次数较多：
-
-只能作为辅助负荷信息。
-
-不能单独证明：
-
-疲劳累积
-过度使用
-恢复不足
-伤病风险。
-
-
-6. 如果没有明确记录：
-
-疼痛
-僵硬
-肌腱敏感
-肿胀
-动作受限
-
-不得自行推测这些症状。
-
-
-7. 不进行医学诊断。
+专项状态没有改变。
 
 
 ==============================
@@ -12284,6 +12477,107 @@ REM：
 
 
 ==============================
+Recovery统一规则
+==============================
+
+Recovery >=67%：
+绿色恢复
+
+Recovery 34-66%：
+黄色恢复
+
+Recovery <34%：
+红色恢复
+
+
+不得自行使用其他分界。
+
+Recovery不能作为唯一训练依据。
+
+
+==============================
+局部疲劳
+==============================
+
+最近一次手指疲劳：
+{latest_finger_fatigue}/10
+
+最近一次肘部疲劳：
+{latest_elbow_fatigue}/10
+
+训练后恢复评分：
+{latest_recovery_after}
+
+距离最近一次指力板：
+{days_since_hangboard}个自然日
+
+
+今日综合手指疲劳：
+{training_readiness.get("finger_fatigue")}/10
+
+今日综合肘部疲劳：
+{training_readiness.get("elbow_fatigue")}/10
+
+今日前臂疲劳：
+{training_readiness.get("forearm_fatigue")}/10
+
+
+手指疲劳4-6/10必须描述为：
+
+“中等局部手指疲劳”。
+
+
+不得仅凭4-6/10判断：
+
+疲劳累积
+恢复不足
+过度使用
+肌腱损伤
+高伤病风险。
+
+
+==============================
+Repeaters
+==============================
+
+Repeaters不等于Max Hang。
+
+不得把Max Hang专项决策
+直接套用到Repeaters。
+
+
+如果今天已经完成Repeaters：
+
+不得再次推荐同日追加Repeaters。
+
+
+如果今天尚未完成，
+且整体训练准备度允许，
+可结合局部疲劳考虑：
+
+降低强度
+减少组数
+减少总量
+增加休息。
+
+
+==============================
+训练频率
+==============================
+
+最近7天训练次数较多：
+
+只能作为辅助负荷信息。
+
+不得单独证明：
+
+疲劳累积
+过度使用
+恢复不足
+伤病风险。
+
+
+==============================
 WHOOP夜间皮肤温度
 ==============================
 
@@ -12302,11 +12596,8 @@ WHOOP夜间皮肤温度
 
 WHOOP skin_temperature是夜间皮肤温度。
 
-不等于：
-
-核心体温
-腋温
-口腔体温。
+不是核心体温、
+腋温或口腔体温。
 
 
 如果有效历史不足3天：
@@ -12321,8 +12612,7 @@ WHOOP skin_temperature是夜间皮肤温度。
 
 发烧
 感染
-疾病
-核心体温异常。
+疾病。
 
 
 ==============================
@@ -12344,8 +12634,6 @@ WHOOP SpO₂
 
 如果有效历史不足3天：
 
-只能报告当前数值，
-
 必须说明：
 
 “当前血氧历史数据不足，
@@ -12354,174 +12642,6 @@ WHOOP SpO₂
 
 不得根据单次SpO₂
 进行医学诊断。
-
-
-==============================
-最近7天攀岩
-==============================
-
-攀岩次数：
-{training_load.get(
-    "climbing_sessions_7d",
-    training_load.get(
-        "climbing_sessions",
-        0
-    )
-)}
-
-攀岩总时长：
-{training_load.get(
-    "climbing_duration_7d",
-    training_load.get(
-        "climbing_duration",
-        0
-    )
-)} 分钟
-
-
-==============================
-最近7天指力板
-==============================
-
-指力板次数：
-{training_load.get(
-    "hangboard_sessions_7d",
-    training_load.get(
-        "hangboard_sessions",
-        0
-    )
-)}
-
-总时长：
-{training_load.get(
-    "hangboard_duration_7d",
-    training_load.get(
-        "hangboard_duration",
-        0
-    )
-)} 分钟
-
-总悬挂时间：
-{training_load.get(
-    "hang_time_7d",
-    training_load.get(
-        "hang_time",
-        0
-    )
-)} 秒
-
-7天平均手指疲劳：
-{training_load.get(
-    "avg_finger_fatigue_7d"
-)}/10
-
-7天平均肘部疲劳：
-{training_load.get(
-    "avg_elbow_fatigue_7d"
-)}/10
-
-
-7天平均疲劳不能当作今天当前疲劳。
-
-
-==============================
-最近一次指力板
-==============================
-
-日期：
-{training_load.get(
-    "latest_hangboard_date"
-)}
-
-协议：
-{training_load.get(
-    "latest_hangboard_protocol"
-)}
-
-训练类型：
-{training_load.get(
-    "latest_hangboard_session_type"
-)}
-
-最近一次手指疲劳：
-{latest_finger_fatigue}/10
-
-最近一次肘部疲劳：
-{latest_elbow_fatigue}/10
-
-训练后恢复评分：
-{latest_recovery_after}
-
-距离最近一次训练：
-{days_since_hangboard}个自然日
-
-
-==============================
-后端Max Hang最终决策
-==============================
-
-状态：
-{max_hang_status}
-
-完整决策：
-{max_hang_decision}
-
-
-这是后端结构化规则产生的最终决策。
-
-AI不得自行升级、
-降低或推翻该状态。
-
-
-如果status = conditional：
-
-不得把Max Hang直接放入
-“避免训练”。
-
-必须采用：
-
-“Max Hang：
-如果恢复间隔足够，
-且热身后手指状态正常，
-可以考虑降低总量进行；
-否则暂缓。”
-
-
-如果status = avoid：
-
-可以明确建议暂缓Max Hang。
-
-
-如果status = allowed：
-
-可以说明当前条件支持Max Hang，
-
-但仍需根据热身后的手指状态
-动态调整训练量。
-
-
-==============================
-Repeaters规则
-==============================
-
-Repeaters不等于Max Hang。
-
-不得自动把Repeaters定义为最大力量训练。
-
-
-如果整体恢复尚可，
-
-但存在4-6/10
-中等局部手指疲劳，
-
-Repeaters可以考虑：
-
-降低悬挂强度
-减少组数
-减少总量
-增加组间休息
-
-而不是自动完全禁止。
 
 
 ==============================
@@ -12550,6 +12670,15 @@ Repeaters可以考虑：
 无法据此排除全部风险。”
 
 
+不得自行推测：
+
+疼痛
+肿胀
+僵硬
+肌腱敏感
+动作受限。
+
+
 ==============================
 攀岩专项疲劳
 ==============================
@@ -12571,23 +12700,49 @@ Repeaters可以考虑：
 最终输出要求
 ==============================
 
-必须说明：
+必须首先判断：
 
-今日Training Readiness
+training_phase。
+
+
+如果是：
+
+pre_training
+
+回答重点：
+
+今天适合什么训练。
+
+
+如果是：
+
+post_training
+
+回答重点：
+
+今天已经练了什么，
+现在还建议做什么。
+
+
+必须说明：
 
 今日整体恢复状态
 
-HRV和静息心率状态
+HRV与静息心率状态
 
 睡眠支持或限制
 
 当前主要限制因素
 
-今日适合的攀岩类型
+今天已经完成的训练
 
-Repeaters建议
+现在是否还需要继续训练
 
-Max Hang后端决策
+Repeaters状态
+
+Max Hang专项状态
+
+Max Hang今日行动
 
 当前Strain
 
@@ -12595,26 +12750,22 @@ Max Hang后端决策
 
 训练完成度
 
-剩余建议负荷。
+remaining_strain的正确含义。
 
 
-训练类型优先遵循：
+如果今天已经完成主要训练：
 
-training_readiness.recommended_training
-
-训练限制优先遵循：
-
-training_readiness.avoid_or_limit
+不得为了追Strain
+鼓励追加高强度训练。
 
 
-Strain相关数字必须完全使用
-后端Strain最终决策。
+未来建议必须使用：
 
-禁止重新计算。
+如果……
+若……
+当……
 
-
-明日恢复建议必须使用
-条件式表达。
+等条件式表达。
 
 
 不得预测明天具体：
@@ -12625,10 +12776,6 @@ HRV
 Sleep Score。
 
 
-不得建立没有数据支持的
-确定因果关系。
-
-
 使用中文简体。
 
 表达：
@@ -12636,6 +12783,7 @@ Sleep Score。
 专业
 谨慎
 简洁
+清晰
 可执行。
 
 """
