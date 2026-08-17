@@ -4504,59 +4504,417 @@ def get_whoop_coach_report():
 @app.route("/training/log", methods=["POST"])
 def add_training_log():
 
-    data = request.json
+    import traceback
 
-    conn = get_db_connection()
+    conn = None
+    cur = None
 
-    cur = conn.cursor()
 
-    cur.execute(
-        """
-        INSERT INTO climbing_training_log
-        (
-        training_date,
-        training_type,
-        duration,
-        intensity,
-        climbing_grade,
-        boulder_count,
-        hangboard_seconds,
-        hangboard_weight,
-        finger_fatigue,
-        forearm_fatigue,
-        notes
-        )
+    # =========================
+    # 1. API Key
+    # =========================
 
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    if not check_api_key():
 
-        """,
+        return jsonify({
 
-        (
-        data.get("training_date"),
-        data.get("training_type"),
-        data.get("duration"),
-        data.get("intensity"),
-        data.get("climbing_grade"),
-        data.get("boulder_count"),
-        data.get("hangboard_seconds"),
-        data.get("hangboard_weight"),
-        data.get("finger_fatigue"),
-        data.get("forearm_fatigue"),
-        data.get("notes")
-        )
+            "success":
+                False,
+
+            "error":
+                "unauthorized"
+
+        }), 401
+
+
+    # =========================
+    # 2. 获取 JSON
+    # =========================
+
+    data = request.get_json(
+        silent=True
     )
 
 
-    conn.commit()
+    print(
+        "CLIMBING SAVE RAW DATA:",
+        data
+    )
 
-    cur.close()
-    conn.close()
+
+    if not isinstance(
+        data,
+        dict
+    ):
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "error":
+                "请求内容必须是JSON对象"
+
+        }), 400
 
 
-    return jsonify({
-        "success": True,
-        "message": "训练记录已保存"
-    })
+    # =========================
+    # 3. 必填字段
+    # =========================
+
+    if not data.get(
+        "training_date"
+    ):
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "error":
+                "缺少training_date"
+
+        }), 400
+
+
+    if not data.get(
+        "training_type"
+    ):
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "error":
+                "缺少training_type"
+
+        }), 400
+
+
+    # =========================
+    # 4. 保存攀岩训练
+    # =========================
+
+    try:
+
+        conn = get_db_connection()
+
+        cur = conn.cursor()
+
+
+        cur.execute(
+            """
+            INSERT INTO climbing_training_log
+            (
+                training_date,
+                training_type,
+                duration,
+                intensity,
+                climbing_grade,
+                boulder_count,
+                hangboard_seconds,
+                hangboard_weight,
+                finger_fatigue,
+                forearm_fatigue,
+                notes
+            )
+
+            VALUES
+            (
+                %s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s
+            )
+            """,
+
+            (
+                data.get(
+                    "training_date"
+                ),
+
+                data.get(
+                    "training_type"
+                ),
+
+                data.get(
+                    "duration"
+                ),
+
+                data.get(
+                    "intensity"
+                ),
+
+                data.get(
+                    "climbing_grade"
+                ),
+
+                data.get(
+                    "boulder_count"
+                ),
+
+                data.get(
+                    "hangboard_seconds"
+                ),
+
+                data.get(
+                    "hangboard_weight"
+                ),
+
+                data.get(
+                    "finger_fatigue"
+                ),
+
+                data.get(
+                    "forearm_fatigue"
+                ),
+
+                data.get(
+                    "notes"
+                )
+            )
+        )
+
+
+        conn.commit()
+
+
+        print(
+            "CLIMBING TRAINING SAVED"
+        )
+
+
+    except Exception as e:
+
+        print(
+            "CLIMBING SAVE ERROR:",
+            repr(
+                e
+            )
+        )
+
+        traceback.print_exc()
+
+
+        if conn:
+
+            conn.rollback()
+
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "training_saved":
+                False,
+
+            "error":
+                str(
+                    e
+                )
+
+        }), 500
+
+
+    finally:
+
+        if cur:
+
+            cur.close()
+
+
+        if conn:
+
+            conn.close()
+
+
+    # =========================
+    # 5. 自动刷新今日 Coach
+    # =========================
+
+    report_refreshed = False
+
+    refresh_error = None
+
+    refreshed_report = None
+
+
+    try:
+
+        print(
+            "START REFRESH DAILY COACH AFTER CLIMBING"
+        )
+
+
+        refreshed_report = (
+            generate_daily_coach_report()
+        )
+
+
+        report_refreshed = True
+
+
+        print(
+            "DAILY COACH REFRESHED AFTER CLIMBING"
+        )
+
+
+    except Exception as e:
+
+        refresh_error = str(
+            e
+        )
+
+
+        print(
+            "DAILY COACH REFRESH ERROR AFTER CLIMBING:",
+            repr(
+                e
+            )
+        )
+
+        traceback.print_exc()
+
+
+    # =========================
+    # 6. 返回结果
+    # =========================
+
+    response = {
+
+        "success":
+            True,
+
+        "training_saved":
+            True,
+
+        "report_refreshed":
+            report_refreshed,
+
+        "message":
+            (
+                "攀岩训练已保存，并已刷新今日教练报告"
+                if report_refreshed
+                else
+                "攀岩训练已保存，但今日教练报告刷新失败"
+            ),
+
+        "training": {
+
+            "training_date":
+                data.get(
+                    "training_date"
+                ),
+
+            "training_type":
+                data.get(
+                    "training_type"
+                ),
+
+            "duration":
+                data.get(
+                    "duration"
+                ),
+
+            "intensity":
+                data.get(
+                    "intensity"
+                ),
+
+            "climbing_grade":
+                data.get(
+                    "climbing_grade"
+                ),
+
+            "boulder_count":
+                data.get(
+                    "boulder_count"
+                ),
+
+            "hangboard_seconds":
+                data.get(
+                    "hangboard_seconds"
+                ),
+
+            "hangboard_weight":
+                data.get(
+                    "hangboard_weight"
+                ),
+
+            "finger_fatigue":
+                data.get(
+                    "finger_fatigue"
+                ),
+
+            "forearm_fatigue":
+                data.get(
+                    "forearm_fatigue"
+                ),
+
+            "notes":
+                data.get(
+                    "notes"
+                )
+
+        }
+
+    }
+
+
+    # =========================
+    # 7. 刷新成功时返回最新决策
+    # =========================
+
+    if report_refreshed:
+
+        response[
+            "daily_coach"
+        ] = {
+
+            "max_hang_status":
+                refreshed_report.get(
+                    "max_hang_status"
+                ),
+
+            "max_hang_decision":
+                refreshed_report.get(
+                    "max_hang_decision"
+                ),
+
+            "strain_plan":
+                refreshed_report.get(
+                    "strain_plan"
+                ),
+
+            "training_readiness":
+                refreshed_report.get(
+                    "training_readiness"
+                )
+
+        }
+
+
+    else:
+
+        response[
+            "refresh_error"
+        ] = refresh_error
+
+
+    print(
+        "CLIMBING TRAINING SAVED:",
+        True
+    )
+
+    print(
+        "REPORT REFRESHED:",
+        report_refreshed
+    )
+
+
+    return jsonify(
+        response
+    ), 200
 
 
 @app.route("/training/history")
