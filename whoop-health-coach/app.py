@@ -4929,10 +4929,185 @@ Max Hang Decision 决定。
             )
 
 
-            # 使用重写后的结果
-            ai_result = (
-                rewritten_result
+            # =========================
+            # 3.4.1 提取重写后的文本
+            # =========================
+
+            if isinstance(
+                rewritten_result,
+                dict
+            ):
+
+                rewritten_text = (
+                    rewritten_result.get(
+                        "ai_report"
+                    )
+                    or rewritten_result.get(
+                        "report"
+                    )
+                    or rewritten_result.get(
+                        "content"
+                    )
+                    or str(
+                        rewritten_result
+                    )
+                )
+
+            else:
+
+                rewritten_text = str(
+                    rewritten_result
+                )
+
+
+            # =========================
+            # 3.4.2 第二次最终验证
+            # =========================
+
+            final_validation = (
+                validate_weekly_output(
+                    rewritten_text
+                )
             )
+
+
+            print(
+                "WEEKLY FINAL VALIDATION:",
+                final_validation
+            )
+
+
+            # =========================
+            # 3.4.3 重写后合格
+            # =========================
+
+            if final_validation.get(
+                "valid",
+                False
+            ):
+
+                ai_result = (
+                    rewritten_result
+                )
+
+
+            # =========================
+            # 3.4.4 重写后仍违规
+            #       使用安全兜底
+            # =========================
+
+            else:
+
+                print(
+                    "WEEKLY FINAL VALIDATION FAILED:",
+                    final_validation.get(
+                        "violations",
+                        []
+                    )
+                )
+
+
+                safe_fallback_report = f"""
+📊 最近7天趋势
+
+最近7天WHOOP与训练数据已经完成分析。
+
+平均Recovery：
+{weekly_data.get("avg_recovery")}%
+
+平均HRV：
+{weekly_data.get("avg_hrv")} ms
+
+平均静息心率：
+{weekly_data.get("avg_resting_hr")} bpm
+
+平均睡眠：
+{weekly_data.get("avg_sleep")} 小时
+
+平均Strain：
+{weekly_data.get("avg_strain")}
+
+
+🧗 训练负荷
+
+最近7天攀岩次数：
+{weekly_data.get("climbing_sessions_7d", 0)}
+
+最近7天攀岩总时长：
+{weekly_data.get("climbing_duration_7d", 0)} 分钟
+
+最近7天指力板次数：
+{weekly_data.get("hangboard_sessions_7d", 0)}
+
+最近7天指力板总时长：
+{weekly_data.get("hangboard_duration_7d", 0)} 分钟
+
+最近一次手指疲劳：
+{weekly_data.get("latest_finger_fatigue")}/10
+
+最近一次肘部疲劳：
+{weekly_data.get("latest_elbow_fatigue")}/10
+
+
+📅 未来训练决策框架
+
+当前训练状态：
+根据最近7天恢复和训练负荷，后续训练应继续结合每天最新状态动态调整。
+
+下一训练日：
+重新读取当天最新 Daily Coach，
+根据当天 Recovery、HRV、静息心率、睡眠、
+局部疲劳和 Training Readiness
+决定训练类型和训练强度。
+
+质量训练条件：
+只有当当天整体恢复、HRV趋势、睡眠和局部手指/肘部状态
+支持质量训练时，
+才考虑较高质量攀岩或力量训练。
+
+降负荷条件：
+如果当天恢复指标下降、
+睡眠不足、
+HRV趋势不理想、
+局部疲劳升高，
+或 Training Readiness 不支持，
+则由当天 Daily Coach 决定降低训练负荷、恢复或休息。
+
+Max Hang：
+Weekly Coach 不预设执行日期。
+是否执行必须读取计划训练当天最新的 Max Hang Decision。
+
+整体流程：
+当前训练状态
+→ 下一训练日重新读取 Daily Coach
+→ 根据当天状态决定训练类型和强度
+→ 满足质量训练条件时再考虑质量训练
+→ Max Hang由执行当天专项决策决定。
+"""
+
+
+                ai_result = {
+                    "ai_report":
+                        safe_fallback_report,
+
+                    "training_advice":
+                        (
+                            "未来训练不按固定日期预排。"
+                            "下一训练日读取最新Daily Coach后，"
+                            "根据当天恢复、睡眠、HRV和局部状态决定训练类型和强度。"
+                        ),
+
+                    "risk_warning":
+                        (
+                            "Weekly数据仅用于趋势和训练框架。"
+                            "未来具体训练决策必须结合执行当天最新状态。"
+                        )
+                }
+
+
+                print(
+                    "WEEKLY SAFE FALLBACK USED"
+                )
 
 
         # =========================
