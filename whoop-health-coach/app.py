@@ -13813,25 +13813,69 @@ Max Hang Decision。
 Weekly Coach可以分析：
 
 最近7天平均Strain
-Strain趋势
-训练负荷变化
+最近7天Strain趋势
+最近7天整体训练负荷
+攀岩与指力板训练负荷结构
 
 
-但不得输出：
+Weekly Coach不得输出或重点讨论：
 
 当前 Strain
+今日 Strain
 目标 Strain
 训练完成度
 剩余建议负荷
 
 
-不得根据：
+即使输入中存在：
 
+current_strain
+recommended_strain
+strain_completion
+remaining_strain
+
+Weekly Coach也必须忽略这些Daily决策字段。
+
+
+不得在ai_report、
+training_advice
+或risk_warning中重复这些字段的具体数值。
+
+
+例如输入中存在：
+
+current_strain = 4.34
+
+不得输出：
+
+“当前Strain 4.34”
+
+“今日Strain为4.34”
+
+“当前Strain距离目标还有……”
+
+“当前训练完成度……”
+
+
+Weekly Coach应该改为分析：
+
+“最近7天整体训练负荷”
+
+“最近7天平均Strain”
+
+“近期训练负荷结构”
+
+“攀岩与指力板训练密度”
+
+
+Weekly Coach不得根据：
+
+current_strain
+recommended_strain
 remaining_strain
 strain_completion
-recommended_strain
 
-决定未来训练。
+决定当前或未来训练。
 
 
 不得写：
@@ -13847,10 +13891,10 @@ recommended_strain
 
 Weekly Coach关注的是：
 
-最近7天训练负荷结构和恢复趋势，
+最近7天训练负荷结构、
+恢复趋势以及后续训练决策条件，
 
-不是今天距离某个Daily Strain目标还差多少。
-
+而不是单日距离某个Daily Strain目标还差多少。
 
 ==============================
 Recovery规则
