@@ -4500,10 +4500,7 @@ def get_whoop_coach_report():
             conn.close()
 
 
-     @app.route(
-    "/api/whoop/weekly-coach-report",
-    methods=["GET"]
-)
+@app.route("/api/whoop/weekly-coach-report",methods=["GET"])
 @require_chatgpt_api_key
 def api_whoop_weekly_coach_report():
 
