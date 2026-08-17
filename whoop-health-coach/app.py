@@ -4500,6 +4500,299 @@ def get_whoop_coach_report():
             conn.close()
 
 
+     @app.route(
+    "/api/whoop/weekly-coach-report",
+    methods=["GET"]
+)
+@require_chatgpt_api_key
+def api_whoop_weekly_coach_report():
+
+    try:
+
+        print(
+            "========== WEEKLY COACH REPORT START =========="
+        )
+
+
+        # =========================
+        # 1. 生成 Weekly 数据
+        # =========================
+
+        weekly_data = (
+            generate_weekly_analysis()
+        )
+
+
+        if not isinstance(
+            weekly_data,
+            dict
+        ):
+
+            weekly_data = {}
+
+
+        if not weekly_data.get(
+            "success"
+        ):
+
+            return jsonify({
+                "success": False,
+                "error": weekly_data.get(
+                    "error",
+                    "Unable to generate weekly analysis"
+                ),
+                "weekly_data": weekly_data
+            }), 500
+
+
+        # =========================
+        # 2. 获取 Weekly Prompt
+        # =========================
+
+        prompt_text = (
+            weekly_data.get(
+                "prompt_text",
+                ""
+            )
+        )
+
+
+        if not prompt_text:
+
+            return jsonify({
+                "success": False,
+                "error": "Weekly prompt is empty"
+            }), 500
+
+
+        # =========================
+        # 3. 调用 AI
+        # =========================
+
+        ai_result = (
+            generate_ai_summary(
+                prompt_text
+            )
+        )
+
+
+        print(
+            "WEEKLY AI RAW:",
+            repr(ai_result)
+        )
+
+
+        # =========================
+        # 4. 提取 AI 文本
+        # =========================
+
+        if isinstance(
+            ai_result,
+            dict
+        ):
+
+            ai_report = (
+                ai_result.get(
+                    "ai_report"
+                )
+                or ai_result.get(
+                    "report"
+                )
+                or ai_result.get(
+                    "content"
+                )
+                or str(ai_result)
+            )
+
+        else:
+
+            ai_report = str(
+                ai_result
+            )
+
+
+        # =========================
+        # 5. 格式化 Weekly Report
+        # =========================
+
+        formatted_report = (
+            format_weekly_report(
+                ai_report
+            )
+        )
+
+
+        print(
+            "========== WEEKLY COACH REPORT SUCCESS =========="
+        )
+
+
+        # =========================
+        # 6. 返回
+        # =========================
+
+        return jsonify({
+
+            "success": True,
+
+            "period": {
+                "start_date":
+                    weekly_data.get(
+                        "start_date"
+                    ),
+
+                "end_date":
+                    weekly_data.get(
+                        "end_date"
+                    ),
+
+                "valid_days":
+                    weekly_data.get(
+                        "valid_days",
+                        0
+                    ),
+
+                "is_complete":
+                    weekly_data.get(
+                        "is_complete",
+                        False
+                    )
+            },
+
+            "averages": {
+                "recovery":
+                    weekly_data.get(
+                        "avg_recovery"
+                    ),
+
+                "hrv":
+                    weekly_data.get(
+                        "avg_hrv"
+                    ),
+
+                "resting_heart_rate":
+                    weekly_data.get(
+                        "avg_resting_hr"
+                    ),
+
+                "sleep":
+                    weekly_data.get(
+                        "avg_sleep"
+                    ),
+
+                "sleep_score":
+                    weekly_data.get(
+                        "avg_sleep_score"
+                    ),
+
+                "strain":
+                    weekly_data.get(
+                        "avg_strain"
+                    )
+            },
+
+            "training_load":
+                weekly_data.get(
+                    "training_load",
+                    {}
+                ),
+
+            "climbing_fatigue":
+                weekly_data.get(
+                    "climbing_fatigue",
+                    {}
+                ),
+
+            "temperature": {
+                "latest":
+                    weekly_data.get(
+                        "skin_temperature"
+                    ),
+
+                "average":
+                    weekly_data.get(
+                        "skin_temperature_avg"
+                    ),
+
+                "deviation":
+                    weekly_data.get(
+                        "temperature_deviation"
+                    ),
+
+                "valid_days":
+                    weekly_data.get(
+                        "skin_temperature_valid_days",
+                        0
+                    ),
+
+                "baseline_reliable":
+                    weekly_data.get(
+                        "temperature_baseline_reliable",
+                        False
+                    )
+            },
+
+            "spo2": {
+                "latest":
+                    weekly_data.get(
+                        "spo2_percentage"
+                    ),
+
+                "average":
+                    weekly_data.get(
+                        "spo2_avg"
+                    ),
+
+                "deviation":
+                    weekly_data.get(
+                        "spo2_deviation"
+                    ),
+
+                "valid_days":
+                    weekly_data.get(
+                        "spo2_valid_days",
+                        0
+                    ),
+
+                "baseline_reliable":
+                    weekly_data.get(
+                        "spo2_baseline_reliable",
+                        False
+                    )
+            },
+
+            "records":
+                weekly_data.get(
+                    "records",
+                    []
+                ),
+
+            "report":
+                formatted_report,
+
+            "raw_ai_report":
+                ai_report
+
+        })
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "WEEKLY COACH REPORT ERROR:",
+            e
+        )
+
+        traceback.print_exc()
+
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+     
 
 @app.route("/training/log", methods=["POST"])
 def add_training_log():
