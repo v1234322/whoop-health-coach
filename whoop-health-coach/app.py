@@ -8350,354 +8350,934 @@ risk_warning：
 
 def calculate_training_load():
 
-    conn = get_db_connection()
+    conn = None
+    cursor = None
 
-    cursor = conn.cursor(
-        cursor_factory=RealDictCursor
-    )
+    try:
 
+        conn = get_db_connection()
 
-    # =========================
-    # 最近7天指力板负荷
-    # =========================
-
-    cursor.execute("""
-        SELECT
-            COUNT(*) AS sessions,
-
-            COALESCE(
-                SUM(duration),
-                0
-            ) AS total_duration,
-
-            COALESCE(
-                SUM(total_hang_time),
-                0
-            ) AS total_hang_time,
-
-            COALESCE(
-                AVG(finger_fatigue),
-                0
-            ) AS avg_fatigue,
-
-            COALESCE(
-                AVG(elbow_fatigue),
-                0
-            ) AS avg_elbow_fatigue
-
-        FROM hangboard_training_log
-
-        WHERE training_date::date
-        >= CURRENT_DATE - INTERVAL '7 days'
-    """)
-
-    hangboard = cursor.fetchone()
-
-
-    if hangboard is None:
-
-        hangboard = {
-            "sessions": 0,
-            "total_duration": 0,
-            "total_hang_time": 0,
-            "avg_fatigue": 0,
-            "avg_elbow_fatigue": 0
-        }
-
-    elif not isinstance(hangboard, dict):
-
-        hangboard = dict(hangboard)
-
-
-    # =========================
-    # 最近一次指力板训练
-    # =========================
-
-    cursor.execute("""
-        SELECT
-            training_date,
-            protocol,
-            session_type,
-            finger_fatigue,
-            elbow_fatigue,
-            recovery_after
-
-        FROM hangboard_training_log
-
-        ORDER BY training_date::date DESC,
-                 created_at DESC
-
-        LIMIT 1
-    """)
-
-    latest_hangboard = cursor.fetchone()
-
-
-    if latest_hangboard is None:
-
-        latest_hangboard = {
-            "training_date": None,
-            "protocol": None,
-            "session_type": None,
-            "finger_fatigue": 0,
-            "elbow_fatigue": 0,
-            "recovery_after": None
-        }
-
-    elif not isinstance(latest_hangboard, dict):
-
-        latest_hangboard = dict(
-            latest_hangboard
+        cursor = conn.cursor(
+            cursor_factory=RealDictCursor
         )
 
 
-    # =========================
-    # 距离最近一次训练天数
-    # =========================
-
-    days_since_hangboard = None
-
-    latest_training_date = (
-        latest_hangboard.get(
-            "training_date"
-        )
-    )
-
-
-    if latest_training_date:
+        # =========================
+        # 最近7天指力板负荷
+        # =========================
 
         cursor.execute(
             """
             SELECT
-                CURRENT_DATE
-                - %s::date
-                AS days_since
-            """,
-            (
-                latest_training_date,
+                COUNT(*) AS sessions,
+
+                COALESCE(
+                    SUM(duration),
+                    0
+                ) AS total_duration,
+
+                COALESCE(
+                    SUM(total_hang_time),
+                    0
+                ) AS total_hang_time,
+
+                COALESCE(
+                    AVG(finger_fatigue),
+                    0
+                ) AS avg_fatigue,
+
+                COALESCE(
+                    AVG(elbow_fatigue),
+                    0
+                ) AS avg_elbow_fatigue
+
+            FROM hangboard_training_log
+
+            WHERE training_date::date
+            >= CURRENT_DATE - INTERVAL '7 days'
+            """
+        )
+
+        hangboard = cursor.fetchone()
+
+
+        if hangboard is None:
+
+            hangboard = {
+                "sessions": 0,
+                "total_duration": 0,
+                "total_hang_time": 0,
+                "avg_fatigue": 0,
+                "avg_elbow_fatigue": 0
+            }
+
+        elif not isinstance(
+            hangboard,
+            dict
+        ):
+
+            hangboard = dict(
+                hangboard
+            )
+
+
+        # =========================
+        # 最近一次指力板
+        # =========================
+
+        cursor.execute(
+            """
+            SELECT
+                training_date,
+                protocol,
+                session_type,
+                finger_fatigue,
+                elbow_fatigue,
+                recovery_after
+
+            FROM hangboard_training_log
+
+            ORDER BY
+                training_date::date DESC,
+                created_at DESC
+
+            LIMIT 1
+            """
+        )
+
+        latest_hangboard = (
+            cursor.fetchone()
+        )
+
+
+        if latest_hangboard is None:
+
+            latest_hangboard = {
+                "training_date": None,
+                "protocol": None,
+                "session_type": None,
+                "finger_fatigue": 0,
+                "elbow_fatigue": 0,
+                "recovery_after": None
+            }
+
+        elif not isinstance(
+            latest_hangboard,
+            dict
+        ):
+
+            latest_hangboard = dict(
+                latest_hangboard
+            )
+
+
+        # =========================
+        # 距离最近一次指力板天数
+        # =========================
+
+        days_since_hangboard = None
+
+        latest_training_date = (
+            latest_hangboard.get(
+                "training_date"
             )
         )
 
-        days_row = cursor.fetchone()
 
-        if days_row:
+        if latest_training_date:
 
-            days_since_hangboard = (
-                days_row["days_since"]
+            cursor.execute(
+                """
+                SELECT
+                    CURRENT_DATE
+                    - %s::date
+                    AS days_since
+                """,
+                (
+                    latest_training_date,
+                )
+            )
+
+            days_row = (
+                cursor.fetchone()
             )
 
 
-    # =========================
-    # 最近7天攀岩负荷
-    # =========================
+            if days_row:
 
-    cursor.execute("""
-        SELECT
-            COUNT(*) AS sessions,
-
-            COALESCE(
-                SUM(duration),
-                0
-            ) AS total_duration
-
-        FROM climbing_training_log
-
-        WHERE training_date::date
-        >= CURRENT_DATE - INTERVAL '7 days'
-    """)
-
-    climbing = cursor.fetchone()
+                days_since_hangboard = (
+                    days_row[
+                        "days_since"
+                    ]
+                )
 
 
-    if climbing is None:
+        # =========================
+        # 最近7天攀岩负荷
+        # =========================
 
-        climbing = {
-            "sessions": 0,
-            "total_duration": 0
-        }
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) AS sessions,
 
-    elif not isinstance(climbing, dict):
+                COALESCE(
+                    SUM(duration),
+                    0
+                ) AS total_duration
 
-        climbing = dict(
+            FROM climbing_training_log
+
+            WHERE training_date::date
+            >= CURRENT_DATE - INTERVAL '7 days'
+            """
+        )
+
+        climbing = (
+            cursor.fetchone()
+        )
+
+
+        if climbing is None:
+
+            climbing = {
+                "sessions": 0,
+                "total_duration": 0
+            }
+
+        elif not isinstance(
+            climbing,
+            dict
+        ):
+
+            climbing = dict(
+                climbing
+            )
+
+
+        # =========================
+        # 今天指力板训练
+        # =========================
+
+        cursor.execute(
+            """
+            SELECT
+                training_date,
+                protocol,
+                session_type,
+                duration,
+                total_hang_time,
+                finger_fatigue,
+                elbow_fatigue,
+                recovery_after
+
+            FROM hangboard_training_log
+
+            WHERE training_date::date
+            = CURRENT_DATE
+
+            ORDER BY created_at ASC
+            """
+        )
+
+        today_hangboard_rows = (
+            cursor.fetchall()
+            or []
+        )
+
+
+        today_hangboard_rows = [
+            dict(row)
+            if not isinstance(
+                row,
+                dict
+            )
+            else row
+            for row in today_hangboard_rows
+        ]
+
+
+        # =========================
+        # 今天攀岩训练
+        # =========================
+
+        cursor.execute(
+            """
+            SELECT
+                training_date,
+                training_type,
+                duration,
+                intensity,
+                climbing_grade,
+                boulder_count,
+                finger_fatigue,
+                forearm_fatigue,
+                notes
+
+            FROM climbing_training_log
+
+            WHERE training_date::date
+            = CURRENT_DATE
+            """
+        )
+
+        today_climbing_rows = (
+            cursor.fetchall()
+            or []
+        )
+
+
+        today_climbing_rows = [
+            dict(row)
+            if not isinstance(
+                row,
+                dict
+            )
+            else row
+            for row in today_climbing_rows
+        ]
+
+
+        # =========================
+        # 今日指力板汇总
+        # =========================
+
+        today_hangboard_sessions = (
+            len(
+                today_hangboard_rows
+            )
+        )
+
+
+        today_hangboard_duration = sum(
+
+            float(
+                row.get(
+                    "duration"
+                )
+                or 0
+            )
+
+            for row
+            in today_hangboard_rows
+        )
+
+
+        today_hang_time = sum(
+
+            float(
+                row.get(
+                    "total_hang_time"
+                )
+                or 0
+            )
+
+            for row
+            in today_hangboard_rows
+        )
+
+
+        today_hangboard_protocols = [
+
+            str(
+                row.get(
+                    "protocol"
+                )
+            )
+
+            for row
+            in today_hangboard_rows
+
+            if row.get(
+                "protocol"
+            )
+        ]
+
+
+        today_hangboard_finger_values = [
+
+            float(
+                row.get(
+                    "finger_fatigue"
+                )
+            )
+
+            for row
+            in today_hangboard_rows
+
+            if row.get(
+                "finger_fatigue"
+            ) is not None
+        ]
+
+
+        today_hangboard_elbow_values = [
+
+            float(
+                row.get(
+                    "elbow_fatigue"
+                )
+            )
+
+            for row
+            in today_hangboard_rows
+
+            if row.get(
+                "elbow_fatigue"
+            ) is not None
+        ]
+
+
+        today_recovery_after_values = [
+
+            float(
+                row.get(
+                    "recovery_after"
+                )
+            )
+
+            for row
+            in today_hangboard_rows
+
+            if row.get(
+                "recovery_after"
+            ) is not None
+        ]
+
+
+        # =========================
+        # 今日攀岩汇总
+        # =========================
+
+        today_climbing_sessions = (
+            len(
+                today_climbing_rows
+            )
+        )
+
+
+        today_climbing_duration = sum(
+
+            float(
+                row.get(
+                    "duration"
+                )
+                or 0
+            )
+
+            for row
+            in today_climbing_rows
+        )
+
+
+        today_climbing_types = [
+
+            str(
+                row.get(
+                    "training_type"
+                )
+            )
+
+            for row
+            in today_climbing_rows
+
+            if row.get(
+                "training_type"
+            )
+        ]
+
+
+        today_climbing_finger_values = [
+
+            float(
+                row.get(
+                    "finger_fatigue"
+                )
+            )
+
+            for row
+            in today_climbing_rows
+
+            if row.get(
+                "finger_fatigue"
+            ) is not None
+        ]
+
+
+        today_forearm_values = [
+
+            float(
+                row.get(
+                    "forearm_fatigue"
+                )
+            )
+
+            for row
+            in today_climbing_rows
+
+            if row.get(
+                "forearm_fatigue"
+            ) is not None
+        ]
+
+
+        # =========================
+        # 今日综合局部状态
+        # =========================
+
+        today_all_finger_values = (
+            today_hangboard_finger_values
+            +
+            today_climbing_finger_values
+        )
+
+
+        today_max_finger_fatigue = (
+            max(
+                today_all_finger_values
+            )
+            if today_all_finger_values
+            else None
+        )
+
+
+        today_max_elbow_fatigue = (
+            max(
+                today_hangboard_elbow_values
+            )
+            if today_hangboard_elbow_values
+            else None
+        )
+
+
+        today_max_forearm_fatigue = (
+            max(
+                today_forearm_values
+            )
+            if today_forearm_values
+            else None
+        )
+
+
+        today_latest_recovery_after = (
+            today_recovery_after_values[-1]
+            if today_recovery_after_values
+            else None
+        )
+
+
+        # =========================
+        # 今天是否已训练
+        # =========================
+
+        climbing_done_today = (
+            today_climbing_sessions > 0
+        )
+
+        hangboard_done_today = (
+            today_hangboard_sessions > 0
+        )
+
+        trained_today = (
+            climbing_done_today
+            or hangboard_done_today
+        )
+
+
+        # =========================
+        # 今日是否已做特殊协议
+        # =========================
+
+        normalized_protocols = [
+
+            protocol
+            .strip()
+            .lower()
+
+            for protocol
+            in today_hangboard_protocols
+        ]
+
+
+        max_hang_done_today = any(
+
+            "max hang" in protocol
+            or "maxhang" in protocol
+
+            for protocol
+            in normalized_protocols
+        )
+
+
+        repeaters_done_today = any(
+
+            "repeater" in protocol
+
+            for protocol
+            in normalized_protocols
+        )
+
+
+        # =========================
+        # 今日训练摘要
+        # =========================
+
+        today_training_summary = []
+
+
+        for protocol in today_hangboard_protocols:
+
+            today_training_summary.append(
+                f"指力板：{protocol}"
+            )
+
+
+        for row in today_climbing_rows:
+
+            training_type = (
+                row.get(
+                    "training_type"
+                )
+                or "攀岩"
+            )
+
+            duration = (
+                row.get(
+                    "duration"
+                )
+            )
+
+
+            if duration is not None:
+
+                today_training_summary.append(
+                    f"{training_type}：{duration}分钟"
+                )
+
+            else:
+
+                today_training_summary.append(
+                    str(
+                        training_type
+                    )
+                )
+
+
+        # =========================
+        # DEBUG
+        # =========================
+
+        print(
+            "DEBUG HANGBOARD VALUE:",
+            hangboard
+        )
+
+        print(
+            "DEBUG LATEST HANGBOARD:",
+            latest_hangboard
+        )
+
+        print(
+            "DEBUG DAYS SINCE HANGBOARD:",
+            days_since_hangboard
+        )
+
+        print(
+            "DEBUG CLIMBING VALUE:",
             climbing
         )
 
+        print(
+            "DEBUG TODAY HANGBOARD:",
+            today_hangboard_rows
+        )
 
-    print(
-        "DEBUG HANGBOARD VALUE:",
-        hangboard
-    )
+        print(
+            "DEBUG TODAY CLIMBING:",
+            today_climbing_rows
+        )
 
-    print(
-        "DEBUG LATEST HANGBOARD:",
-        latest_hangboard
-    )
-
-    print(
-        "DEBUG DAYS SINCE HANGBOARD:",
-        days_since_hangboard
-    )
-
-    print(
-        "DEBUG CLIMBING VALUE:",
-        climbing
-    )
+        print(
+            "DEBUG TODAY TRAINING SUMMARY:",
+            today_training_summary
+        )
 
 
-    cursor.close()
-    conn.close()
+        # =========================
+        # 返回
+        # =========================
 
+        return {
 
-    return {
+            # =====================
+            # 最近7天指力板
+            # =====================
 
-        # ======================
-        # 最近7天指力板负荷
-        # ======================
-
-        "hangboard_sessions_7d":
-            hangboard.get(
-                "sessions",
-                0
-            ),
-
-        "hangboard_duration_7d":
-            hangboard.get(
-                "total_duration",
-                0
-            ),
-
-        "hang_time_7d":
-            hangboard.get(
-                "total_hang_time",
-                0
-            ),
-
-        "avg_finger_fatigue_7d":
-            float(
+            "hangboard_sessions_7d":
                 hangboard.get(
-                    "avg_fatigue",
+                    "sessions",
                     0
-                ) or 0
-            ),
+                ),
 
-        "avg_elbow_fatigue_7d":
-            float(
+            "hangboard_duration_7d":
                 hangboard.get(
-                    "avg_elbow_fatigue",
+                    "total_duration",
                     0
-                ) or 0
-            ),
+                ),
+
+            "hang_time_7d":
+                hangboard.get(
+                    "total_hang_time",
+                    0
+                ),
+
+            "avg_finger_fatigue_7d":
+                float(
+                    hangboard.get(
+                        "avg_fatigue",
+                        0
+                    )
+                    or 0
+                ),
+
+            "avg_elbow_fatigue_7d":
+                float(
+                    hangboard.get(
+                        "avg_elbow_fatigue",
+                        0
+                    )
+                    or 0
+                ),
 
 
-        # ======================
-        # 最近一次指力板状态
-        # ======================
+            # =====================
+            # 最近一次指力板
+            # =====================
 
-        "latest_hangboard_date":
-            latest_hangboard.get(
-                "training_date"
-            ),
+            "latest_hangboard_date":
+                latest_hangboard.get(
+                    "training_date"
+                ),
 
-        "latest_hangboard_protocol":
-            latest_hangboard.get(
-                "protocol"
-            ),
+            "latest_hangboard_protocol":
+                latest_hangboard.get(
+                    "protocol"
+                ),
 
-        "latest_hangboard_session_type":
-            latest_hangboard.get(
-                "session_type"
-            ),
+            "latest_hangboard_session_type":
+                latest_hangboard.get(
+                    "session_type"
+                ),
 
-        "latest_finger_fatigue":
-            latest_hangboard.get(
-                "finger_fatigue",
-                0
-            ) or 0,
+            "latest_finger_fatigue":
+                latest_hangboard.get(
+                    "finger_fatigue",
+                    0
+                )
+                or 0,
 
-        "latest_elbow_fatigue":
-            latest_hangboard.get(
-                "elbow_fatigue",
-                0
-            ) or 0,
+            "latest_elbow_fatigue":
+                latest_hangboard.get(
+                    "elbow_fatigue",
+                    0
+                )
+                or 0,
 
-        "latest_recovery_after":
-            latest_hangboard.get(
-                "recovery_after"
-            ),
+            "latest_recovery_after":
+                latest_hangboard.get(
+                    "recovery_after"
+                ),
 
-        "days_since_hangboard":
-            days_since_hangboard,
-
-
-        # ======================
-        # 攀岩7天负荷
-        # ======================
-
-        "climbing_sessions_7d":
-            climbing.get(
-                "sessions",
-                0
-            ),
-
-        "climbing_duration_7d":
-            climbing.get(
-                "total_duration",
-                0
-            ),
+            "days_since_hangboard":
+                days_since_hangboard,
 
 
-        # ======================
-        # 旧字段兼容
-        # ======================
+            # =====================
+            # 最近7天攀岩
+            # =====================
 
-        "hangboard_sessions":
-            hangboard.get(
-                "sessions",
-                0
-            ),
+            "climbing_sessions_7d":
+                climbing.get(
+                    "sessions",
+                    0
+                ),
 
-        "hangboard_duration":
-            hangboard.get(
-                "total_duration",
-                0
-            ),
+            "climbing_duration_7d":
+                climbing.get(
+                    "total_duration",
+                    0
+                ),
 
-        "finger_fatigue":
-            latest_hangboard.get(
-                "finger_fatigue",
-                0
-            ) or 0,
 
-        "elbow_fatigue":
-            latest_hangboard.get(
-                "elbow_fatigue",
-                0
-            ) or 0,
+            # =====================
+            # 今天是否训练
+            # =====================
 
-        "climbing_sessions":
-            climbing.get(
-                "sessions",
-                0
-            ),
+            "trained_today":
+                trained_today,
 
-        "climbing_duration":
-            climbing.get(
-                "total_duration",
-                0
-            ),
+            "climbing_done_today":
+                climbing_done_today,
 
-        "weekly_total_duration":
-            climbing.get(
-                "total_duration",
-                0
-            ),
+            "hangboard_done_today":
+                hangboard_done_today,
 
-        "hard_session_count":
-            hangboard.get(
-                "sessions",
-                0
+            "max_hang_done_today":
+                max_hang_done_today,
+
+            "repeaters_done_today":
+                repeaters_done_today,
+
+
+            # =====================
+            # 今天指力板
+            # =====================
+
+            "today_hangboard_sessions":
+                today_hangboard_sessions,
+
+            "today_hangboard_duration":
+                round(
+                    today_hangboard_duration,
+                    1
+                ),
+
+            "today_hang_time":
+                round(
+                    today_hang_time,
+                    1
+                ),
+
+            "today_hangboard_protocols":
+                today_hangboard_protocols,
+
+
+            # =====================
+            # 今天攀岩
+            # =====================
+
+            "today_climbing_sessions":
+                today_climbing_sessions,
+
+            "today_climbing_duration":
+                round(
+                    today_climbing_duration,
+                    1
+                ),
+
+            "today_climbing_types":
+                today_climbing_types,
+
+
+            # =====================
+            # 今日局部反馈
+            # =====================
+
+            "today_max_finger_fatigue":
+                today_max_finger_fatigue,
+
+            "today_max_elbow_fatigue":
+                today_max_elbow_fatigue,
+
+            "today_max_forearm_fatigue":
+                today_max_forearm_fatigue,
+
+            "today_latest_recovery_after":
+                today_latest_recovery_after,
+
+
+            # =====================
+            # 今日训练摘要
+            # =====================
+
+            "today_training_summary":
+                today_training_summary,
+
+
+            # =====================
+            # 旧字段兼容
+            # =====================
+
+            "hangboard_sessions":
+                hangboard.get(
+                    "sessions",
+                    0
+                ),
+
+            "hangboard_duration":
+                hangboard.get(
+                    "total_duration",
+                    0
+                ),
+
+            "finger_fatigue":
+                latest_hangboard.get(
+                    "finger_fatigue",
+                    0
+                )
+                or 0,
+
+            "elbow_fatigue":
+                latest_hangboard.get(
+                    "elbow_fatigue",
+                    0
+                )
+                or 0,
+
+            "climbing_sessions":
+                climbing.get(
+                    "sessions",
+                    0
+                ),
+
+            "climbing_duration":
+                climbing.get(
+                    "total_duration",
+                    0
+                ),
+
+            "weekly_total_duration":
+                climbing.get(
+                    "total_duration",
+                    0
+                ),
+
+            "hard_session_count":
+                hangboard.get(
+                    "sessions",
+                    0
+                )
+
+        }
+
+
+    except Exception as e:
+
+        import traceback
+
+        print(
+            "CALCULATE TRAINING LOAD ERROR:",
+            repr(
+                e
             )
-    }
+        )
+
+        traceback.print_exc()
+
+        raise
+
+
+    finally:
+
+        if cursor:
+
+            cursor.close()
+
+        if conn:
+
+            conn.close()
+
+
 
 def get_latest_menstrual_data():
 
@@ -9949,7 +10529,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 局部疲劳
+    # 最近一次指力板局部状态
     # =========================
 
     finger_fatigue = training_load.get(
@@ -9966,6 +10546,128 @@ def calculate_training_readiness(
 
     days_since_hangboard = training_load.get(
         "days_since_hangboard"
+    )
+
+
+    # =========================
+    # 今天已经完成的训练
+    # =========================
+
+    trained_today = bool(
+        training_load.get(
+            "trained_today",
+            False
+        )
+    )
+
+    climbing_done_today = bool(
+        training_load.get(
+            "climbing_done_today",
+            False
+        )
+    )
+
+    hangboard_done_today = bool(
+        training_load.get(
+            "hangboard_done_today",
+            False
+        )
+    )
+
+    max_hang_done_today = bool(
+        training_load.get(
+            "max_hang_done_today",
+            False
+        )
+    )
+
+    repeaters_done_today = bool(
+        training_load.get(
+            "repeaters_done_today",
+            False
+        )
+    )
+
+
+    today_climbing_sessions = (
+        training_load.get(
+            "today_climbing_sessions",
+            0
+        )
+        or 0
+    )
+
+    today_climbing_duration = (
+        training_load.get(
+            "today_climbing_duration",
+            0
+        )
+        or 0
+    )
+
+    today_hangboard_sessions = (
+        training_load.get(
+            "today_hangboard_sessions",
+            0
+        )
+        or 0
+    )
+
+    today_hangboard_duration = (
+        training_load.get(
+            "today_hangboard_duration",
+            0
+        )
+        or 0
+    )
+
+    today_hang_time = (
+        training_load.get(
+            "today_hang_time",
+            0
+        )
+        or 0
+    )
+
+
+    today_training_summary = (
+        training_load.get(
+            "today_training_summary",
+            []
+        )
+    )
+
+
+    if not isinstance(
+        today_training_summary,
+        list
+    ):
+
+        today_training_summary = []
+
+
+    today_max_finger_fatigue = (
+        training_load.get(
+            "today_max_finger_fatigue"
+        )
+    )
+
+    today_max_elbow_fatigue = (
+        training_load.get(
+            "today_max_elbow_fatigue"
+        )
+    )
+
+    today_max_forearm_fatigue = (
+        training_load.get(
+            "today_max_forearm_fatigue"
+        )
+    )
+
+    today_latest_recovery_after = (
+        training_load.get(
+            "today_latest_recovery_after"
+        )
     )
 
 
@@ -9994,19 +10696,23 @@ def calculate_training_readiness(
     # Max Hang
     # =========================
 
-    max_hang_status = max_hang_decision.get(
-        "status",
-        "conditional"
+    max_hang_status = (
+        max_hang_decision.get(
+            "status",
+            "conditional"
+        )
     )
 
-    max_hang_instruction = max_hang_decision.get(
-        "instruction",
-        ""
+    max_hang_instruction = (
+        max_hang_decision.get(
+            "instruction",
+            ""
+        )
     )
 
 
     # =========================
-    # Recovery 状态
+    # Recovery状态
     # =========================
 
     if recovery is None:
@@ -10035,7 +10741,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # HRV 状态
+    # HRV状态
     # =========================
 
     if (
@@ -10113,22 +10819,50 @@ def calculate_training_readiness(
 
 
     # =========================
+    # 用今日训练后反馈补充局部状态
+    # =========================
+
+    effective_finger_fatigue = (
+        today_max_finger_fatigue
+        if today_max_finger_fatigue
+        is not None
+        else finger_fatigue
+    )
+
+
+    effective_elbow_fatigue = (
+        today_max_elbow_fatigue
+        if today_max_elbow_fatigue
+        is not None
+        else elbow_fatigue
+    )
+
+
+    effective_recovery_after = (
+        today_latest_recovery_after
+        if today_latest_recovery_after
+        is not None
+        else recovery_after
+    )
+
+
+    # =========================
     # 手指状态
     # =========================
 
-    if finger_fatigue is None:
+    if effective_finger_fatigue is None:
 
         finger_status = (
             "unknown"
         )
 
-    elif finger_fatigue <= 3:
+    elif effective_finger_fatigue <= 3:
 
         finger_status = (
             "low_fatigue"
         )
 
-    elif finger_fatigue <= 6:
+    elif effective_finger_fatigue <= 6:
 
         finger_status = (
             "moderate_fatigue"
@@ -10145,19 +10879,19 @@ def calculate_training_readiness(
     # 肘部状态
     # =========================
 
-    if elbow_fatigue is None:
+    if effective_elbow_fatigue is None:
 
         elbow_status = (
             "unknown"
         )
 
-    elif elbow_fatigue <= 3:
+    elif effective_elbow_fatigue <= 3:
 
         elbow_status = (
             "low_fatigue"
         )
 
-    elif elbow_fatigue <= 5:
+    elif effective_elbow_fatigue <= 5:
 
         elbow_status = (
             "moderate_fatigue"
@@ -10166,6 +10900,35 @@ def calculate_training_readiness(
     else:
 
         elbow_status = (
+            "high_fatigue"
+        )
+
+
+    # =========================
+    # 前臂状态
+    # =========================
+
+    if today_max_forearm_fatigue is None:
+
+        forearm_status = (
+            "unknown"
+        )
+
+    elif today_max_forearm_fatigue <= 3:
+
+        forearm_status = (
+            "low_fatigue"
+        )
+
+    elif today_max_forearm_fatigue <= 6:
+
+        forearm_status = (
+            "moderate_fatigue"
+        )
+
+    else:
+
+        forearm_status = (
             "high_fatigue"
         )
 
@@ -10239,10 +11002,6 @@ def calculate_training_readiness(
     # =========================
     # 伤病记录
     # =========================
-    #
-    # 这里只表示存在记录。
-    # 不自动理解为今天正在疼痛。
-    # =========================
 
     injury_recorded = bool(
         injury_data
@@ -10250,7 +11009,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 主要限制因素
+    # 基础主要限制因素
     # =========================
 
     primary_limiter = (
@@ -10282,6 +11041,13 @@ def calculate_training_readiness(
         )
 
 
+    elif forearm_status == "high_fatigue":
+
+        primary_limiter = (
+            "forearm_fatigue"
+        )
+
+
     elif finger_status == "moderate_fatigue":
 
         primary_limiter = (
@@ -10296,6 +11062,13 @@ def calculate_training_readiness(
         )
 
 
+    elif forearm_status == "moderate_fatigue":
+
+        primary_limiter = (
+            "forearm_fatigue"
+        )
+
+
     elif injury_recorded:
 
         primary_limiter = (
@@ -10304,13 +11077,14 @@ def calculate_training_readiness(
 
 
     # =========================
-    # Overall Status
+    # 基础训练准备度
     # =========================
 
     if (
         systemic_recovery == "poor"
         or finger_status == "high_fatigue"
         or elbow_status == "high_fatigue"
+        or forearm_status == "high_fatigue"
     ):
 
         overall_status = (
@@ -10326,6 +11100,7 @@ def calculate_training_readiness(
         ]
         or finger_status == "moderate_fatigue"
         or elbow_status == "moderate_fatigue"
+        or forearm_status == "moderate_fatigue"
         or max_hang_status == "conditional"
     ):
 
@@ -10351,13 +11126,11 @@ def calculate_training_readiness(
             "训练准备度良好"
         )
 
-
     elif overall_status == "recovery_priority":
 
         overall_label = (
             "恢复优先"
         )
-
 
     else:
 
@@ -10367,7 +11140,24 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 推荐训练
+    # 训练阶段
+    # =========================
+
+    if trained_today:
+
+        training_phase = (
+            "post_training"
+        )
+
+    else:
+
+        training_phase = (
+            "pre_training"
+        )
+
+
+    # =========================
+    # 基础推荐训练
     # =========================
 
     recommended_training = []
@@ -10392,13 +11182,10 @@ def calculate_training_readiness(
         ])
 
 
-        if (
-            finger_status
-            in [
-                "low_fatigue",
-                "moderate_fatigue"
-            ]
-        ):
+        if finger_status in [
+            "low_fatigue",
+            "moderate_fatigue"
+        ]:
 
             recommended_training.append(
                 "低量或降低强度的Repeaters，可根据热身后手指状态调整"
@@ -10422,7 +11209,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # 限制 / 避免
+    # 基础限制
     # =========================
 
     avoid_or_limit = []
@@ -10442,6 +11229,13 @@ def calculate_training_readiness(
         )
 
 
+    if forearm_status == "high_fatigue":
+
+        avoid_or_limit.append(
+            "高总量抓握和连续高强度攀爬"
+        )
+
+
     if systemic_recovery == "poor":
 
         avoid_or_limit.append(
@@ -10457,7 +11251,7 @@ def calculate_training_readiness(
 
 
     # =========================
-    # Max Hang直接继承后端结果
+    # Max Hang继承后端专项决策
     # =========================
 
     if max_hang_status == "avoid":
@@ -10471,6 +11265,199 @@ def calculate_training_readiness(
 
         avoid_or_limit.append(
             "Max Hang需满足后端条件后再决定"
+        )
+
+
+    # =========================
+    # 日内剩余训练建议
+    # =========================
+
+    additional_training = []
+
+    additional_high_intensity = (
+        "conditional"
+    )
+
+
+    if not trained_today:
+
+        additional_training = list(
+            recommended_training
+        )
+
+
+        if overall_status == "ready":
+
+            additional_high_intensity = (
+                "possible"
+            )
+
+        elif overall_status == "recovery_priority":
+
+            additional_high_intensity = (
+                "not_recommended"
+            )
+
+
+    else:
+
+        # =====================
+        # 已完成训练后不再机械补Strain
+        # =====================
+
+        additional_training.append(
+            "不需要为了达到推荐Strain区间下限而机械追加训练"
+        )
+
+
+        # =====================
+        # 已做指力板
+        # =====================
+
+        if hangboard_done_today:
+
+            additional_training.append(
+                "今天已经完成指力板训练，后续优先观察手指和肘部训练后反应"
+            )
+
+
+        # =====================
+        # 已做Repeaters
+        # =====================
+
+        if repeaters_done_today:
+
+            additional_training.append(
+                "今天已经完成Repeaters，不建议为了增加训练量再次安排同类指力板刺激"
+            )
+
+
+        # =====================
+        # 已做Max Hang
+        # =====================
+
+        if max_hang_done_today:
+
+            additional_training.append(
+                "今天已经完成Max Hang，不建议当天再次安排Max Hang"
+            )
+
+
+        # =====================
+        # 已完成攀岩
+        # =====================
+
+        if climbing_done_today:
+
+            additional_training.append(
+                "今天已经完成攀岩训练，是否继续训练应根据当前局部疲劳和主观状态决定"
+            )
+
+
+        # =====================
+        # 已经指力板 + 攀岩
+        # =====================
+
+        if (
+            hangboard_done_today
+            and climbing_done_today
+        ):
+
+            additional_training.append(
+                "今天已同时完成指力板和攀岩训练，后续更适合低强度活动、恢复或结束训练"
+            )
+
+            additional_high_intensity = (
+                "not_recommended"
+            )
+
+
+        elif (
+            hangboard_done_today
+            or climbing_done_today
+        ):
+
+            if (
+                finger_status == "low_fatigue"
+                and elbow_status == "low_fatigue"
+                and forearm_status in [
+                    "low_fatigue",
+                    "unknown"
+                ]
+                and systemic_recovery
+                in [
+                    "good",
+                    "moderate"
+                ]
+            ):
+
+                additional_training.append(
+                    "如果仍想活动，可选择低强度技术练习或轻松恢复活动"
+                )
+
+                additional_high_intensity = (
+                    "not_recommended"
+                )
+
+            else:
+
+                additional_training.append(
+                    "当前更适合结束主要训练并进入恢复"
+                )
+
+                additional_high_intensity = (
+                    "not_recommended"
+                )
+
+
+    # =========================
+    # 今天已经做过的项目
+    # 不再重复推荐
+    # =========================
+
+    if trained_today:
+
+        filtered_training = []
+
+
+        for item in recommended_training:
+
+            item_lower = (
+                item.lower()
+            )
+
+
+            if (
+                repeaters_done_today
+                and "repeaters"
+                in item_lower
+            ):
+
+                continue
+
+
+            if (
+                climbing_done_today
+                and (
+                    "技术攀岩"
+                    in item
+                    or "中低强度攀岩"
+                    in item
+                    or "高质量技术攀岩"
+                    in item
+                )
+            ):
+
+                continue
+
+
+            filtered_training.append(
+                item
+            )
+
+
+        recommended_training = (
+            filtered_training
         )
 
 
@@ -10521,28 +11508,55 @@ def calculate_training_readiness(
         )
 
 
-    if finger_fatigue is not None:
+    if effective_finger_fatigue is not None:
 
         reasons.append(
-            f"最近一次手指疲劳为"
-            f"{finger_fatigue}/10"
+            f"当前可用手指疲劳信息为"
+            f"{effective_finger_fatigue}/10"
         )
 
 
-    if elbow_fatigue is not None:
+    if effective_elbow_fatigue is not None:
 
         reasons.append(
-            f"最近一次肘部疲劳为"
-            f"{elbow_fatigue}/10"
+            f"当前可用肘部疲劳信息为"
+            f"{effective_elbow_fatigue}/10"
         )
 
 
-    if recovery_after is not None:
+    if today_max_forearm_fatigue is not None:
+
+        reasons.append(
+            f"今日前臂疲劳最高记录为"
+            f"{today_max_forearm_fatigue}/10"
+        )
+
+
+    if effective_recovery_after is not None:
 
         reasons.append(
             f"训练后恢复评分为"
-            f"{recovery_after}"
+            f"{effective_recovery_after}"
         )
+
+
+    if trained_today:
+
+        if today_training_summary:
+
+            reasons.append(
+                "今天已经完成："
+                +
+                "、".join(
+                    today_training_summary
+                )
+            )
+
+        else:
+
+            reasons.append(
+                "今天已经存在训练记录"
+            )
 
 
     # =========================
@@ -10589,19 +11603,66 @@ def calculate_training_readiness(
             finger_status,
 
         "finger_fatigue":
-            finger_fatigue,
+            effective_finger_fatigue,
 
         "elbow_status":
             elbow_status,
 
         "elbow_fatigue":
-            elbow_fatigue,
+            effective_elbow_fatigue,
+
+        "forearm_status":
+            forearm_status,
+
+        "forearm_fatigue":
+            today_max_forearm_fatigue,
 
         "recovery_after":
-            recovery_after,
+            effective_recovery_after,
 
         "days_since_hangboard":
             days_since_hangboard,
+
+
+        # =====================
+        # 日内训练状态
+        # =====================
+
+        "training_phase":
+            training_phase,
+
+        "trained_today":
+            trained_today,
+
+        "climbing_done_today":
+            climbing_done_today,
+
+        "hangboard_done_today":
+            hangboard_done_today,
+
+        "max_hang_done_today":
+            max_hang_done_today,
+
+        "repeaters_done_today":
+            repeaters_done_today,
+
+        "today_climbing_sessions":
+            today_climbing_sessions,
+
+        "today_climbing_duration":
+            today_climbing_duration,
+
+        "today_hangboard_sessions":
+            today_hangboard_sessions,
+
+        "today_hangboard_duration":
+            today_hangboard_duration,
+
+        "today_hang_time":
+            today_hang_time,
+
+        "today_training_summary":
+            today_training_summary,
 
 
         # =====================
@@ -10621,6 +11682,16 @@ def calculate_training_readiness(
                     avoid_or_limit
                 )
             ),
+
+        "additional_training":
+            list(
+                dict.fromkeys(
+                    additional_training
+                )
+            ),
+
+        "additional_high_intensity":
+            additional_high_intensity,
 
 
         # =====================
@@ -10649,6 +11720,11 @@ def calculate_training_readiness(
 
         "remaining_strain":
             remaining_strain,
+
+        "strain_chasing_recommended":
+            False
+            if trained_today
+            else None,
 
 
         # =====================
