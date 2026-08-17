@@ -4566,6 +4566,15 @@ def api_whoop_weekly_coach_report():
         # 3. 调用 AI
         # =========================
 
+        
+        print("\n")
+        print("=" * 80)
+        print("FINAL WEEKLY PROMPT SENT TO AI")
+        print("=" * 80)
+        print(prompt_text)
+        print("=" * 80)
+        print("\n")
+        
         ai_result = (
             generate_ai_summary(
                 prompt_text
