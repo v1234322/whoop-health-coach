@@ -4603,172 +4603,122 @@ def training_hangboard():
 
     import traceback
 
-    try:
 
-        # =========================
-        # API Key
-        # =========================
+    # =========================
+    # 1. API Key
+    # =========================
 
-        if not check_api_key():
-
-            return jsonify({
-                "success": False,
-                "error": "unauthorized"
-            }), 401
-
-
-        # =========================
-        # 获取 JSON
-        # =========================
-
-        data = request.get_json(
-            silent=True
-        )
-
-
-        print(
-            "HANGBOARD SAVE RAW DATA:",
-            data
-        )
-
-
-        if not isinstance(
-            data,
-            dict
-        ):
-
-            return jsonify({
-                "success": False,
-                "error": "请求内容必须是JSON对象"
-            }), 400
-
-
-        # =========================
-        # 必填字段
-        # =========================
-
-        training_date = data.get(
-            "training_date"
-        )
-
-        protocol = data.get(
-            "protocol"
-        )
-
-
-        if not training_date:
-
-            return jsonify({
-                "success": False,
-                "error": "缺少training_date"
-            }), 400
-
-
-        if not protocol:
-
-            return jsonify({
-                "success": False,
-                "error": "缺少protocol"
-            }), 400
-
-
-        # =========================
-        # 保存
-        # =========================
-
-        result = save_hangboard_training(
-            data
-        )
-
-
-        if not result:
-
-            return jsonify({
-                "success": False,
-                "error": "指力板训练保存失败"
-            }), 500
-
-
-        print(
-            "HANGBOARD TRAINING SAVED:",
-            data
-        )
-
+    if not check_api_key():
 
         return jsonify({
 
-            "success": True,
+            "success":
+                False,
 
-            "message":
-                "指力板训练已保存",
+            "error":
+                "unauthorized"
 
-            "training": {
+        }), 401
 
-                "training_date":
-                    data.get(
-                        "training_date"
-                    ),
 
-                "protocol":
-                    data.get(
-                        "protocol"
-                    ),
+    # =========================
+    # 2. 获取JSON
+    # =========================
 
-                "session_type":
-                    data.get(
-                        "session_type"
-                    ),
+    data = request.get_json(
+        silent=True
+    )
 
-                "edge_size":
-                    data.get(
-                        "edge_size"
-                    ),
 
-                "added_weight":
-                    data.get(
-                        "added_weight"
-                    ),
+    print(
+        "HANGBOARD SAVE RAW DATA:",
+        data
+    )
 
-                "hold_seconds":
-                    data.get(
-                        "hold_seconds"
-                    ),
 
-                "sets":
-                    data.get(
-                        "sets"
-                    ),
+    if not isinstance(
+        data,
+        dict
+    ):
 
-                "total_hang_time":
-                    data.get(
-                        "total_hang_time"
-                    ),
+        return jsonify({
 
-                "finger_fatigue":
-                    data.get(
-                        "finger_fatigue"
-                    ),
+            "success":
+                False,
 
-                "elbow_fatigue":
-                    data.get(
-                        "elbow_fatigue"
-                    ),
+            "error":
+                "请求内容必须是JSON对象"
 
-                "recovery_after":
-                    data.get(
-                        "recovery_after"
-                    )
+        }), 400
 
-            }
 
-        }), 200
+    # =========================
+    # 3. 必填字段
+    # =========================
+
+    if not data.get(
+        "training_date"
+    ):
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "error":
+                "缺少training_date"
+
+        }), 400
+
+
+    if not data.get(
+        "protocol"
+    ):
+
+        return jsonify({
+
+            "success":
+                False,
+
+            "error":
+                "缺少protocol"
+
+        }), 400
+
+
+    # =========================
+    # 4. 保存训练
+    # =========================
+
+    try:
+
+        saved = (
+            save_hangboard_training(
+                data
+            )
+        )
+
+
+        if not saved:
+
+            return jsonify({
+
+                "success":
+                    False,
+
+                "error":
+                    "指力板训练保存失败"
+
+            }), 500
 
 
     except Exception as e:
 
         print(
-            "HANGBOARD ROUTE ERROR:",
-            repr(e)
+            "HANGBOARD SAVE ERROR:",
+            repr(
+                e
+            )
         )
 
         traceback.print_exc()
@@ -4776,13 +4726,214 @@ def training_hangboard():
 
         return jsonify({
 
-            "success": False,
+            "success":
+                False,
 
             "error":
-                str(e)
+                str(
+                    e
+                )
 
         }), 500
 
+
+    print(
+        "HANGBOARD TRAINING SAVED"
+    )
+
+
+    # =========================
+    # 5. 刷新今日Coach Report
+    # =========================
+
+    report_refreshed = False
+
+    refresh_error = None
+
+    refreshed_report = None
+
+
+    try:
+
+        print(
+            "START REFRESH DAILY COACH AFTER HANGBOARD"
+        )
+
+
+        refreshed_report = (
+            generate_daily_coach_report()
+        )
+
+
+        report_refreshed = True
+
+
+        print(
+            "DAILY COACH REFRESHED AFTER HANGBOARD"
+        )
+
+
+    except Exception as e:
+
+        refresh_error = str(
+            e
+        )
+
+
+        print(
+            "DAILY COACH REFRESH ERROR AFTER HANGBOARD:",
+            repr(
+                e
+            )
+        )
+
+        traceback.print_exc()
+
+
+    # =========================
+    # 6. 返回
+    # =========================
+
+    response = {
+
+        "success":
+            True,
+
+        "message":
+            (
+                "指力板训练已保存，并已刷新今日教练报告"
+                if report_refreshed
+                else
+                "指力板训练已保存，但今日教练报告刷新失败"
+            ),
+
+        "training_saved":
+            True,
+
+        "report_refreshed":
+            report_refreshed,
+
+        "training": {
+
+            "training_date":
+                data.get(
+                    "training_date"
+                ),
+
+            "protocol":
+                data.get(
+                    "protocol"
+                ),
+
+            "session_type":
+                data.get(
+                    "session_type"
+                ),
+
+            "edge_size":
+                data.get(
+                    "edge_size"
+                ),
+
+            "grip_type":
+                data.get(
+                    "grip_type"
+                ),
+
+            "added_weight":
+                data.get(
+                    "added_weight"
+                ),
+
+            "hold_seconds":
+                data.get(
+                    "hold_seconds"
+                ),
+
+            "duration":
+                data.get(
+                    "duration"
+                ),
+
+            "sets":
+                data.get(
+                    "sets"
+                ),
+
+            "total_hang_time":
+                data.get(
+                    "total_hang_time"
+                ),
+
+            "intensity":
+                data.get(
+                    "intensity"
+                ),
+
+            "finger_fatigue":
+                data.get(
+                    "finger_fatigue"
+                ),
+
+            "elbow_fatigue":
+                data.get(
+                    "elbow_fatigue"
+                ),
+
+            "recovery_after":
+                data.get(
+                    "recovery_after"
+                ),
+
+            "notes":
+                data.get(
+                    "notes"
+                )
+
+        }
+
+    }
+
+
+    if report_refreshed:
+
+        response[
+            "daily_coach"
+        ] = {
+
+            "max_hang_status":
+                refreshed_report.get(
+                    "max_hang_status"
+                ),
+
+            "max_hang_decision":
+                refreshed_report.get(
+                    "max_hang_decision"
+                ),
+
+            "strain_plan":
+                refreshed_report.get(
+                    "strain_plan"
+                ),
+
+            "training_readiness":
+                refreshed_report.get(
+                    "training_readiness"
+                )
+
+        }
+
+
+    else:
+
+        response[
+            "refresh_error"
+        ] = refresh_error
+
+
+    return jsonify(
+        response
+    ), 200
 
 @app.route("/training/hangboard/history")
 def hangboard_history():
@@ -17029,6 +17180,466 @@ def auto_save_daily():
             e
         )
 
+
+def generate_daily_coach_report():
+
+    import json
+
+
+    print(
+        "========== GENERATE DAILY COACH START =========="
+    )
+
+
+    # =========================
+    # 1. 获取 WHOOP
+    # =========================
+
+    data = {
+
+        "recovery":
+            whoop_get(
+                "/recovery"
+            ),
+
+        "cycle":
+            whoop_get(
+                "/cycle"
+            ),
+
+        "sleep":
+            whoop_get(
+                "/activity/sleep"
+            ),
+
+        "workout":
+            whoop_get(
+                "/activity/workout"
+            )
+
+    }
+
+
+    # =========================
+    # 2. 时间转换
+    # =========================
+
+    convert_utc_to_beijing(
+        data
+    )
+
+
+    # =========================
+    # 3. 提取指标
+    # =========================
+
+    metrics = (
+        extract_daily_metrics(
+            data
+        )
+    )
+
+
+    print(
+        "DAILY METRICS:",
+        metrics
+    )
+
+
+    # =========================
+    # 4. 保存每日指标
+    # =========================
+
+    save_daily_data(
+        metrics
+    )
+
+
+    # =========================
+    # 5. 分析数据
+    # =========================
+
+    weekly_data = (
+        generate_weekly_analysis()
+    )
+
+
+    if not isinstance(
+        weekly_data,
+        dict
+    ):
+
+        weekly_data = {}
+
+
+    training_load = (
+        calculate_training_load()
+    )
+
+
+    if not isinstance(
+        training_load,
+        dict
+    ):
+
+        training_load = {}
+
+
+    climbing_fatigue = (
+        analyze_climbing_fatigue(
+            training_load
+        )
+    )
+
+
+    menstrual_data = (
+        get_latest_menstrual_data()
+    )
+
+
+    temperature_data = (
+        get_latest_temperature_data()
+    )
+
+
+    injury_data = (
+        get_latest_injury_data()
+    )
+
+
+    data[
+        "menstrual_data"
+    ] = menstrual_data
+
+    data[
+        "temperature_data"
+    ] = temperature_data
+
+    data[
+        "injury_data"
+    ] = injury_data
+
+
+    # =========================
+    # 6. Max Hang只计算一次
+    # =========================
+
+    max_hang_decision = (
+        calculate_max_hang_decision(
+            metrics,
+            training_load,
+            weekly_data,
+            injury_data
+        )
+    )
+
+
+    max_hang_status = (
+        max_hang_decision.get(
+            "status",
+            "conditional"
+        )
+    )
+
+
+    print(
+        "DAILY COACH MAX HANG STATUS:",
+        max_hang_status
+    )
+
+    print(
+        "DAILY COACH MAX HANG DECISION:",
+        max_hang_decision
+    )
+
+
+    # =========================
+    # 7. Strain只计算一次
+    # =========================
+
+    strain_plan = (
+        calculate_strain_plan(
+            metrics
+        )
+    )
+
+
+    print(
+        "DAILY COACH STRAIN PLAN:",
+        strain_plan
+    )
+
+
+    # =========================
+    # 8. Training Readiness只计算一次
+    # =========================
+
+    training_readiness = (
+        calculate_training_readiness(
+            metrics,
+            training_load,
+            weekly_data,
+            strain_plan,
+            max_hang_decision,
+            injury_data
+        )
+    )
+
+
+    print(
+        "DAILY COACH TRAINING READINESS:",
+        training_readiness
+    )
+
+
+    # =========================
+    # 9. 基础报告
+    # =========================
+
+    report = (
+        generate_ai_summary(
+            data
+        )
+    )
+
+
+    # =========================
+    # 10. Coach Prompt
+    # =========================
+
+    ai_prompt = (
+        generate_coach_prompt(
+            metrics,
+            training_load,
+            weekly_data,
+            climbing_fatigue,
+            menstrual_data,
+            temperature_data,
+            injury_data,
+            max_hang_decision,
+            strain_plan,
+            training_readiness
+        )
+    )
+
+
+    print(
+        "DEBUG PROMPT READY"
+    )
+
+
+    # =========================
+    # 11. AI Coach
+    # =========================
+
+    ai_result = (
+        generate_ai_summary(
+            ai_prompt
+        )
+    )
+
+
+    print(
+        "DEBUG RAW AI:",
+        repr(
+            ai_result
+        )
+    )
+
+
+    # =========================
+    # 12. 解析AI
+    # =========================
+
+    ai_report = ""
+
+    training_advice = ""
+
+    risk_warning = ""
+
+
+    try:
+
+        if isinstance(
+            ai_result,
+            dict
+        ):
+
+            coach_json = (
+                ai_result
+            )
+
+
+        else:
+
+            raw = str(
+                ai_result
+            ).strip()
+
+
+            if raw.startswith(
+                "```"
+            ):
+
+                raw = raw.replace(
+                    "```json",
+                    ""
+                )
+
+                raw = raw.replace(
+                    "```",
+                    ""
+                )
+
+                raw = raw.strip()
+
+
+            coach_json = (
+                json.loads(
+                    raw
+                )
+            )
+
+
+        ai_report = (
+            coach_json.get(
+                "ai_report",
+                ""
+            )
+        )
+
+
+        training_advice = (
+            coach_json.get(
+                "training_advice",
+                ""
+            )
+        )
+
+
+        risk_warning = (
+            coach_json.get(
+                "risk_warning",
+                ""
+            )
+        )
+
+
+    except Exception as e:
+
+        print(
+            "JSON PARSE ERROR:",
+            e
+        )
+
+        print(
+            "FAILED AI:",
+            repr(
+                ai_result
+            )
+        )
+
+
+        ai_report = str(
+            ai_result
+        )
+
+
+    # =========================
+    # 13. 保存日报
+    # =========================
+
+    saved = (
+        save_daily_coach_report(
+
+            metrics,
+
+            training_load,
+
+            ai_report,
+
+            training_advice,
+
+            risk_warning,
+
+            menstrual_data,
+
+            temperature_data,
+
+            injury_data,
+
+            max_hang_status,
+
+            max_hang_decision,
+
+            strain_plan,
+
+            training_readiness
+
+        )
+    )
+
+
+    if not saved:
+
+        raise RuntimeError(
+            "daily_coach_reports 保存失败"
+        )
+
+
+    print(
+        "========== GENERATE DAILY COACH SUCCESS =========="
+    )
+
+
+    # =========================
+    # 14. 返回普通dict
+    # =========================
+
+    return {
+
+        "status":
+            "daily report generated",
+
+        "report":
+            report,
+
+        "coach":
+            ai_report,
+
+        "training_advice":
+            training_advice,
+
+        "risk_warning":
+            risk_warning,
+
+        "metrics":
+            metrics,
+
+        "menstrual":
+            menstrual_data,
+
+        "temperature":
+            temperature_data,
+
+        "injury":
+            injury_data,
+
+        "max_hang_status":
+            max_hang_status,
+
+        "max_hang_decision":
+            max_hang_decision,
+
+        "strain_plan":
+            strain_plan,
+
+        "training_readiness":
+            training_readiness
+
+    }
+
+
 @app.route("/whoop/auto-report")
 def auto_report():
 
@@ -17058,466 +17669,14 @@ def auto_report():
 
     try:
 
-        print(
-            "========== AUTO REPORT START =========="
+        result = (
+            generate_daily_coach_report()
         )
 
 
-        # =========================
-        # 1. 获取 WHOOP
-        # =========================
-
-        data = {
-
-            "recovery":
-                whoop_get(
-                    "/recovery"
-                ),
-
-            "cycle":
-                whoop_get(
-                    "/cycle"
-                ),
-
-            "sleep":
-                whoop_get(
-                    "/activity/sleep"
-                ),
-
-            "workout":
-                whoop_get(
-                    "/activity/workout"
-                )
-
-        }
-
-
-        # =========================
-        # 2. 时间转换
-        # =========================
-
-        convert_utc_to_beijing(
-            data
-        )
-
-
-        # =========================
-        # 3. 提取指标
-        # =========================
-
-        metrics = (
-            extract_daily_metrics(
-                data
-            )
-        )
-
-
-        print(
-            "DAILY METRICS:",
-            metrics
-        )
-
-
-        # =========================
-        # 4. 保存每日指标
-        # =========================
-
-        save_daily_data(
-            metrics
-        )
-
-
-        # =========================
-        # 5. 分析数据
-        # =========================
-
-        weekly_data = (
-            generate_weekly_analysis()
-        )
-
-
-        if not isinstance(
-            weekly_data,
-            dict
-        ):
-
-            weekly_data = {}
-
-
-        training_load = (
-            calculate_training_load()
-        )
-
-
-        if not isinstance(
-            training_load,
-            dict
-        ):
-
-            training_load = {}
-
-
-        climbing_fatigue = (
-            analyze_climbing_fatigue(
-                training_load
-            )
-        )
-
-
-        menstrual_data = (
-            get_latest_menstrual_data()
-        )
-
-
-        temperature_data = (
-            get_latest_temperature_data()
-        )
-
-
-        injury_data = (
-            get_latest_injury_data()
-        )
-
-
-        data[
-            "menstrual_data"
-        ] = menstrual_data
-
-        data[
-            "temperature_data"
-        ] = temperature_data
-
-        data[
-            "injury_data"
-        ] = injury_data
-
-
-        # =========================
-        # 6. Max Hang只计算一次
-        # =========================
-
-        max_hang_decision = (
-            calculate_max_hang_decision(
-                metrics,
-                training_load,
-                weekly_data,
-                injury_data
-            )
-        )
-
-
-        max_hang_status = (
-            max_hang_decision.get(
-                "status",
-                "conditional"
-            )
-        )
-
-
-        print(
-            "AUTO REPORT MAX HANG STATUS:",
-            max_hang_status
-        )
-
-        print(
-            "AUTO REPORT MAX HANG DECISION:",
-            max_hang_decision
-        )
-
-
-        # =========================
-        # 7. Strain只计算一次
-        # =========================
-
-        strain_plan = (
-            calculate_strain_plan(
-                metrics
-            )
-        )
-
-
-        print(
-            "AUTO REPORT STRAIN PLAN:",
-            strain_plan
-        )
-
-
-        # =========================
-        # 8. Training Readiness
-        #    只计算一次
-        # =========================
-
-        training_readiness = (
-            calculate_training_readiness(
-                metrics,
-                training_load,
-                weekly_data,
-                strain_plan,
-                max_hang_decision,
-                injury_data
-            )
-        )
-
-
-        print(
-            "AUTO REPORT TRAINING READINESS:",
-            training_readiness
-        )
-
-
-        # =========================
-        # 9. 基础报告
-        # =========================
-
-        report = (
-            generate_ai_summary(
-                data
-            )
-        )
-
-
-        # =========================
-        # 10. Coach Prompt
-        # =========================
-
-        ai_prompt = (
-            generate_coach_prompt(
-                metrics,
-                training_load,
-                weekly_data,
-                climbing_fatigue,
-                menstrual_data,
-                temperature_data,
-                injury_data,
-                max_hang_decision,
-                strain_plan,
-                training_readiness
-            )
-        )
-
-
-        print(
-            "DEBUG PROMPT READY"
-        )
-
-
-        # =========================
-        # 11. AI Coach
-        # =========================
-
-        ai_result = (
-            generate_ai_summary(
-                ai_prompt
-            )
-        )
-
-
-        print(
-            "DEBUG RAW AI:",
-            repr(
-                ai_result
-            )
-        )
-
-
-        # =========================
-        # 12. 解析AI
-        # =========================
-
-        import json
-
-
-        ai_report = ""
-
-        training_advice = ""
-
-        risk_warning = ""
-
-
-        try:
-
-            if isinstance(
-                ai_result,
-                dict
-            ):
-
-                coach_json = (
-                    ai_result
-                )
-
-
-            else:
-
-                raw = str(
-                    ai_result
-                ).strip()
-
-
-                if raw.startswith(
-                    "```"
-                ):
-
-                    raw = raw.replace(
-                        "```json",
-                        ""
-                    )
-
-                    raw = raw.replace(
-                        "```",
-                        ""
-                    )
-
-                    raw = raw.strip()
-
-
-                coach_json = (
-                    json.loads(
-                        raw
-                    )
-                )
-
-
-            ai_report = (
-                coach_json.get(
-                    "ai_report",
-                    ""
-                )
-            )
-
-
-            training_advice = (
-                coach_json.get(
-                    "training_advice",
-                    ""
-                )
-            )
-
-
-            risk_warning = (
-                coach_json.get(
-                    "risk_warning",
-                    ""
-                )
-            )
-
-
-        except Exception as e:
-
-            print(
-                "JSON PARSE ERROR:",
-                e
-            )
-
-            print(
-                "FAILED AI:",
-                repr(
-                    ai_result
-                )
-            )
-
-
-            ai_report = str(
-                ai_result
-            )
-
-
-        # =========================
-        # 13. 保存日报
-        # =========================
-
-        saved = (
-            save_daily_coach_report(
-
-                metrics,
-
-                training_load,
-
-                ai_report,
-
-                training_advice,
-
-                risk_warning,
-
-                menstrual_data,
-
-                temperature_data,
-
-                injury_data,
-
-                max_hang_status,
-
-                max_hang_decision,
-
-                strain_plan,
-
-                training_readiness
-
-            )
-        )
-
-
-        if not saved:
-
-            raise RuntimeError(
-                "daily_coach_reports 保存失败"
-            )
-
-
-        print(
-            "AI COACH GENERATED"
-        )
-
-        print(
-            "========== DAILY REPORT SUCCESS =========="
-        )
-
-
-        # =========================
-        # 14. 返回
-        # =========================
-
-        return jsonify({
-
-            "status":
-                "daily report generated",
-
-            "report":
-                report,
-
-            "coach":
-                ai_report,
-
-            "training_advice":
-                training_advice,
-
-            "risk_warning":
-                risk_warning,
-
-            "metrics":
-                metrics,
-
-            "menstrual":
-                menstrual_data,
-
-            "temperature":
-                temperature_data,
-
-            "injury":
-                injury_data,
-
-            "max_hang_status":
-                max_hang_status,
-
-            "max_hang_decision":
-                max_hang_decision,
-
-            "strain_plan":
-                strain_plan,
-
-            "training_readiness":
-                training_readiness
-
-        })
+        return jsonify(
+            result
+        ), 200
 
 
     except Exception as e:
