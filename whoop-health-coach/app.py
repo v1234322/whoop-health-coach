@@ -4500,6 +4500,71 @@ def get_whoop_coach_report():
             conn.close()
 
 
+def validate_weekly_output(
+    text
+):
+
+    if text is None:
+        text = ""
+
+    text = str(
+        text
+    )
+
+
+    forbidden_patterns = [
+
+        "明天：",
+        "明天:",
+        "后天：",
+        "后天:",
+        "随后1-2天",
+        "随后 1-2 天",
+        "未来1-2天",
+        "未来 1-2 天",
+        "第2天",
+        "第3天",
+        "下一天",
+
+        "明天休息",
+        "明天低负荷",
+        "明天恢复",
+        "明天技术攀岩",
+
+        "恢复后安排质量日",
+        "状态改善后安排一个质量日",
+
+        "今天结束负荷 → 明天恢复",
+        "今天结束负荷 -> 明天恢复",
+        "明天恢复/低负荷"
+    ]
+
+
+    violations = []
+
+
+    for pattern in forbidden_patterns:
+
+        if pattern in text:
+
+            violations.append(
+                pattern
+            )
+
+
+    return {
+
+        "valid":
+            len(
+                violations
+            ) == 0,
+
+        "violations":
+            violations
+
+    }
+
+
 @app.route("/api/whoop/weekly-coach-report",methods=["GET"])
 @require_chatgpt_api_key
 def api_whoop_weekly_coach_report():
@@ -4566,7 +4631,6 @@ def api_whoop_weekly_coach_report():
         # 3. 调用 AI
         # =========================
 
-        
         print("\n")
         print("=" * 80)
         print("FINAL WEEKLY PROMPT SENT TO AI")
@@ -4574,7 +4638,12 @@ def api_whoop_weekly_coach_report():
         print(prompt_text)
         print("=" * 80)
         print("\n")
-        
+
+
+        # =========================
+        # 3.1 第一次生成 Weekly
+        # =========================
+
         ai_result = (
             generate_ai_summary(
                 prompt_text
@@ -4583,11 +4652,224 @@ def api_whoop_weekly_coach_report():
 
 
         print(
-            "WEEKLY AI RAW:",
+            "WEEKLY AI FIRST RESULT:",
             repr(ai_result)
         )
 
 
+        # =========================
+        # 3.2 提取第一次 AI 文本
+        #     用于验证
+        # =========================
+
+        if isinstance(
+            ai_result,
+            dict
+        ):
+
+            first_ai_text = (
+                ai_result.get(
+                    "ai_report"
+                )
+                or ai_result.get(
+                    "report"
+                )
+                or ai_result.get(
+                    "content"
+                )
+                or str(ai_result)
+            )
+
+        else:
+
+            first_ai_text = str(
+                ai_result
+            )
+
+
+        # =========================
+        # 3.3 验证 Weekly 输出
+        # =========================
+
+        validation = (
+            validate_weekly_output(
+                first_ai_text
+            )
+        )
+
+
+        print(
+            "WEEKLY OUTPUT VALIDATION:",
+            validation
+        )
+
+
+        # =========================
+        # 3.4 如果违规
+        #     自动重写一次
+        # =========================
+
+        if not validation.get(
+            "valid",
+            False
+        ):
+
+            violations = (
+                validation.get(
+                    "violations",
+                    []
+                )
+            )
+
+
+            print(
+                "WEEKLY OUTPUT VIOLATIONS:",
+                violations
+            )
+
+
+            rewrite_prompt = f"""
+你正在修正一份 Weekly Coach 报告。
+
+下面的原始报告违反了 Weekly Coach 的未来训练决策边界。
+
+==============================
+原始 Weekly Coach 报告
+==============================
+
+{first_ai_text}
+
+
+==============================
+检测到的违规表达
+==============================
+
+{violations}
+
+
+==============================
+必须遵守的重写规则
+==============================
+
+Weekly Coach 的职责是：
+
+1. 总结最近7天趋势。
+2. 分析恢复和训练负荷背景。
+3. 提供未来训练的“决策条件”。
+4. 不替未来某个具体日期决定训练内容。
+
+
+禁止使用未来日期或顺序日期来安排训练，例如：
+
+- 明天
+- 后天
+- 随后1-2天
+- 未来1-2天
+- 第2天
+- 第3天
+- 下一天
+
+
+禁止输出类似：
+
+“明天休息”
+“明天恢复”
+“明天低负荷”
+“明天技术攀岩”
+“随后1-2天安排质量训练”
+“状态改善后安排一个质量日”
+“今天结束负荷 → 明天恢复 → 后天质量训练”
+
+
+未来训练必须表达为“条件决策”。
+
+例如：
+
+“下一训练日重新读取最新 Daily Coach，
+根据当天 Recovery、HRV、静息心率、睡眠、
+局部疲劳和 Training Readiness
+决定当天训练类型和强度。”
+
+
+对于质量训练：
+
+只有当最新 Daily Coach 显示整体恢复支持，
+同时局部手指、肘部和前臂状态正常时，
+才考虑较高质量攀岩或力量训练。
+
+
+对于降低负荷：
+
+如果最新恢复指标下降，
+或局部疲劳明显升高，
+则由当天 Daily Coach 决定降低训练负荷、
+进行恢复训练或休息。
+
+
+对于 Max Hang：
+
+Weekly Coach 不得指定 Max Hang 的未来执行日期。
+
+是否执行 Max Hang，
+必须由计划训练当天最新的
+Max Hang Decision 决定。
+
+
+最终训练框架应该表达为：
+
+当前训练状态
+→ 下一训练日重新读取 Daily Coach
+→ 根据当天状态决定训练类型和强度
+→ 满足质量训练条件时再考虑质量训练
+→ Max Hang 由执行当天专项决策决定。
+
+
+不得预测未来具体的：
+
+- Recovery
+- HRV
+- 静息心率
+- Sleep Score
+
+
+请完整重写原报告。
+
+只输出最终重写后的 Weekly Coach 报告。
+使用简体中文。
+"""
+
+
+            rewritten_result = (
+                generate_ai_summary(
+                    rewrite_prompt
+                )
+            )
+
+
+            print(
+                "WEEKLY AI REWRITTEN RESULT:",
+                repr(
+                    rewritten_result
+                )
+            )
+
+
+            # 使用重写后的结果
+            ai_result = (
+                rewritten_result
+            )
+
+
+        # =========================
+        # 3.5 最终 AI 结果
+        # =========================
+
+        print(
+            "WEEKLY AI RAW:",
+            repr(ai_result)
+        )
+
+     
         # =========================
         # 4. 提取 AI 文本
         # =========================
