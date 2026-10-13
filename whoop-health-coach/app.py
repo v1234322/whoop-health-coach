@@ -256,7 +256,11 @@ def sync_once():
             cur.execute('SELECT pg_try_advisory_lock(81613003)')
             if not cur.fetchone()[0]:
                 return
-        start = (datetime.now(timezone.utc)-timedelta(days=30)).isoformat()
+        with db() as conn, conn.cursor() as cur:
+            cur.execute("SELECT data FROM mini_metadata WHERE kind='history_loaded'")
+            history_loaded = bool(cur.fetchone())
+        lookback = 30 if history_loaded else 360
+        start = (datetime.now(timezone.utc)-timedelta(days=lookback)).isoformat()
         all_records = {}
         for kind, path in [('sleep','/activity/sleep'), ('recovery','/recovery'),
                            ('workout','/activity/workout'), ('cycle','/cycle')]:
@@ -264,6 +268,7 @@ def sync_once():
         metadata = {kind: fetch_object(path) for kind, path in
                     [('profile', '/user/profile/basic'), ('body', '/user/measurement/body')]}
         with db() as conn, conn.cursor() as cur:
+            metadata['history_loaded'] = True
             for kind, value in metadata.items():
                 cur.execute('INSERT INTO mini_metadata VALUES(%s,%s) ON CONFLICT(kind) DO UPDATE SET data=EXCLUDED.data', (kind, Json(value)))
             for kind, records in all_records.items():
