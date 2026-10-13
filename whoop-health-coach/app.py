@@ -249,9 +249,31 @@ def fetch_object(path):
     raise ValueError('metadata_fetch_failed')
 
 
+def safe_sync_reason(exc, stage):
+    if isinstance(exc, ValueError) and exc.args == ('needs_authorization',):
+        return '需要重新授权 WHOOP'
+    if isinstance(exc, requests.exceptions.HTTPError):
+        code = exc.response.status_code if exc.response is not None else 0
+        label = {400:'请求参数未被接受',401:'授权失效',403:'缺少接口权限',404:'接口或记录未找到',429:'请求频率受限'}.get(code,'WHOOP 服务异常')
+        return f'{stage}：{label}（HTTP {code}）'
+    if isinstance(exc, requests.exceptions.Timeout):
+        return stage + '：WHOOP 请求超时，稍后重试'
+    if isinstance(exc, requests.exceptions.ConnectionError):
+        return stage + '：无法连接 WHOOP，稍后重试'
+    if isinstance(exc, psycopg2.Error):
+        return stage + '：数据库操作失败，请检查数据库状态'
+    if isinstance(exc, (KeyError, TypeError)):
+        return stage + '：返回数据格式不符合预期'
+    if isinstance(exc, ValueError) and exc.args == ('pagination_limit',):
+        return stage + '：历史数据超过单次分页限制'
+    return stage + '：同步失败（' + type(exc).__name__ + '）'
+
+
 def sync_once():
-    lock_conn = db()
+    lock_conn = None
+    stage = '连接数据库'
     try:
+        lock_conn = db()
         with lock_conn.cursor() as cur:
             cur.execute('SELECT pg_try_advisory_lock(81613003)')
             if not cur.fetchone()[0]:
@@ -264,9 +286,24 @@ def sync_once():
         all_records = {}
         for kind, path in [('sleep','/activity/sleep'), ('recovery','/recovery'),
                            ('workout','/activity/workout'), ('cycle','/cycle')]:
+            stage = {'sleep':'睡眠数据','recovery':'恢复数据','workout':'运动数据','cycle':'身体负荷数据'}[kind]
             all_records[kind] = fetch_records(path, start)
-        metadata = {kind: fetch_object(path) for kind, path in
-                    [('profile', '/user/profile/basic'), ('body', '/user/measurement/body')]}
+        metadata = {}
+        warnings = []
+        for kind, path, label in [('profile','/user/profile/basic','个人资料'), ('body','/user/measurement/body','身体测量')]:
+            try:
+                value = fetch_object(path)
+                if value is None:
+                    warnings.append(label + '：缺少权限，请重新授权')
+                    metadata[kind] = None
+                else:
+                    metadata[kind] = value
+            except Exception as exc:
+                warning = safe_sync_reason(exc, label)
+                warnings.append(warning)
+                log.warning('%s', warning)
+        metadata['warnings'] = warnings
+        stage = '保存同步数据'
         with db() as conn, conn.cursor() as cur:
             metadata['history_loaded'] = True
             for kind, value in metadata.items():
@@ -282,16 +319,17 @@ def sync_once():
               (datetime.now(timezone.utc).isoformat(),))
         log.info('WHOOP sync completed')
     except Exception as exc:
-        reason = '需要重新授权 WHOOP' if str(exc) == 'needs_authorization' else '同步失败，后台将自动重试'
+        reason = safe_sync_reason(exc, stage)
         try:
             with db() as conn, conn.cursor() as cur:
                 cur.execute('''INSERT INTO mini_sync_status VALUES(1,NULL,%s)
                   ON CONFLICT(id) DO UPDATE SET last_error=EXCLUDED.last_error''', (reason,))
         except Exception:
             pass
-        log.warning('WHOOP sync failed (details suppressed)')
+        log.warning('WHOOP sync failed: %s', reason)
     finally:
-        lock_conn.close()
+        if lock_conn is not None:
+            lock_conn.close()
 
 
 @app.get('/api/dashboard')
@@ -313,7 +351,7 @@ def dashboard():
     return jsonify(connected=connected, last_sync=status[0] if status else None,
                    sync_error=status[1] if status else None, records=data,
                    profile=metadata.get('profile'), body=metadata.get('body'),
-                   metadata_warning='请重新授权，以读取个人资料和身体测量' if any(metadata.get(k) is None for k in ['profile','body']) else '')
+                   metadata_warning='；'.join(metadata.get('warnings') or []) or ('请重新授权，以读取个人资料和身体测量' if any(metadata.get(k) is None for k in ['profile','body']) else ''))
 
 
 @app.post('/api/sync')
