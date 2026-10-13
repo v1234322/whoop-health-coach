@@ -1328,11 +1328,6 @@ def callback():
     )
 
 
-    print(
-        "TOKEN RESPONSE:",
-        response.text
-    )
-
 
     response.raise_for_status()
 
@@ -15942,17 +15937,6 @@ def whoop_token():
 
         timeout=30
 
-    )
-
-
-
-    print(
-        "TOKEN RESPONSE:"
-    )
-
-
-    print(
-        r.text
     )
 
 
