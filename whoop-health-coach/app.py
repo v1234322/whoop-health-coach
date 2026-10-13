@@ -198,7 +198,7 @@ def load_refresh_token():
 
 
     print("TOKEN DATABASE CHECK:")
-    print("DB TOKEN ROW:", row)
+    pass  # Sensitive log removed
 
 
     cur.close()
@@ -452,10 +452,7 @@ def get_access_token():
         row = cur.fetchone()
 
 
-        print(
-            "DATABASE ACCESS TOKEN RESULT:",
-            row
-        )
+        pass  # Sensitive log removed
 
 
         if row and row[0]:
@@ -615,10 +612,7 @@ def refresh_access_token():
         response.status_code
     )
 
-    print(
-        "REFRESH RESPONSE:",
-        response.text
-    )
+    pass  # Sensitive log removed
 
 
     if response.status_code != 200:
@@ -748,10 +742,7 @@ def whoop_get(endpoint):
         )
 
 
-    print(
-        "WHOOP RESPONSE:",
-        r.text[:1000]
-    )
+    pass  # Sensitive log removed
 
 
     r.raise_for_status()
@@ -1273,24 +1264,15 @@ ensure_refresh_token()
 @app.route("/callback")
 def callback():
 
-    print(
-        "CALLBACK URL:",
-        request.url
-    )
+    pass  # Sensitive log removed
 
     code = request.args.get("code")
 
     state = request.args.get("state")
 
-    print(
-        "CODE:",
-        code
-    )
+    pass  # Sensitive log removed
 
-    print(
-        "STATE:",
-        state
-    )
+    pass  # Sensitive log removed
 
 
     if not code:
@@ -1388,7 +1370,7 @@ def whoop_login():
 
 
     print("WHOOP AUTH URL:")
-    print(auth_url)
+    pass  # Sensitive log removed
 
 
     return redirect(auth_url)
