@@ -20,7 +20,7 @@ app.config.update(SESSION_COOKIE_SECURE=True, SESSION_COOKIE_HTTPONLY=True,
 BASE = os.environ.get('PUBLIC_BASE_URL', 'https://whoop-health-coach.onrender.com').rstrip('/')
 WHOOP = 'https://api.prod.whoop.com/developer/v2'
 TOKEN = 'https://api.prod.whoop.com/oauth/oauth2/token'
-SCOPES = 'read:sleep read:recovery read:workout read:cycles offline'
+SCOPES = 'read:sleep read:recovery read:workout read:cycles read:profile read:body_measurement offline'
 signer = URLSafeTimedSerializer(app.secret_key, salt='wechat-personal')
 log = logging.getLogger('whoop')
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +40,8 @@ def initialize():
           CREATE TABLE IF NOT EXISTS mini_records
           (kind TEXT NOT NULL, record_id TEXT NOT NULL, data JSONB NOT NULL,
            PRIMARY KEY(kind,record_id));
+          CREATE TABLE IF NOT EXISTS mini_metadata
+          (kind TEXT PRIMARY KEY, data JSONB NOT NULL);
           CREATE TABLE IF NOT EXISTS mini_sync_status
           (id INTEGER PRIMARY KEY CHECK(id=1), last_success TEXT,
            last_error TEXT);''')
@@ -230,6 +232,23 @@ def fetch_records(path, start):
     raise ValueError('pagination_limit')
 
 
+def fetch_object(path):
+    token = access_token()
+    for attempt in range(3):
+        res = requests.get(WHOOP + path, headers={'Authorization': 'Bearer ' + token}, timeout=30)
+        if res.status_code == 401 and attempt == 0:
+            token = access_token(force=True)
+            continue
+        if res.status_code == 403:
+            return None
+        if (res.status_code == 429 or res.status_code >= 500) and attempt < 2:
+            time.sleep(2 ** (attempt + 1))
+            continue
+        res.raise_for_status()
+        return res.json()
+    raise ValueError('metadata_fetch_failed')
+
+
 def sync_once():
     lock_conn = db()
     try:
@@ -242,7 +261,11 @@ def sync_once():
         for kind, path in [('sleep','/activity/sleep'), ('recovery','/recovery'),
                            ('workout','/activity/workout'), ('cycle','/cycle')]:
             all_records[kind] = fetch_records(path, start)
+        metadata = {kind: fetch_object(path) for kind, path in
+                    [('profile', '/user/profile/basic'), ('body', '/user/measurement/body')]}
         with db() as conn, conn.cursor() as cur:
+            for kind, value in metadata.items():
+                cur.execute('INSERT INTO mini_metadata VALUES(%s,%s) ON CONFLICT(kind) DO UPDATE SET data=EXCLUDED.data', (kind, Json(value)))
             for kind, records in all_records.items():
                 for record in records:
                     identity = record.get('cycle_id') if kind == 'recovery' else record['id']
@@ -274,6 +297,8 @@ def dashboard():
         data = {k: [] for k in ['sleep','recovery','workout','cycle']}
         for kind, record in cur.fetchall():
             data[kind].append(record)
+        cur.execute('SELECT kind,data FROM mini_metadata')
+        metadata = dict(cur.fetchall())
         cur.execute('SELECT last_success,last_error FROM mini_sync_status WHERE id=1')
         status = cur.fetchone()
         cur.execute('SELECT 1 FROM mini_tokens WHERE id=1')
@@ -281,7 +306,9 @@ def dashboard():
     for records in data.values():
         records.sort(key=lambda r: r.get('start') or r.get('created_at') or '', reverse=True)
     return jsonify(connected=connected, last_sync=status[0] if status else None,
-                   sync_error=status[1] if status else None, records=data)
+                   sync_error=status[1] if status else None, records=data,
+                   profile=metadata.get('profile'), body=metadata.get('body'),
+                   metadata_warning='请重新授权，以读取个人资料和身体测量' if any(metadata.get(k) is None for k in ['profile','body']) else '')
 
 
 @app.post('/api/sync')
